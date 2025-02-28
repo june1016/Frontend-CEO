@@ -35,7 +35,7 @@ export default function SignupForm() {
     defaultValues: {
       name: "",
       lastName: "",
-      gmail: "",
+      email: "",
       password: "",
       confirmPassword: "",
     },
@@ -48,12 +48,12 @@ export default function SignupForm() {
       const response = await authService.register({
         name: data.name,
         lastName: data.lastName,
-        gmail: data.gmail,
+        email: data.email,
         password: data.password,
       });
 
       if (response.ok) {
-        navigate("/login");
+        navigate("/register");
       } else {
         setError(
           "No se pudo completar el registro. Por favor, intente nuevamente."
@@ -154,9 +154,9 @@ export default function SignupForm() {
           required
           fullWidth
           label="Correo electrónico"
-          {...register("gmail")}
-          error={!!errors.gmail}
-          helperText={errors.gmail?.message}
+          {...register("email")}
+          error={!!errors.email}
+          helperText={errors.email?.message}
           sx={inputStyles}
         />
 

@@ -26,7 +26,7 @@ export default function ForgotPasswordForm() {
   } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
-      gmail: "",
+      email: "",
     },
   });
 
@@ -34,7 +34,7 @@ export default function ForgotPasswordForm() {
     try {
       setIsLoading(true);
       setError("");
-      const response = await authService.requestPasswordReset(data.gmail);
+      const response = await authService.requestPasswordReset(data.email);
 
       if (response.ok) {
         setIsSubmitted(true);
@@ -161,9 +161,9 @@ export default function ForgotPasswordForm() {
           fullWidth
           label="Correo electrónico"
           placeholder="ejemplo@correo.com"
-          {...register("gmail")}
-          error={!!errors.gmail}
-          helperText={errors.gmail?.message}
+          {...register("email")}
+          error={!!errors.email}
+          helperText={errors.email?.message}
           sx={inputStyles}
         />
 

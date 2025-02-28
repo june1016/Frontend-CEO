@@ -33,7 +33,7 @@ export default function LoginForm() {
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      gmail: "",
+      email: "",
       password: "",
       remember: false,
     },
@@ -44,7 +44,7 @@ export default function LoginForm() {
       setIsLoading(true);
       setError("");
       const response = await authService.login({
-        gmail: data.gmail,
+        email: data.email,
         password: data.password,
       });
 
@@ -128,14 +128,14 @@ export default function LoginForm() {
           margin="normal"
           required
           fullWidth
-          id="gmail"
+          id="email"
           label="Correo electrónico"
-          {...register("gmail")}
+          {...register("email")}
           autoComplete="email"
           autoFocus
           placeholder="esteban_schiller@gmail.com"
-          error={!!errors.gmail}
-          helperText={errors.gmail?.message}
+          error={!!errors.email}
+          helperText={errors.email?.message}
           sx={inputStyles}
         />
 
