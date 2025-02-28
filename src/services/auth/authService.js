@@ -36,10 +36,10 @@ export const authService = {
     return response.data;
   },
 
-  requestPasswordReset: async (gmail) => {
+  requestPasswordReset: async (email) => {
     const response = await axiosInstance.post(
-      "/auth/reset-password-with-gmail",
-      { gmail }
+      "/auth/reset-password-with-email",
+      { email }
     );
     return response.data;
   },

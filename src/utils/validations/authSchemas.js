@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  gmail: z
+  email: z
     .string()
     .email("Correo electrónico inválido")
     .min(1, "El correo electrónico es requerido"),
@@ -12,7 +12,7 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  gmail: z
+  email: z
     .string()
     .email("Correo electrónico inválido")
     .min(1, "El correo electrónico es requerido"),
@@ -37,7 +37,7 @@ export const registerSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
-  gmail: z
+  email: z
     .string()
     .email("Correo electrónico inválido")
     .min(1, "El correo electrónico es requerido"),
