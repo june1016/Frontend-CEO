@@ -1,8 +1,10 @@
 import React from "react";
 import { Box } from "@mui/material";
+import { Outlet } from "react-router-dom"; // Importar Outlet
 import loginBg from "../assets/images/login-bg.png";
 
-export default function authLayout({ children }) {
+// Cambiar a mayúscula el nombre de la función
+export default function AuthLayout() {
   return (
     <Box
       sx={{
@@ -44,7 +46,7 @@ export default function authLayout({ children }) {
           justifyContent: "center",
         }}
       >
-        {children}
+        <Outlet /> {/* Usar Outlet en lugar de children */}
       </Box>
     </Box>
   );
