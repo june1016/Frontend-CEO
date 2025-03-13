@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -29,9 +29,49 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-const navbar = () => {
+const Navbar = () => {
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [userData, setUserData] = useState({
+    name: "",
+    lastName: "",
+    email: "",
+  });
+
+  // Recuperar datos del usuario al cargar el componente
+  useEffect(() => {
+    const fetchUserData = () => {
+      try {
+        const storedUserData = localStorage.getItem("userData");
+        if (storedUserData) {
+          const parsedData = JSON.parse(storedUserData);
+          setUserData(parsedData);
+        }
+      } catch (error) {
+        console.error("Error al recuperar datos del usuario:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Generar iniciales del usuario
+  const getUserInitials = () => {
+    if (userData.name && userData.lastName) {
+      return `${userData.name.charAt(0)}${userData.lastName.charAt(
+        0
+      )}`.toUpperCase();
+    }
+    return "U"; // "User" si no hay datos
+  };
+
+  // Obtener nombre completo formateado
+  const getFullName = () => {
+    if (userData.name && userData.lastName) {
+      return `${userData.name} ${userData.lastName}`;
+    }
+    return "Usuario";
+  };
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -119,7 +159,7 @@ const navbar = () => {
                 fontWeight: 600,
               }}
             >
-              AP
+              {getUserInitials()}
             </Avatar>
             <Box
               sx={{
@@ -137,7 +177,7 @@ const navbar = () => {
                   color: "text.primary",
                 }}
               >
-                Angie Perez
+                {getFullName()}
               </Typography>
               <Typography
                 variant="caption"
@@ -198,4 +238,4 @@ const navbar = () => {
   );
 };
 
-export default navbar;
+export default Navbar;

@@ -117,12 +117,14 @@ const menuItems = [
   },
 ];
 
-const sidebar = () => {
+const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogout = () => {
+    // Asegurarse de que el logout limpie correctamente las cookies y localStorage
     authService.logout();
+    // Redireccionar al login después de cerrar sesión
     navigate("/login");
   };
 
@@ -240,4 +242,4 @@ const sidebar = () => {
   );
 };
 
-export default sidebar;
+export default Sidebar;

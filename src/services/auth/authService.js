@@ -9,7 +9,14 @@ export const authService = {
       console.log("Respuesta del servidor:", response.data);
 
       if (response.data.ok && response.data.token) {
+        // Guardar el token en cookies
         Cookies.set("authToken", response.data.token);
+
+        // Guardar datos del usuario en localStorage si están disponibles
+        if (response.data.user) {
+          localStorage.setItem("userData", JSON.stringify(response.data.user));
+        }
+
         return response.data;
       } else {
         throw new Error(
@@ -30,12 +37,30 @@ export const authService = {
     }
   },
 
-  // Los demás métodos permanecen igual...
+  // Registro
   register: async (userData) => {
-    const response = await axiosInstance.post("/auth/register", userData);
-    return response.data;
+    try {
+      const response = await axiosInstance.post("/auth/register", userData);
+      if (response.data.ok && response.data.token) {
+        // Guardar token en cookies
+        Cookies.set("authToken", response.data.token);
+
+        // Guardar datos del usuario en localStorage
+        const userToSave = {
+          name: userData.name,
+          lastName: userData.lastName,
+          email: userData.email,
+        };
+        localStorage.setItem("userData", JSON.stringify(userToSave));
+      }
+      return response.data;
+    } catch (error) {
+      console.error("Error en authService.register:", error);
+      throw error;
+    }
   },
 
+  // Solicitar reseteo de contraseña
   requestPasswordReset: async (email) => {
     const response = await axiosInstance.post(
       "/auth/reset-password-with-email",
@@ -44,6 +69,7 @@ export const authService = {
     return response.data;
   },
 
+  // Resetear contraseña
   resetPassword: async (token, password) => {
     const response = await axiosInstance.post(
       `/auth/reset-password?token=${token}`,
@@ -52,7 +78,31 @@ export const authService = {
     return response.data;
   },
 
+  // Cerrar sesión
   logout: () => {
+    // Eliminar el token de cookies
     Cookies.remove("authToken");
+
+    // Eliminar datos del usuario del localStorage
+    localStorage.removeItem("userData");
+
+    // Opcionalmente, eliminar otros datos de sesión
+    sessionStorage.clear();
+  },
+
+  // Verificar si el usuario está autenticado
+  isAuthenticated: () => {
+    return Cookies.get("authToken") !== undefined;
+  },
+
+  // Obtener datos del usuario actual
+  getCurrentUser: () => {
+    try {
+      const userData = localStorage.getItem("userData");
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      console.error("Error al obtener datos del usuario:", error);
+      return null;
+    }
   },
 };
