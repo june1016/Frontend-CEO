@@ -1,4 +1,7 @@
 import { createTheme } from "@mui/material/styles";
+import "@fontsource/nunito-sans/400.css"; // Peso normal
+import "@fontsource/nunito-sans/600.css"; // Semi-bold
+import "@fontsource/nunito-sans/700.css"; // Bold
 
 const dashboardTheme = createTheme({
   typography: {
@@ -90,11 +93,7 @@ const dashboardTheme = createTheme({
     borderRadius: 6,
   },
   components: {
-    MuiCssBaseline: {
-      styleOverrides: `
-        @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap');
-      `,
-    },
+    MuiCssBaseline: {},
     MuiButton: {
       styleOverrides: {
         root: {

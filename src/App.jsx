@@ -18,6 +18,7 @@ import ResetPasswordPage from "./pages/auth/resetPasswordPage";
 
 // Dashboard Pages
 import DashboardPage from "./pages/dashboard/dashboardPage";
+import PlanningPage from "./pages/dashboard/planningPage";
 
 // Componente PrivateRoute para proteger rutas del dashboard
 const PrivateRoute = ({ children }) => {
@@ -105,15 +106,10 @@ function App() {
               element={<DashboardPage />}
             />
 
-            {/* Páginas en desarrollo con placeholders */}
+            {/* Página de Planificación reemplazada con componente real */}
             <Route
               path={DASHBOARD_ROUTES.PLANNING}
-              element={
-                <PlaceholderPage
-                  title="Planificación Empresarial"
-                  description="En esta sección podrás gestionar la planificación financiera y operativa de tu empresa, configurando presupuestos e indicadores para lograr tus objetivos."
-                />
-              }
+              element={<PlanningPage />}
             />
             <Route
               path={DASHBOARD_ROUTES.PRE_OPERATION}
