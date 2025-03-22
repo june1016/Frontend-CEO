@@ -38,6 +38,7 @@ export default function BalanceSheetTab() {
     Bancos: "",
     "Cuentas por cobrar": "",
     Inventarios: "",
+    "Inversiones temporales": "",
   });
 
   const [pasivosCorrientes, setPasivosCorrientes] = useState({
@@ -138,14 +139,7 @@ export default function BalanceSheetTab() {
 
   // Función para guardar el presupuesto
   const handleSave = () => {
-    // Verificar si el balance está cuadrado
-    if (Math.abs(totals.balance) >= 0.01) {
-      // Si no está cuadrado, mostrar un mensaje de error
-      alert("El balance no cuadra. Por favor, revise los valores ingresados.");
-      return;
-    }
-
-    // Si el balance está cuadrado, proceder con el guardado
+    // Implementación para guardar el presupuesto
     console.log({
       activosCorrientes,
       pasivosCorrientes,
@@ -184,11 +178,10 @@ export default function BalanceSheetTab() {
                 Balance General Inicial
               </Typography>
               <Typography variant="body2" sx={{ color: "text.primary" }}>
-                En esta sección debe ingresar la información detallada del
-                Balance General Inicial de su empresa. Complete todos los campos
-                correspondientes a Activos, Pasivos y Patrimonio. Recuerde que
-                un balance correctamente cuadrado debe cumplir la fórmula:{" "}
-                <strong>Activos = Pasivos + Patrimonio</strong>.
+                En esta sección puede ingresar la información detallada de su
+                Balance General Inicial. Complete todos los campos
+                correspondientes a Activos, Pasivos y Patrimonio para establecer
+                la situación financiera base de su empresa.
               </Typography>
             </Box>
           </Box>
