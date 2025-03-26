@@ -15,8 +15,17 @@ import {
   TextField,
   Button,
   Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Stepper,
+  Step,
+  StepLabel,
   Paper,
   InputAdornment,
+  Divider,
+  Alert,
   useTheme,
 } from "@mui/material";
 import {
@@ -27,12 +36,17 @@ import {
   AttachMoney as AttachMoneyIcon,
   Savings as SavingsIcon,
   Info as InfoIcon,
+  BarChart as BarChartIcon,
+  Inventory as InventoryIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Calculate as CalculateIcon,
+  Check as CheckIcon,
 } from "@mui/icons-material";
 
 export default function BalanceSheetTab() {
   const theme = useTheme();
 
-  // Estado para cada sección
+  // Estado para cada sección del balance
   const [activosCorrientes, setActivosCorrientes] = useState({
     Caja: "",
     Bancos: "",
@@ -60,7 +74,37 @@ export default function BalanceSheetTab() {
     Capital: "",
   });
 
-  // Calcular totales
+  // Estado para el diálogo de proyecciones
+  const [openProjectionDialog, setOpenProjectionDialog] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+
+  // Estados para las proyecciones
+  const [ventasProyectadas, setVentasProyectadas] = useState({
+    alfaros: { unidades: "", precioUnitario: "", total: 0 },
+    betacos: { unidades: "", precioUnitario: "", total: 0 },
+    gamaroles: { unidades: "", precioUnitario: "", total: 0 },
+  });
+
+  const [costosProyectados, setCostosProyectados] = useState({
+    costoMateriaPrima: "",
+    costoManoObra: "",
+    costosIndirectos: "",
+    total: 0,
+  });
+
+  const [gastosProyectados, setGastosProyectados] = useState({
+    gastosAdministrativos: "",
+    gastosVentas: "",
+    otrosGastos: "",
+    depreciacion: "",
+    total: 0,
+  });
+
+  const [parametrosFinancieros, setParametrosFinancieros] = useState({
+    tasaImpuestos: "30", // Valor predeterminado 30%
+  });
+
+  // Calcular totales del balance
   const [totals, setTotals] = useState({
     activosCorrientes: 0,
     ppe: 0,
@@ -72,31 +116,18 @@ export default function BalanceSheetTab() {
     balance: 0,
   });
 
-  // Actualizar valores de entrada
-  const handleInputChange = (section, account, value) => {
-    // Permitir solo números y punto decimal
-    const numericValue = value.replace(/[^0-9.]/g, "");
+  // Calcular totales de proyecciones
+  const [projectionTotals, setProjectionTotals] = useState({
+    ventasTotal: 0,
+    costosTotal: 0,
+    utilidadBruta: 0,
+    gastosTotal: 0,
+    utilidadOperacional: 0,
+    impuestos: 0,
+    utilidadNeta: 0,
+  });
 
-    switch (section) {
-      case "activosCorrientes":
-        setActivosCorrientes({ ...activosCorrientes, [account]: numericValue });
-        break;
-      case "pasivosCorrientes":
-        setPasivosCorrientes({ ...pasivosCorrientes, [account]: numericValue });
-        break;
-      case "ppe":
-        setPpe({ ...ppe, [account]: numericValue });
-        break;
-      case "pasivosLP":
-        setPasivosLP({ ...pasivosLP, [account]: numericValue });
-        break;
-      case "patrimonio":
-        setPatrimonio({ ...patrimonio, [account]: numericValue });
-        break;
-    }
-  };
-
-  // Calcular todos los totales cuando cambia cualquier entrada
+  // Calcular todos los totales del balance cuando cambia cualquier entrada
   useEffect(() => {
     const calculateTotal = (items) => {
       return Object.values(items).reduce((sum, value) => {
@@ -127,6 +158,201 @@ export default function BalanceSheetTab() {
     });
   }, [activosCorrientes, pasivosCorrientes, ppe, pasivosLP, patrimonio]);
 
+  // Calcular totales de ventas cuando cambian los campos de ventas proyectadas
+  useEffect(() => {
+    // Calcular total para cada producto
+    let newVentasProyectadas = { ...ventasProyectadas };
+    let ventasTotal = 0;
+
+    Object.keys(ventasProyectadas).forEach((producto) => {
+      const unidades = Number(ventasProyectadas[producto].unidades) || 0;
+      const precioUnitario =
+        Number(ventasProyectadas[producto].precioUnitario) || 0;
+      const total = unidades * precioUnitario;
+
+      newVentasProyectadas[producto].total = total;
+      ventasTotal += total;
+    });
+
+    setVentasProyectadas(newVentasProyectadas);
+
+    // Actualizar totales de proyección
+    updateProjectionTotals({ ventasTotal });
+  }, [
+    ventasProyectadas.alfaros.unidades,
+    ventasProyectadas.alfaros.precioUnitario,
+    ventasProyectadas.betacos.unidades,
+    ventasProyectadas.betacos.precioUnitario,
+    ventasProyectadas.gamaroles.unidades,
+    ventasProyectadas.gamaroles.precioUnitario,
+  ]);
+
+  // Calcular total de costos cuando cambian los campos de costos
+  useEffect(() => {
+    const costoMateriaPrima = Number(costosProyectados.costoMateriaPrima) || 0;
+    const costoManoObra = Number(costosProyectados.costoManoObra) || 0;
+    const costosIndirectos = Number(costosProyectados.costosIndirectos) || 0;
+    const costosTotal = costoMateriaPrima + costoManoObra + costosIndirectos;
+
+    setCostosProyectados((prev) => ({ ...prev, total: costosTotal }));
+
+    // Actualizar totales de proyección
+    updateProjectionTotals({ costosTotal });
+  }, [
+    costosProyectados.costoMateriaPrima,
+    costosProyectados.costoManoObra,
+    costosProyectados.costosIndirectos,
+  ]);
+
+  // Calcular total de gastos cuando cambian los campos de gastos
+  useEffect(() => {
+    const gastosAdministrativos =
+      Number(gastosProyectados.gastosAdministrativos) || 0;
+    const gastosVentas = Number(gastosProyectados.gastosVentas) || 0;
+    const otrosGastos = Number(gastosProyectados.otrosGastos) || 0;
+    const depreciacion = Number(gastosProyectados.depreciacion) || 0;
+    const gastosTotal =
+      gastosAdministrativos + gastosVentas + otrosGastos + depreciacion;
+
+    setGastosProyectados((prev) => ({ ...prev, total: gastosTotal }));
+
+    // Actualizar totales de proyección
+    updateProjectionTotals({ gastosTotal });
+  }, [
+    gastosProyectados.gastosAdministrativos,
+    gastosProyectados.gastosVentas,
+    gastosProyectados.otrosGastos,
+    gastosProyectados.depreciacion,
+  ]);
+
+  // Función para actualizar los totales de proyección
+  const updateProjectionTotals = (updatedValues) => {
+    setProjectionTotals((prev) => {
+      // Obtener valores actuales o actualizados
+      const ventasTotal =
+        updatedValues.ventasTotal !== undefined
+          ? updatedValues.ventasTotal
+          : prev.ventasTotal;
+
+      const costosTotal =
+        updatedValues.costosTotal !== undefined
+          ? updatedValues.costosTotal
+          : prev.costosTotal;
+
+      const gastosTotal =
+        updatedValues.gastosTotal !== undefined
+          ? updatedValues.gastosTotal
+          : prev.gastosTotal;
+
+      // Calcular valores derivados
+      const utilidadBruta = ventasTotal - costosTotal;
+      const utilidadOperacional = utilidadBruta - gastosTotal;
+
+      const tasaImpuestos =
+        Number(parametrosFinancieros.tasaImpuestos) / 100 || 0.3;
+      const impuestos = Math.max(0, utilidadOperacional * tasaImpuestos);
+
+      const utilidadNeta = utilidadOperacional - impuestos;
+
+      return {
+        ventasTotal,
+        costosTotal,
+        utilidadBruta,
+        gastosTotal,
+        utilidadOperacional,
+        impuestos,
+        utilidadNeta,
+      };
+    });
+  };
+
+  // Actualizar valores de entrada del balance
+  const handleInputChange = (section, account, value) => {
+    // Permitir solo números y punto decimal
+    const numericValue = value.replace(/[^0-9.]/g, "");
+
+    switch (section) {
+      case "activosCorrientes":
+        setActivosCorrientes({ ...activosCorrientes, [account]: numericValue });
+        break;
+      case "pasivosCorrientes":
+        setPasivosCorrientes({ ...pasivosCorrientes, [account]: numericValue });
+        break;
+      case "ppe":
+        setPpe({ ...ppe, [account]: numericValue });
+        break;
+      case "pasivosLP":
+        setPasivosLP({ ...pasivosLP, [account]: numericValue });
+        break;
+      case "patrimonio":
+        setPatrimonio({ ...patrimonio, [account]: numericValue });
+        break;
+    }
+  };
+
+  // Manejar cambios en los campos de ventas proyectadas
+  const handleVentasChange = (producto, campo, valor) => {
+    // Permitir solo números y punto decimal
+    const numericValue = valor.replace(/[^0-9.]/g, "");
+
+    setVentasProyectadas((prev) => ({
+      ...prev,
+      [producto]: {
+        ...prev[producto],
+        [campo]: numericValue,
+      },
+    }));
+  };
+
+  // Manejar cambios en los campos de costos proyectados
+  const handleCostosChange = (campo, valor) => {
+    // Permitir solo números y punto decimal
+    const numericValue = valor.replace(/[^0-9.]/g, "");
+
+    setCostosProyectados((prev) => ({
+      ...prev,
+      [campo]: numericValue,
+    }));
+  };
+
+  // Manejar cambios en los campos de gastos proyectados
+  const handleGastosChange = (campo, valor) => {
+    // Permitir solo números y punto decimal
+    const numericValue = valor.replace(/[^0-9.]/g, "");
+
+    setGastosProyectados((prev) => ({
+      ...prev,
+      [campo]: numericValue,
+    }));
+  };
+
+  // Manejar cambios en los parámetros financieros
+  const handleParametrosChange = (campo, valor) => {
+    // Permitir solo números y punto decimal
+    const numericValue = valor.replace(/[^0-9.]/g, "");
+
+    setParametrosFinancieros((prev) => ({
+      ...prev,
+      [campo]: numericValue,
+    }));
+
+    // Actualizar cálculos que dependen de la tasa de impuestos
+    if (campo === "tasaImpuestos") {
+      const tasaImpuestos = Number(numericValue) / 100 || 0.3;
+      const impuestos = Math.max(
+        0,
+        projectionTotals.utilidadOperacional * tasaImpuestos
+      );
+      const utilidadNeta = projectionTotals.utilidadOperacional - impuestos;
+
+      setProjectionTotals((prev) => ({
+        ...prev,
+        impuestos,
+        utilidadNeta,
+      }));
+    }
+  };
+
   // Formatear moneda
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("es-CO", {
@@ -145,16 +371,634 @@ export default function BalanceSheetTab() {
       return;
     }
 
-    // Si el balance está cuadrado, proceder con el guardado
+    // Si el balance está cuadrado, abrir el diálogo de proyecciones
+    setOpenProjectionDialog(true);
+  };
+
+  // Pasos del formulario de proyecciones
+  const steps = [
+    "Proyección de Ventas",
+    "Estructura de Costos",
+    "Gastos Operativos",
+    "Resumen Financiero",
+  ];
+
+  // Función para avanzar al siguiente paso
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
+  // Función para retroceder al paso anterior
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  // Función para cerrar el diálogo de proyecciones
+  const handleCloseProjection = () => {
+    setOpenProjectionDialog(false);
+    setActiveStep(0);
+  };
+
+  // Función para finalizar y enviar datos
+  const handleFinish = () => {
+    // Aquí se enviarían los datos al backend
     console.log({
-      activosCorrientes,
-      pasivosCorrientes,
-      ppe,
-      pasivosLP,
-      patrimonio,
-      totals,
+      balance: {
+        activosCorrientes,
+        pasivosCorrientes,
+        ppe,
+        pasivosLP,
+        patrimonio,
+        totals,
+      },
+      proyecciones: {
+        ventas: ventasProyectadas,
+        costos: costosProyectados,
+        gastos: gastosProyectados,
+        parametros: parametrosFinancieros,
+        resultados: projectionTotals,
+      },
     });
-    alert("Presupuesto guardado con éxito");
+
+    // Cerrar el diálogo
+    handleCloseProjection();
+
+    // Mostrar mensaje de éxito
+    alert(
+      "Datos guardados correctamente. Los indicadores financieros iniciales han sido calculados."
+    );
+
+    // Aquí se podría redirigir al usuario a la pestaña de Indicadores Financieros Iniciales
+  };
+
+  // Contenido por paso del diálogo de proyecciones
+  const getStepContent = (step) => {
+    switch (step) {
+      case 0: // Proyección de Ventas
+        return (
+          <Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Proyecte sus ventas mensuales
+            </Typography>
+
+            <Grid container spacing={3}>
+              {["alfaros", "betacos", "gamaroles"].map((producto) => (
+                <Grid item xs={12} key={producto}>
+                  <Card>
+                    <CardHeader
+                      title={
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ textTransform: "capitalize" }}
+                        >
+                          {producto}
+                        </Typography>
+                      }
+                      sx={{ bgcolor: "primary.light", color: "white", py: 1 }}
+                    />
+                    <CardContent>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            Unidades Mensuales
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            value={ventasProyectadas[producto].unidades}
+                            onChange={(e) =>
+                              handleVentasChange(
+                                producto,
+                                "unidades",
+                                e.target.value
+                              )
+                            }
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  u
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            Precio Unitario
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            value={ventasProyectadas[producto].precioUnitario}
+                            onChange={(e) =>
+                              handleVentasChange(
+                                producto,
+                                "precioUnitario",
+                                e.target.value
+                              )
+                            }
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  $
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            Total Mensual
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            value={formatCurrency(
+                              ventasProyectadas[producto].total
+                            )}
+                            disabled
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  $
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                bgcolor: "primary.light",
+                color: "white",
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant="subtitle1">
+                Total Ventas Mensuales: $
+                {formatCurrency(projectionTotals.ventasTotal)}
+              </Typography>
+            </Box>
+          </Box>
+        );
+
+      case 1: // Estructura de Costos
+        return (
+          <Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Defina su estructura de costos mensual
+            </Typography>
+
+            <Card>
+              <CardHeader
+                title={
+                  <Typography variant="subtitle1">
+                    Costos de Producción
+                  </Typography>
+                }
+                sx={{ bgcolor: "error.light", color: "white", py: 1 }}
+              />
+              <CardContent>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Materia Prima
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={costosProyectados.costoMateriaPrima}
+                      onChange={(e) =>
+                        handleCostosChange("costoMateriaPrima", e.target.value)
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Mano de Obra
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={costosProyectados.costoManoObra}
+                      onChange={(e) =>
+                        handleCostosChange("costoManoObra", e.target.value)
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Costos Indirectos
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={costosProyectados.costosIndirectos}
+                      onChange={(e) =>
+                        handleCostosChange("costosIndirectos", e.target.value)
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                bgcolor: "error.light",
+                color: "white",
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant="subtitle1">
+                Total Costos Mensuales: $
+                {formatCurrency(costosProyectados.total)}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                bgcolor: "success.light",
+                color: "white",
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant="subtitle1">
+                Utilidad Bruta Mensual: $
+                {formatCurrency(projectionTotals.utilidadBruta)}
+              </Typography>
+              <Typography variant="body2">
+                Margen Bruto:{" "}
+                {projectionTotals.ventasTotal
+                  ? (
+                      (projectionTotals.utilidadBruta /
+                        projectionTotals.ventasTotal) *
+                      100
+                    ).toFixed(2)
+                  : 0}
+                %
+              </Typography>
+            </Box>
+          </Box>
+        );
+
+      case 2: // Gastos Operativos
+        return (
+          <Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Defina sus gastos operativos mensuales
+            </Typography>
+
+            <Card>
+              <CardHeader
+                title={
+                  <Typography variant="subtitle1">Gastos Operativos</Typography>
+                }
+                sx={{ bgcolor: "secondary.light", color: "white", py: 1 }}
+              />
+              <CardContent>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Gastos Administrativos
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={gastosProyectados.gastosAdministrativos}
+                      onChange={(e) =>
+                        handleGastosChange(
+                          "gastosAdministrativos",
+                          e.target.value
+                        )
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Gastos de Ventas
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={gastosProyectados.gastosVentas}
+                      onChange={(e) =>
+                        handleGastosChange("gastosVentas", e.target.value)
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Otros Gastos
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={gastosProyectados.otrosGastos}
+                      onChange={(e) =>
+                        handleGastosChange("otrosGastos", e.target.value)
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Depreciación Mensual
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={gastosProyectados.depreciacion}
+                      onChange={(e) =>
+                        handleGastosChange("depreciacion", e.target.value)
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                bgcolor: "secondary.light",
+                color: "white",
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant="subtitle1">
+                Total Gastos Mensuales: $
+                {formatCurrency(gastosProyectados.total)}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                bgcolor: "info.light",
+                color: "white",
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant="subtitle1">
+                Utilidad Operacional Mensual: $
+                {formatCurrency(projectionTotals.utilidadOperacional)}
+              </Typography>
+              <Typography variant="body2">
+                Margen Operacional:{" "}
+                {projectionTotals.ventasTotal
+                  ? (
+                      (projectionTotals.utilidadOperacional /
+                        projectionTotals.ventasTotal) *
+                      100
+                    ).toFixed(2)
+                  : 0}
+                %
+              </Typography>
+            </Box>
+          </Box>
+        );
+
+      case 3: // Resumen Financiero
+        return (
+          <Box>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Resumen de Proyecciones Financieras
+            </Typography>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: "100%" }}>
+                  <CardHeader
+                    title={
+                      <Typography variant="subtitle1">
+                        Parámetros Financieros
+                      </Typography>
+                    }
+                    sx={{ bgcolor: "info.light", color: "white", py: 1 }}
+                  />
+                  <CardContent>
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="body2" sx={{ mb: 1 }}>
+                        Tasa de Impuestos (%)
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={parametrosFinancieros.tasaImpuestos}
+                        onChange={(e) =>
+                          handleParametrosChange(
+                            "tasaImpuestos",
+                            e.target.value
+                          )
+                        }
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Box>
+
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      La tasa de impuestos promedio en Colombia es del 30%.
+                    </Alert>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: "100%" }}>
+                  <CardHeader
+                    title={
+                      <Typography variant="subtitle1">
+                        Estado de Resultados Proyectado
+                      </Typography>
+                    }
+                    sx={{ bgcolor: "primary.main", color: "white", py: 1 }}
+                  />
+                  <CardContent>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableBody>
+                          <TableRow>
+                            <TableCell>Ventas Totales</TableCell>
+                            <TableCell align="right">
+                              ${formatCurrency(projectionTotals.ventasTotal)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>(-) Costos Totales</TableCell>
+                            <TableCell
+                              align="right"
+                              sx={{ color: "error.main" }}
+                            >
+                              ${formatCurrency(projectionTotals.costosTotal)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow
+                            sx={{
+                              "& td": {
+                                fontWeight: "bold",
+                                borderTop: "2px solid #ddd",
+                              },
+                            }}
+                          >
+                            <TableCell>Utilidad Bruta</TableCell>
+                            <TableCell
+                              align="right"
+                              sx={{ color: "success.main" }}
+                            >
+                              ${formatCurrency(projectionTotals.utilidadBruta)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>(-) Gastos Operativos</TableCell>
+                            <TableCell
+                              align="right"
+                              sx={{ color: "error.main" }}
+                            >
+                              ${formatCurrency(projectionTotals.gastosTotal)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow
+                            sx={{
+                              "& td": {
+                                fontWeight: "bold",
+                                borderTop: "1px solid #ddd",
+                              },
+                            }}
+                          >
+                            <TableCell>Utilidad Operacional</TableCell>
+                            <TableCell
+                              align="right"
+                              sx={{ color: "primary.main" }}
+                            >
+                              $
+                              {formatCurrency(
+                                projectionTotals.utilidadOperacional
+                              )}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>
+                              (-) Impuestos (
+                              {parametrosFinancieros.tasaImpuestos}%)
+                            </TableCell>
+                            <TableCell
+                              align="right"
+                              sx={{ color: "error.main" }}
+                            >
+                              ${formatCurrency(projectionTotals.impuestos)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow
+                            sx={{
+                              "& td": {
+                                fontWeight: "bold",
+                                fontSize: "1.1em",
+                                borderTop: "2px solid #ddd",
+                              },
+                            }}
+                          >
+                            <TableCell>Utilidad Neta</TableCell>
+                            <TableCell
+                              align="right"
+                              sx={{ color: "success.dark" }}
+                            >
+                              ${formatCurrency(projectionTotals.utilidadNeta)}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+
+                    <Divider sx={{ my: 2 }} />
+
+                    <Box>
+                      <Typography variant="subtitle2">
+                        Indicadores de Rentabilidad:
+                      </Typography>
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="body2">
+                          Margen Neto:{" "}
+                          {projectionTotals.ventasTotal
+                            ? (
+                                (projectionTotals.utilidadNeta /
+                                  projectionTotals.ventasTotal) *
+                                100
+                              ).toFixed(2)
+                            : 0}
+                          %
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+
+            <Box sx={{ mt: 3 }}>
+              <Alert severity="success" icon={<CheckIcon />}>
+                <AlertTitle>Cálculos Completados</AlertTitle>
+                Al finalizar, estos datos serán utilizados para calcular los
+                Indicadores Financieros Iniciales.
+              </Alert>
+            </Box>
+          </Box>
+        );
+
+      default:
+        return "Paso desconocido";
+    }
   };
 
   return (
@@ -804,6 +1648,76 @@ export default function BalanceSheetTab() {
           </Card>
         </CardContent>
       </Card>
+
+      {/* Diálogo de Proyecciones */}
+      <Dialog
+        open={openProjectionDialog}
+        maxWidth="md"
+        fullWidth
+        onClose={handleCloseProjection}
+      >
+        <DialogTitle sx={{ bgcolor: "primary.main", color: "white", py: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <BarChartIcon sx={{ mr: 1 }} />
+            <Typography variant="h6">
+              Proyecciones Iniciales de Operación
+            </Typography>
+          </Box>
+        </DialogTitle>
+
+        <DialogContent sx={{ p: 0 }}>
+          {/* Stepper */}
+          <Stepper
+            activeStep={activeStep}
+            sx={{ p: 3, borderBottom: "1px solid #f0f0f0" }}
+          >
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          <Box sx={{ p: 3 }}>{getStepContent(activeStep)}</Box>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 3 }}>
+          <Button
+            onClick={handleCloseProjection}
+            variant="outlined"
+            color="inherit"
+          >
+            Cancelar
+          </Button>
+
+          <Box sx={{ flex: "1 1 auto" }} />
+
+          {activeStep > 0 && (
+            <Button onClick={handleBack} sx={{ mr: 1 }}>
+              Anterior
+            </Button>
+          )}
+
+          {activeStep === steps.length - 1 ? (
+            <Button
+              onClick={handleFinish}
+              variant="contained"
+              sx={{ bgcolor: theme.palette.success.main }}
+              startIcon={<CheckIcon />}
+            >
+              Finalizar
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              variant="contained"
+              sx={{ bgcolor: theme.palette.primary.main }}
+            >
+              Siguiente
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
