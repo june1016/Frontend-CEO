@@ -45,12 +45,16 @@ export const authService = {
         // Guardar token en cookies
         Cookies.set("authToken", response.data.token);
 
+        const id = response.data.user.id;
+
         // Guardar datos del usuario en localStorage
         const userToSave = {
+          id: id,
           name: userData.name,
           lastName: userData.lastName,
           email: userData.email,
         };
+
         localStorage.setItem("userData", JSON.stringify(userToSave));
       }
       return response.data;

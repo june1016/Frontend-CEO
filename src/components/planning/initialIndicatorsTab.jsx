@@ -193,74 +193,56 @@ const financialIndicatorsData = [
     indicator: "Ingresos por ventas",
     value: 115000000,
     description: "Total de ingresos generados por la venta de productos",
-    icon: MoneyIcon,
-    trend: "up",
-    trendValue: "+8%",
+    icon: MoneyIcon
   },
   {
     indicator: "Costos totales",
     value: 41650000,
     description: "Suma de todos los costos directos de producción",
-    icon: AccountBalanceIcon,
-    trend: "up",
-    trendValue: "+3%",
+    icon: AccountBalanceIcon
   },
   {
     indicator: "Utilidad bruta",
     value: 73350000,
     description: "Ingresos menos costos directos",
-    icon: TrendingUpIcon,
-    trend: "up",
-    trendValue: "+12%",
+    icon: TrendingUpIcon
   },
   {
     indicator: "Gastos Generales",
     value: 38560000,
     description: "Gastos administrativos y operativos",
-    icon: StackedBarChartIcon,
-    trend: "up",
-    trendValue: "+5%",
+    icon: StackedBarChartIcon
   },
   {
     indicator: "Utilidad operacional",
     value: 34790000,
     description: "Utilidad después de gastos operativos",
-    icon: ShowChartIcon,
-    trend: "up",
-    trendValue: "+15%",
+    icon: ShowChartIcon
   },
   {
     indicator: "Impuestos",
     value: 11480700,
     description: "Impuestos sobre la renta y complementarios",
-    icon: BusinessIcon,
-    trend: "up",
-    trendValue: "+2%",
+    icon: BusinessIcon
   },
   {
     indicator: "Utilidad neta",
     value: 23309300,
     description: "Utilidad final después de todos los gastos e impuestos",
-    icon: WalletIcon,
-    trend: "up",
-    trendValue: "+18%",
+    icon: WalletIcon
   },
   {
     indicator: "EBITDA",
     value: 18000000,
     description:
       "Ganancias antes de intereses, impuestos, depreciación y amortización",
-    icon: CalculateIcon,
-    trend: "up",
-    trendValue: "+7%",
+    icon: CalculateIcon
   },
   {
     indicator: "Capital de trabajo",
     value: 8500000,
     description: "Recursos disponibles para operar a corto plazo",
-    icon: WorkIcon,
-    trend: "up",
-    trendValue: "+4%",
+    icon: WorkIcon
   },
 ];
 
@@ -964,16 +946,13 @@ export default function InitialIndicatorsTab() {
                   />
                   <CardContent>
                     <TableContainer component={Paper} variant="outlined">
-                      <Table sx={{ minWidth: 650 }}>
+                      <Table sx={{ minWidth: 850 }}>
                         <TableHead sx={{ bgcolor: "grey.100" }}>
                           <TableRow>
-                            <TableCell sx={{ width: "50%", fontWeight: 600 }}>
+                            <TableCell sx={{ width: "80%", fontWeight: 600 }}>
                               Indicador
                             </TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>
-                              Tendencia
-                            </TableCell>
-                            <TableCell sx={{ fontWeight: 600 }} align="right">
+                            <TableCell sx={{ width: "20%", fontWeight: 600 }} align="right">
                               Valor (COP)
                             </TableCell>
                           </TableRow>
@@ -1029,38 +1008,6 @@ export default function InitialIndicatorsTab() {
                                       </Typography>
                                     </Box>
                                   </Box>
-                                </TableCell>
-                                <TableCell>
-                                  <Chip
-                                    icon={
-                                      item.trend === "up" ? (
-                                        <TrendingUpIcon fontSize="small" />
-                                      ) : (
-                                        <TrendingDownIcon fontSize="small" />
-                                      )
-                                    }
-                                    label={item.trendValue}
-                                    size="small"
-                                    sx={{
-                                      bgcolor:
-                                        item.trend === "up"
-                                          ? "success.light"
-                                          : "error.light",
-                                      color:
-                                        item.trend === "up"
-                                          ? "success.dark"
-                                          : "error.dark",
-                                      fontWeight: 500,
-                                      borderRadius: 1,
-                                      border: "none",
-                                      "& .MuiChip-icon": {
-                                        color:
-                                          item.trend === "up"
-                                            ? "success.dark"
-                                            : "error.dark",
-                                      },
-                                    }}
-                                  />
                                 </TableCell>
                                 <TableCell align="right">
                                   <Typography variant="body2" fontWeight={500}>
