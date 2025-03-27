@@ -38,6 +38,23 @@ import {
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
 
+const iconMapping = {
+  Wallet,
+  Receipt,
+  Apartment,
+  Inventory,
+  Computer,
+  MenuBook,
+  Build,
+  EmojiEvents,
+  CreditCard,
+  Description,
+  AccountBalance,
+  Work,
+  Savings,
+  AttachMoney,
+};
+
 // Configuración de colores por categoría
 const categoryColors = {
   Activos: {
@@ -311,14 +328,14 @@ export default function FinancialDataTab() {
           <TableBody>
             {stableSort(financialData, getComparator(order, orderBy)).map(
               (item, index) => {
-                // const Icon = item.icon;
+                const IconComponent = iconMapping[item.icon] || Computer;
                 return (
                   <TableRow key={item.title} hover>
                     <TableCell>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        {/* <Icon sx={{ color: "text.secondary", fontSize: 20 }} /> */}
+                        <IconComponent sx={{ color: "text.secondary", fontSize: 20 }} />
                         <Typography variant="body2">{item.title}</Typography>
                       </Box>
                     </TableCell>
