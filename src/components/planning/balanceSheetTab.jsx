@@ -42,37 +42,44 @@ import {
   Calculate as CalculateIcon,
   Check as CheckIcon,
 } from "@mui/icons-material";
+import axiosInstance from "../../services/api/axiosConfig";
+import Swal from 'sweetalert2'
+import showAlert from "../helper/functions";
 
 export default function BalanceSheetTab() {
   const theme = useTheme();
 
   // Estado para cada sección del balance
   const [activosCorrientes, setActivosCorrientes] = useState({
-    Caja: "",
-    Bancos: "",
+    "Dinero en caja": "",
+    "Dinero en banco": "",
     "Cuentas por cobrar": "",
-    Inventarios: "",
+    Inventario: "",
   });
 
   const [pasivosCorrientes, setPasivosCorrientes] = useState({
-    "C X P (Cuentas por Pagar)": "",
+    "Cuentas por pagar": "",
     "Letras por pagar": "",
+    "Costos operativos": ""
   });
 
   const [ppe, setPpe] = useState({
     "Muebles y enseres": "",
     Patentes: "",
-    Maquinarias: "",
-    "Equipos oficina": "",
+    "Maquinaria y equipo": "",
+    "Equipos de oficina": "",
   });
 
   const [pasivosLP, setPasivosLP] = useState({
-    "Obligaciones Finan. L.P": "",
+    "Deuda a largo plazo": ""
   });
 
   const [patrimonio, setPatrimonio] = useState({
-    Capital: "",
+    "Capital social": "",
+    "Utilidades retenidas": ""
   });
+
+  const [formattedDataTitles, setFormattedDataTitles] = useState({});
 
   // Estado para el diálogo de proyecciones
   const [openProjectionDialog, setOpenProjectionDialog] = useState(false);
@@ -157,6 +164,30 @@ export default function BalanceSheetTab() {
       balance,
     });
   }, [activosCorrientes, pasivosCorrientes, ppe, pasivosLP, patrimonio]);
+
+  useEffect(() => {
+    const getFinancialTitle = async () => {
+      try {
+        const response = await axiosInstance.get("/financialdata/getDatatitles");
+
+        const financialTitles = response.data.financialTitles;
+
+        const formattedData = financialTitles.reduce((acc, title) => {
+          acc[title.name] = {
+            title_id: title.id,
+            literal_id: title.FinancialData[0]?.literal_id || null,
+          };
+          return acc;
+        }, {});
+
+        setFormattedDataTitles(formattedData);
+      } catch (error) {
+        console.error("Error al obtener datos:", error.message);
+      }
+    };
+
+    getFinancialTitle();
+  }, []);
 
   // Calcular totales de ventas cuando cambian los campos de ventas proyectadas
   useEffect(() => {
@@ -353,6 +384,27 @@ export default function BalanceSheetTab() {
     }
   };
 
+  const userData = JSON.parse(localStorage.getItem("userData")) || null;
+
+  const formatData = () => {
+    const allStates = { activosCorrientes, pasivosCorrientes, ppe, pasivosLP, patrimonio };
+
+    const formattedData = Object.values(allStates).flatMap((category) =>
+      Object.entries(category).map(([name, value]) => {
+        const DataTitles = formattedDataTitles[name];
+
+        return {
+          title_id: DataTitles?.title_id || null,
+          literal_id: DataTitles?.literal_id || null,
+          amount: parseFloat(value) || 0,
+          created_by: userData.id,
+        };
+      })
+    );
+
+    return { financialData: formattedData };
+  };
+
   // Formatear moneda
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("es-CO", {
@@ -362,17 +414,43 @@ export default function BalanceSheetTab() {
     }).format(value);
   };
 
+  const sendFinancialData = async (financialData) => {
+    try {
+      if (!Array.isArray(financialData) || financialData.length === 0) {
+        console.error("El array de datos financieros es requerido.");
+        return;
+      }
+
+      const response = await axiosInstance.post("/financialdata/createfinancialdata", {
+        financialData
+      });
+
+      showAlert("Balance general inicial", "Datos financieros registrados exitosamente", "success", "#1C4384");
+
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message;
+
+      showAlert("Balance general inicial", JSON.stringify(message, null, 2), "error", "#1C4384");
+      console.error("Error al registrar datos financieros:", error.response?.data || error.message);
+    }
+  };
+
   // Función para guardar el presupuesto
-  const handleSave = () => {
+  const handleSave = async () => {
     // Verificar si el balance está cuadrado
     if (Math.abs(totals.balance) >= 0.01) {
       // Si no está cuadrado, mostrar un mensaje de error
-      alert("El balance no cuadra. Por favor, revise los valores ingresados.");
+      showAlert("Balance general inicial", "El balance no cuadra. Por favor, revise los valores ingresados", "error", "#1C4384");
       return;
     }
 
+    const { financialData } = formatData();
+
+    await sendFinancialData(financialData);
+
     // Si el balance está cuadrado, abrir el diálogo de proyecciones
-    setOpenProjectionDialog(true);
+    // setOpenProjectionDialog(true);
   };
 
   // Pasos del formulario de proyecciones
@@ -658,10 +736,10 @@ export default function BalanceSheetTab() {
                 Margen Bruto:{" "}
                 {projectionTotals.ventasTotal
                   ? (
-                      (projectionTotals.utilidadBruta /
-                        projectionTotals.ventasTotal) *
-                      100
-                    ).toFixed(2)
+                    (projectionTotals.utilidadBruta /
+                      projectionTotals.ventasTotal) *
+                    100
+                  ).toFixed(2)
                   : 0}
                 %
               </Typography>
@@ -796,10 +874,10 @@ export default function BalanceSheetTab() {
                 Margen Operacional:{" "}
                 {projectionTotals.ventasTotal
                   ? (
-                      (projectionTotals.utilidadOperacional /
-                        projectionTotals.ventasTotal) *
-                      100
-                    ).toFixed(2)
+                    (projectionTotals.utilidadOperacional /
+                      projectionTotals.ventasTotal) *
+                    100
+                  ).toFixed(2)
                   : 0}
                 %
               </Typography>
@@ -972,10 +1050,10 @@ export default function BalanceSheetTab() {
                           Margen Neto:{" "}
                           {projectionTotals.ventasTotal
                             ? (
-                                (projectionTotals.utilidadNeta /
-                                  projectionTotals.ventasTotal) *
-                                100
-                              ).toFixed(2)
+                              (projectionTotals.utilidadNeta /
+                                projectionTotals.ventasTotal) *
+                              100
+                            ).toFixed(2)
                             : 0}
                           %
                         </Typography>
