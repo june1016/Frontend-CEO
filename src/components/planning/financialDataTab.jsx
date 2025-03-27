@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Card,
@@ -36,94 +36,7 @@ import {
   AttachMoney,
   Info as InfoIcon,
 } from "@mui/icons-material";
-
-// Datos financieros de ejemplo
-const financialData = [
-  {
-    title: "Dinero en caja",
-    category: "Activos",
-    value: 10000000,
-    icon: Wallet,
-  },
-  {
-    title: "Dinero en banco",
-    category: "Activos",
-    value: 50000000,
-    icon: AccountBalance,
-  },
-  {
-    title: "Inventario",
-    category: "Activos",
-    value: 20000000,
-    icon: Inventory,
-  },
-  {
-    title: "Cuentas por cobrar",
-    category: "Activos",
-    value: 15000000,
-    icon: Receipt,
-  },
-  {
-    title: "Equipos de computo",
-    category: "Activos",
-    value: 8000000,
-    icon: Computer,
-  },
-  {
-    title: "Muebles y enseres",
-    category: "Activos",
-    value: 5000000,
-    icon: MenuBook,
-  },
-  {
-    title: "Maquinaria y equipo",
-    category: "Activos",
-    value: 30000000,
-    icon: Build,
-  },
-  {
-    title: "Patentes",
-    category: "Activos",
-    value: 12000000,
-    icon: EmojiEvents,
-  },
-  {
-    title: "Cuentas por pagar",
-    category: "Pasivos",
-    value: 7000000,
-    icon: CreditCard,
-  },
-  {
-    title: "Letras por pagar",
-    category: "Pasivos",
-    value: 4000000,
-    icon: Description,
-  },
-  {
-    title: "Deuda a largo plazo",
-    category: "Pasivos",
-    value: 25000000,
-    icon: Apartment,
-  },
-  {
-    title: "Capital social",
-    category: "Patrimonio",
-    value: 40000000,
-    icon: Work,
-  },
-  {
-    title: "Utilidades retenidas",
-    category: "Patrimonio",
-    value: 10000000,
-    icon: Savings,
-  },
-  {
-    title: "Costos operativos",
-    category: "Otros",
-    value: 30000000,
-    icon: AttachMoney,
-  },
-];
+import axiosInstance from "../../services/api/axiosConfig";
 
 // Configuración de colores por categoría
 const categoryColors = {
@@ -185,6 +98,19 @@ export default function FinancialDataTab() {
   const theme = useTheme();
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("title");
+  const [financialData, setfinancialData] = useState([]);
+
+  useEffect(() => {
+    const getFinancialData = async () => {
+      try {
+        const response = await axiosInstance.get("/financialdata/initialdata");
+        setfinancialData(response.data.financialData);
+      } catch (error) {
+        console.error("Error al obtener datos:", error.message);
+      }
+    };
+    getFinancialData();
+  }, []);
 
   // Handler para solicitar ordenamiento
   const handleRequestSort = (property) => {
@@ -196,24 +122,28 @@ export default function FinancialDataTab() {
   // Calcular totales por categoría
   const totals = useMemo(() => {
     return financialData.reduce((acc, item) => {
-      acc[item.category] = (acc[item.category] || 0) + item.value;
+      // Convertimos a número para asegurarnos de que no se concatene
+      const amount = parseFloat(item.amount);
+  
+      // Si la categoría ya existe, sumamos el amount, si no, la inicializamos
+      acc[item.category] = (acc[item.category] || 0) + amount;
       return acc;
     }, {});
-  }, []);
+  }, [financialData]);
 
   // Formatear moneda
-  const formatCurrency = (value) => {
+  const formatCurrency = (amount) => {
     return new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(value);
+    }).format(amount);
   };
 
   // Formatear en millones
-  const formatMillions = (value) => {
-    return `${Math.round(value / 1000000)}M`;
+  const formatMillions = (amount) => {
+    return `${Math.round(amount / 1000000)}M`;
   };
 
   // Obtener icono por categoría
@@ -359,9 +289,9 @@ export default function FinancialDataTab() {
               </TableCell>
               <TableCell align="right" sx={{ color: "white" }}>
                 <TableSortLabel
-                  active={orderBy === "value"}
-                  direction={orderBy === "value" ? order : "asc"}
-                  onClick={() => handleRequestSort("value")}
+                  active={orderBy === "amount"}
+                  direction={orderBy === "amount" ? order : "asc"}
+                  onClick={() => handleRequestSort("amount")}
                   sx={{
                     "& .MuiTableSortLabel-icon": {
                       color: "white !important",
@@ -381,17 +311,18 @@ export default function FinancialDataTab() {
           <TableBody>
             {stableSort(financialData, getComparator(order, orderBy)).map(
               (item, index) => {
-                const Icon = item.icon;
+                // const Icon = item.icon;
                 return (
                   <TableRow key={item.title} hover>
                     <TableCell>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        <Icon sx={{ color: "text.secondary", fontSize: 20 }} />
+                        {/* <Icon sx={{ color: "text.secondary", fontSize: 20 }} /> */}
                         <Typography variant="body2">{item.title}</Typography>
                       </Box>
                     </TableCell>
+                    {}
                     <TableCell>
                       <Chip
                         label={item.category}
@@ -405,7 +336,7 @@ export default function FinancialDataTab() {
                     </TableCell>
                     <TableCell align="right">
                       <Typography fontWeight={500}>
-                        {formatCurrency(item.value)}
+                        {formatCurrency(item.amount)}
                       </Typography>
                     </TableCell>
                   </TableRow>
