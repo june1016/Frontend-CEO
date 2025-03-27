@@ -26,6 +26,7 @@ import {
   InputAdornment,
   Divider,
   Alert,
+  AlertTitle,
   useTheme,
 } from "@mui/material";
 import {
@@ -46,7 +47,7 @@ import axiosInstance from "../../services/api/axiosConfig";
 import Swal from 'sweetalert2'
 import showAlert from "../helper/functions";
 
-export default function BalanceSheetTab() {
+export default function BalanceSheetTab({ handleTab }) {
   const theme = useTheme();
 
   // Estado para cada sección del balance
@@ -425,8 +426,6 @@ export default function BalanceSheetTab() {
         financialData
       });
 
-      showAlert("Balance general inicial", "Datos financieros registrados exitosamente", "success", "#1C4384");
-
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message;
@@ -436,7 +435,7 @@ export default function BalanceSheetTab() {
     }
   };
 
-  // Función para guardar el presupuesto
+  // Función para el presupuesto
   const handleSave = async () => {
     // Verificar si el balance está cuadrado
     if (Math.abs(totals.balance) >= 0.01) {
@@ -445,12 +444,7 @@ export default function BalanceSheetTab() {
       return;
     }
 
-    const { financialData } = formatData();
-
-    await sendFinancialData(financialData);
-
-    // Si el balance está cuadrado, abrir el diálogo de proyecciones
-    // setOpenProjectionDialog(true);
+    setOpenProjectionDialog(true)
   };
 
   // Pasos del formulario de proyecciones
@@ -478,8 +472,24 @@ export default function BalanceSheetTab() {
   };
 
   // Función para finalizar y enviar datos
-  const handleFinish = () => {
-    // Aquí se enviarían los datos al backend
+  const handleFinish = async () => {
+
+    const { financialData } = formatData();
+
+    const responseFinancialData = await sendFinancialData(financialData);
+
+    if (responseFinancialData?.ok) {
+      showAlert(
+        "Balance general inicial",
+        "Datos financieros registrados exitosamente",
+        "success",
+        "#1C4384",
+        () => handleTab(null, 2)
+      );
+    }
+
+    console.log(responseFinancialData);
+
     console.log({
       balance: {
         activosCorrientes,
@@ -500,13 +510,6 @@ export default function BalanceSheetTab() {
 
     // Cerrar el diálogo
     handleCloseProjection();
-
-    // Mostrar mensaje de éxito
-    alert(
-      "Datos guardados correctamente. Los indicadores financieros iniciales han sido calculados."
-    );
-
-    // Aquí se podría redirigir al usuario a la pestaña de Indicadores Financieros Iniciales
   };
 
   // Contenido por paso del diálogo de proyecciones
