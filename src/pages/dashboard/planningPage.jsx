@@ -33,7 +33,7 @@ function a11yProps(index) {
 export default function PlanningPage() {
   const [value, setValue] = useState(0);
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (_, newValue) => {
     setValue(newValue);
   };
 
@@ -87,7 +87,7 @@ export default function PlanningPage() {
         <FinancialDataTab />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <BalanceSheetTab />
+        <BalanceSheetTab handleTab={handleChange}/>
       </TabPanel>
       <TabPanel value={value} index={2}>
         <InitialIndicatorsTab />
