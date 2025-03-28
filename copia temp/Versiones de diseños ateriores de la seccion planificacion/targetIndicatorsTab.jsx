@@ -15,6 +15,7 @@ import {
   TextField,
   Button,
   Avatar,
+  Paper,
   InputAdornment,
   useTheme,
 } from "@mui/material";
@@ -34,14 +35,14 @@ import {
 export default function TargetIndicatorsTab() {
   const theme = useTheme();
 
-  // State de Margen de Utilidad sobre Costo
+  // State for Margen de Utilidad sobre Costo
   const [margenUtilidad, setMargenUtilidad] = useState({
     "Ingreso por Ventas": "35",
     Betacos: "35",
     Gamaroles: "35",
   });
 
-  // State de Indicadores Objetivo
+  // State for Indicadores Objetivo
   const [indicadoresObjetivo, setIndicadoresObjetivo] = useState({
     "Ingreso por Ventas": "",
     "Costos Totales": "",
@@ -52,7 +53,7 @@ export default function TargetIndicatorsTab() {
     "Utilidad Neta": "",
   });
 
-  // State de Indicadores de Liquidez y Rentabilidad
+  // State for Indicadores de Liquidez y Rentabilidad
   const [indicadoresLiquidez, setIndicadoresLiquidez] = useState({
     "Razón Corriente": "",
     "Margen Bruto": "",
@@ -66,14 +67,14 @@ export default function TargetIndicatorsTab() {
     "Capital de Trabajo": "",
   });
 
-  // Gestionar los cambios para Margen de Utilidad
+  // Handle input changes for Margen de Utilidad
   const handleMargenUtilidadChange = (producto, value) => {
     // Only allow numbers and a single decimal point
     const numericValue = value.replace(/[^0-9.]/g, "");
     setMargenUtilidad({ ...margenUtilidad, [producto]: numericValue });
   };
 
-  //  Gestionar los cambios para Indicadores Objetivo
+  // Handle input changes for Indicadores Objetivo
   const handleIndicadoresObjetivoChange = (indicador, value) => {
     const numericValue = value.replace(/[^0-9.]/g, "");
     setIndicadoresObjetivo({
@@ -82,7 +83,7 @@ export default function TargetIndicatorsTab() {
     });
   };
 
-  //  Gestionar los cambios para Indicadores de Liquidez
+  // Handle input changes for Indicadores de Liquidez
   const handleIndicadoresLiquidezChange = (indicador, value) => {
     const numericValue = value.replace(/[^0-9.]/g, "");
     setIndicadoresLiquidez({
@@ -91,7 +92,7 @@ export default function TargetIndicatorsTab() {
     });
   };
 
-  // Calcular valores derivados
+  // Calculate derived values
   useEffect(() => {
     // Example: Calculate Utilidad Bruta based on Ingreso por Ventas and Costos Totales
     const ingresos =
@@ -107,13 +108,13 @@ export default function TargetIndicatorsTab() {
       }));
     }
 
-    // Aquí podrían añadirse más cálculos
+    // More calculations could be added here
   }, [
     indicadoresObjetivo["Ingreso por Ventas"],
     indicadoresObjetivo["Costos Totales"],
   ]);
 
-  // Formateo de modena
+  // Format currency
   const formatCurrency = (value) => {
     if (!value) return "";
     const numValue = Number.parseFloat(value);
@@ -124,7 +125,7 @@ export default function TargetIndicatorsTab() {
     }).format(numValue);
   };
 
-  // Función de guardar indicadores
+  // Save indicators function
   const handleSave = () => {
     console.log({
       margenUtilidad,
@@ -358,9 +359,20 @@ export default function TargetIndicatorsTab() {
                         ([indicador, valor], index) => {
                           const unidad = "COP";
                           const isCalculated = indicador === "Utilidad Bruta";
+                          const isHighlight = [
+                            "Utilidad Bruta",
+                            "Utilidad Operacional",
+                            "Utilidad Neta",
+                          ].includes(indicador);
 
                           return (
-                            <TableRow key={index} hover>
+                            <TableRow
+                              key={index}
+                              hover
+                              sx={{
+                                bgcolor: isHighlight ? "#F0FFF4" : "inherit",
+                              }}
+                            >
                               <TableCell sx={{ fontWeight: "medium" }}>
                                 {indicador}
                               </TableCell>
@@ -429,8 +441,8 @@ export default function TargetIndicatorsTab() {
                     p: 1.5,
                   }}
                 />
-                <TableContainer>
-                  <Table>
+                <TableContainer sx={{ maxHeight: 440 }}>
+                  <Table stickyHeader>
                     <TableHead sx={{ bgcolor: "#EBF5FF" }}>
                       <TableRow>
                         <TableCell
@@ -463,7 +475,7 @@ export default function TargetIndicatorsTab() {
                     <TableBody>
                       {Object.entries(indicadoresLiquidez).map(
                         ([indicador, valor], index) => {
-                          // Obtener la unidad adecuada para cada indicador
+                          // Get the appropriate unit for each indicator
                           const getUnidad = (ind) => {
                             if (
                               ind === "Razón Corriente" ||
@@ -478,7 +490,7 @@ export default function TargetIndicatorsTab() {
                             return "%";
                           };
 
-                          // Obtener el icono apropiado para cada indicador
+                          // Get the appropriate icon for each indicator
                           const getIcon = (ind) => {
                             if (
                               ind === "EBITDA" ||

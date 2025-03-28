@@ -57,7 +57,7 @@ import {
   ReferenceLine,
 } from "recharts";
 
-// Financial indicator cards data
+// Datos de las cards de indicadores financieros
 const indicatorCards = [
   {
     id: "razon-corriente",
@@ -180,73 +180,73 @@ const indicatorCards = [
   },
 ];
 
-// Product margin data
+// Datos sobre los márgenes de los productos
 const productMarginData = [
   { name: "Alfaros", value: 35, color: "#0AB39C" },
   { name: "Betacos", value: 35, color: "#165BAA" },
   { name: "Gamaroles", value: 35, color: "#F1963A" },
 ];
 
-// Financial indicators table data
+// Datos de la tabla  de indicadores financieros
 const financialIndicatorsData = [
   {
     indicator: "Ingresos por ventas",
     value: 115000000,
     description: "Total de ingresos generados por la venta de productos",
-    icon: MoneyIcon
+    icon: MoneyIcon,
   },
   {
     indicator: "Costos totales",
     value: 41650000,
     description: "Suma de todos los costos directos de producción",
-    icon: AccountBalanceIcon
+    icon: AccountBalanceIcon,
   },
   {
     indicator: "Utilidad bruta",
     value: 73350000,
     description: "Ingresos menos costos directos",
-    icon: TrendingUpIcon
+    icon: TrendingUpIcon,
   },
   {
     indicator: "Gastos Generales",
     value: 38560000,
     description: "Gastos administrativos y operativos",
-    icon: StackedBarChartIcon
+    icon: StackedBarChartIcon,
   },
   {
     indicator: "Utilidad operacional",
     value: 34790000,
     description: "Utilidad después de gastos operativos",
-    icon: ShowChartIcon
+    icon: ShowChartIcon,
   },
   {
     indicator: "Impuestos",
     value: 11480700,
     description: "Impuestos sobre la renta y complementarios",
-    icon: BusinessIcon
+    icon: BusinessIcon,
   },
   {
     indicator: "Utilidad neta",
     value: 23309300,
     description: "Utilidad final después de todos los gastos e impuestos",
-    icon: WalletIcon
+    icon: WalletIcon,
   },
   {
     indicator: "EBITDA",
     value: 18000000,
     description:
       "Ganancias antes de intereses, impuestos, depreciación y amortización",
-    icon: CalculateIcon
+    icon: CalculateIcon,
   },
   {
     indicator: "Capital de trabajo",
     value: 8500000,
     description: "Recursos disponibles para operar a corto plazo",
-    icon: WorkIcon
+    icon: WorkIcon,
   },
 ];
 
-// Custom tooltip for charts
+// Custom tooltip para charts
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -291,7 +291,7 @@ export default function InitialIndicatorsTab() {
   const [selectedIndicator, setSelectedIndicator] = useState(null);
   const carouselRef = useRef(null);
 
-  // Adjust visible cards based on screen size
+  //  Ajuste de las cads visibles en función del tamaño de la pantalla
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1536) {
@@ -952,7 +952,10 @@ export default function InitialIndicatorsTab() {
                             <TableCell sx={{ width: "80%", fontWeight: 600 }}>
                               Indicador
                             </TableCell>
-                            <TableCell sx={{ width: "20%", fontWeight: 600 }} align="right">
+                            <TableCell
+                              sx={{ width: "20%", fontWeight: 600 }}
+                              align="right"
+                            >
                               Valor (COP)
                             </TableCell>
                           </TableRow>

@@ -44,7 +44,7 @@ import {
   Check as CheckIcon,
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
-import Swal from 'sweetalert2'
+import Swal from "sweetalert2";
 import showAlert from "../helper/functions";
 
 export default function BalanceSheetTab({ handleTab }) {
@@ -61,7 +61,7 @@ export default function BalanceSheetTab({ handleTab }) {
   const [pasivosCorrientes, setPasivosCorrientes] = useState({
     "Cuentas por pagar": "",
     "Letras por pagar": "",
-    "Costos operativos": ""
+    "Costos operativos": "",
   });
 
   const [ppe, setPpe] = useState({
@@ -72,12 +72,12 @@ export default function BalanceSheetTab({ handleTab }) {
   });
 
   const [pasivosLP, setPasivosLP] = useState({
-    "Deuda a largo plazo": ""
+    "Deuda a largo plazo": "",
   });
 
   const [patrimonio, setPatrimonio] = useState({
     "Capital social": "",
-    "Utilidades retenidas": ""
+    "Utilidades retenidas": "",
   });
 
   const [formattedDataTitles, setFormattedDataTitles] = useState({});
@@ -169,7 +169,9 @@ export default function BalanceSheetTab({ handleTab }) {
   useEffect(() => {
     const getFinancialTitle = async () => {
       try {
-        const response = await axiosInstance.get("/financialdata/getDatatitles");
+        const response = await axiosInstance.get(
+          "/financialdata/getDatatitles"
+        );
 
         const financialTitles = response.data.financialTitles;
 
@@ -388,7 +390,13 @@ export default function BalanceSheetTab({ handleTab }) {
   const userData = JSON.parse(localStorage.getItem("userData")) || null;
 
   const formatData = () => {
-    const allStates = { activosCorrientes, pasivosCorrientes, ppe, pasivosLP, patrimonio };
+    const allStates = {
+      activosCorrientes,
+      pasivosCorrientes,
+      ppe,
+      pasivosLP,
+      patrimonio,
+    };
 
     const formattedData = Object.values(allStates).flatMap((category) =>
       Object.entries(category).map(([name, value]) => {
@@ -422,16 +430,27 @@ export default function BalanceSheetTab({ handleTab }) {
         return;
       }
 
-      const response = await axiosInstance.post("/financialdata/createfinancialdata", {
-        financialData
-      });
+      const response = await axiosInstance.post(
+        "/financialdata/createfinancialdata",
+        {
+          financialData,
+        }
+      );
 
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message;
 
-      showAlert("Balance general inicial", JSON.stringify(message, null, 2), "error", "#1C4384");
-      console.error("Error al registrar datos financieros:", error.response?.data || error.message);
+      showAlert(
+        "Balance general inicial",
+        JSON.stringify(message, null, 2),
+        "error",
+        "#1C4384"
+      );
+      console.error(
+        "Error al registrar datos financieros:",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -440,11 +459,16 @@ export default function BalanceSheetTab({ handleTab }) {
     // Verificar si el balance está cuadrado
     if (Math.abs(totals.balance) >= 0.01) {
       // Si no está cuadrado, mostrar un mensaje de error
-      showAlert("Balance general inicial", "El balance no cuadra. Por favor, revise los valores ingresados", "error", "#1C4384");
+      showAlert(
+        "Balance general inicial",
+        "El balance no cuadra. Por favor, revise los valores ingresados",
+        "error",
+        "#1C4384"
+      );
       return;
     }
 
-    setOpenProjectionDialog(true)
+    setOpenProjectionDialog(true);
   };
 
   // Pasos del formulario de proyecciones
@@ -473,7 +497,6 @@ export default function BalanceSheetTab({ handleTab }) {
 
   // Función para finalizar y enviar datos
   const handleFinish = async () => {
-
     const { financialData } = formatData();
 
     const responseFinancialData = await sendFinancialData(financialData);
@@ -739,10 +762,10 @@ export default function BalanceSheetTab({ handleTab }) {
                 Margen Bruto:{" "}
                 {projectionTotals.ventasTotal
                   ? (
-                    (projectionTotals.utilidadBruta /
-                      projectionTotals.ventasTotal) *
-                    100
-                  ).toFixed(2)
+                      (projectionTotals.utilidadBruta /
+                        projectionTotals.ventasTotal) *
+                      100
+                    ).toFixed(2)
                   : 0}
                 %
               </Typography>
@@ -877,10 +900,10 @@ export default function BalanceSheetTab({ handleTab }) {
                 Margen Operacional:{" "}
                 {projectionTotals.ventasTotal
                   ? (
-                    (projectionTotals.utilidadOperacional /
-                      projectionTotals.ventasTotal) *
-                    100
-                  ).toFixed(2)
+                      (projectionTotals.utilidadOperacional /
+                        projectionTotals.ventasTotal) *
+                      100
+                    ).toFixed(2)
                   : 0}
                 %
               </Typography>
@@ -1053,10 +1076,10 @@ export default function BalanceSheetTab({ handleTab }) {
                           Margen Neto:{" "}
                           {projectionTotals.ventasTotal
                             ? (
-                              (projectionTotals.utilidadNeta /
-                                projectionTotals.ventasTotal) *
-                              100
-                            ).toFixed(2)
+                                (projectionTotals.utilidadNeta /
+                                  projectionTotals.ventasTotal) *
+                                100
+                              ).toFixed(2)
                             : 0}
                           %
                         </Typography>
