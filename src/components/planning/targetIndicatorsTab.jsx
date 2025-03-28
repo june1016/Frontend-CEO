@@ -36,7 +36,7 @@ export default function TargetIndicatorsTab() {
 
   // State de Margen de Utilidad sobre Costo
   const [margenUtilidad, setMargenUtilidad] = useState({
-    "Ingreso por Ventas": "35",
+    Alfaros: "35",
     Betacos: "35",
     Gamaroles: "35",
   });
