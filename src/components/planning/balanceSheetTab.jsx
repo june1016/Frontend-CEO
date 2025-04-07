@@ -83,10 +83,6 @@ export default function BalanceSheetTab({ handleTab }) {
 
   const [formattedDataTitles, setFormattedDataTitles] = useState({});
 
-  // Estado para el diálogo de proyecciones
-  const [openProjectionDialog, setOpenProjectionDialog] = useState(false);
-  const [activeStep, setActiveStep] = useState(0);
-
   // Estados para las proyecciones
   const [ventasProyectadas, setVentasProyectadas] = useState({
     alfaros: { unidades: "", precioUnitario: "", total: 0 },
@@ -469,7 +465,19 @@ export default function BalanceSheetTab({ handleTab }) {
       return;
     }
 
-    setOpenProjectionDialog(true);
+        const { financialData } = formatData();
+
+    const responseFinancialData = await sendFinancialData(financialData);
+
+    if (responseFinancialData?.ok) {
+      showAlert(
+        "Balance general inicial",
+        "Datos financieros registrados exitosamente",
+        "success",
+        "#1C4384",
+        () => handleTab(null, 2)
+      );
+    }
   };
 
   // Pasos del formulario de proyecciones
@@ -494,46 +502,6 @@ export default function BalanceSheetTab({ handleTab }) {
   const handleCloseProjection = () => {
     setOpenProjectionDialog(false);
     setActiveStep(0);
-  };
-
-  // Función para finalizar y enviar datos
-  const handleFinish = async () => {
-    const { financialData } = formatData();
-
-    const responseFinancialData = await sendFinancialData(financialData);
-
-    if (responseFinancialData?.ok) {
-      showAlert(
-        "Balance general inicial",
-        "Datos financieros registrados exitosamente",
-        "success",
-        "#1C4384",
-        () => handleTab(null, 2)
-      );
-    }
-
-    console.log(responseFinancialData);
-
-    console.log({
-      balance: {
-        activosCorrientes,
-        pasivosCorrientes,
-        ppe,
-        pasivosLP,
-        patrimonio,
-        totals,
-      },
-      proyecciones: {
-        ventas: ventasProyectadas,
-        costos: costosProyectados,
-        gastos: gastosProyectados,
-        parametros: parametrosFinancieros,
-        resultados: projectionTotals,
-      },
-    });
-
-    // Cerrar el diálogo
-    handleCloseProjection();
   };
 
   // Contenido por paso del diálogo de proyecciones
@@ -1753,76 +1721,6 @@ export default function BalanceSheetTab({ handleTab }) {
           </Card>
         </CardContent>
       </Card>
-
-      {/* Diálogo de Proyecciones */}
-      <Dialog
-        open={openProjectionDialog}
-        maxWidth="md"
-        fullWidth
-        onClose={handleCloseProjection}
-      >
-        <DialogTitle sx={{ bgcolor: "primary.main", color: "white", py: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <BarChartIcon sx={{ mr: 1 }} />
-            <Typography variant="h6">
-              Proyecciones Iniciales de Operación
-            </Typography>
-          </Box>
-        </DialogTitle>
-
-        <DialogContent sx={{ p: 0 }}>
-          {/* Stepper */}
-          <Stepper
-            activeStep={activeStep}
-            sx={{ p: 3, borderBottom: "1px solid #f0f0f0" }}
-          >
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-
-          <Box sx={{ p: 3 }}>{getStepContent(activeStep)}</Box>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 3 }}>
-          <Button
-            onClick={handleCloseProjection}
-            variant="outlined"
-            color="inherit"
-          >
-            Cancelar
-          </Button>
-
-          <Box sx={{ flex: "1 1 auto" }} />
-
-          {activeStep > 0 && (
-            <Button onClick={handleBack} sx={{ mr: 1 }}>
-              Anterior
-            </Button>
-          )}
-
-          {activeStep === steps.length - 1 ? (
-            <Button
-              onClick={handleFinish}
-              variant="contained"
-              sx={{ bgcolor: theme.palette.success.main }}
-              startIcon={<CheckIcon />}
-            >
-              Finalizar
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              variant="contained"
-              sx={{ bgcolor: theme.palette.primary.main }}
-            >
-              Siguiente
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }
