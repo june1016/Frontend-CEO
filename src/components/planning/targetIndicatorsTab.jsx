@@ -30,8 +30,10 @@ import {
   Gavel as TargetIcon,
   Info as InfoIcon,
 } from "@mui/icons-material";
+import axiosInstance from "../../services/api/axiosConfig";
+import showAlert from "../helper/functions";
 
-export default function TargetIndicatorsTab() {
+export default function TargetIndicatorsTab({handleTab}) {
   const theme = useTheme();
 
   // State de Margen de Utilidad sobre Costo
@@ -43,28 +45,30 @@ export default function TargetIndicatorsTab() {
 
   // State de Indicadores Objetivo
   const [indicadoresObjetivo, setIndicadoresObjetivo] = useState({
-    "Ingreso por Ventas": "",
-    "Costos Totales": "",
-    "Utilidad Bruta": "",
-    "Gastos Generales": "",
-    "Utilidad Operacional": "",
+    "Ingreso por ventas": "",
+    "Costos totales": "",
+    "Utilidad bruta": "",
+    "Gastos generales": "",
+    "Utilidad operacional": "",
     Impuestos: "",
-    "Utilidad Neta": "",
+    "Utilidad neta": "",
   });
 
   // State de Indicadores de Liquidez y Rentabilidad
   const [indicadoresLiquidez, setIndicadoresLiquidez] = useState({
-    "Razón Corriente": "",
-    "Margen Bruto": "",
-    "Prueba Ácida": "",
-    "Margen Operacional": "",
-    "Margen Neto": "",
+    "Razon corriente": "",
+    "Margen bruto": "",
+    "Prueba acida": "",
+    "Margen operacional": "",
+    "Margen neto": "",
     EBITDA: "",
-    "Nivel de Endeudamiento": "",
-    "Rentabilidad del Patrimonio": "",
-    "Rentabilidad del Activo": "",
-    "Capital de Trabajo": "",
+    "Nivel de endeudamiento": "",
+    "Rentabilidad del patrimonio": "",
+    "Rentabilidad del activo": "",
+    "Capital de trabajo": "",
   });
+
+  const [formattedDataTitles, setFormattedDataTitles] = useState({});
 
   // Gestionar los cambios para Margen de Utilidad
   const handleMargenUtilidadChange = (producto, value) => {
@@ -95,23 +99,52 @@ export default function TargetIndicatorsTab() {
   useEffect(() => {
     // Example: Calculate Utilidad Bruta based on Ingreso por Ventas and Costos Totales
     const ingresos =
-      Number.parseFloat(indicadoresObjetivo["Ingreso por Ventas"]) || 0;
+      Number.parseFloat(indicadoresObjetivo["Ingreso por ventas"]) || 0;
     const costos =
-      Number.parseFloat(indicadoresObjetivo["Costos Totales"]) || 0;
+      Number.parseFloat(indicadoresObjetivo["Costos totales"]) || 0;
 
     if (ingresos > 0 && costos > 0) {
       const utilidadBruta = ingresos - costos;
       setIndicadoresObjetivo((prev) => ({
         ...prev,
-        "Utilidad Bruta": utilidadBruta.toString(),
+        "Utilidad bruta": utilidadBruta.toString(),
       }));
     }
 
     // Aquí podrían añadirse más cálculos
   }, [
-    indicadoresObjetivo["Ingreso por Ventas"],
-    indicadoresObjetivo["Costos Totales"],
+    indicadoresObjetivo["Ingreso por ventas"],
+    indicadoresObjetivo["Costos totales"],
   ]);
+
+  useEffect(() => {
+    const getIndicatorTitles = async () => {
+      try {
+        const response = await axiosInstance.get(
+          "/indicatordata/getIndicatortitles"
+        );
+
+        const indicatorTitles = response.data.indicatorTitles;
+
+        const formattedData = indicatorTitles.reduce((acc, title) => {
+          acc[title.name] = {
+            title_id: title.id,
+            literal_id: title.AnnualObjectiveIndicators?.[0]?.literal_id || null,
+            unit_id: title.AnnualObjectiveIndicators?.[0]?.unit_id || null,
+          };
+          return acc;
+        }, {});
+
+        console.log(indicatorTitles);
+
+        setFormattedDataTitles(formattedData);
+      } catch (error) {
+        console.log("Error al obtener datos:", error.message);
+      }
+    };
+
+    getIndicatorTitles();
+  }, []);
 
   // Formateo de modena
   const formatCurrency = (value) => {
@@ -124,14 +157,87 @@ export default function TargetIndicatorsTab() {
     }).format(numValue);
   };
 
-  // Función de guardar indicadores
-  const handleSave = () => {
-    console.log({
+  const userData = JSON.parse(localStorage.getItem("userData")) || null;
+
+  const formatData = () => {
+    const allIndicators = {
       margenUtilidad,
       indicadoresObjetivo,
       indicadoresLiquidez,
-    });
-    alert("Indicadores guardados con éxito");
+    };
+  
+    const formattedData = Object.values(allIndicators).flatMap((category) =>
+      Object.entries(category)
+        .filter(([name]) => formattedDataTitles[name]) // solo los que existan
+        .map(([name, value]) => {
+          const DataTitles = formattedDataTitles[name];
+          return {
+            title_id: DataTitles.title_id,
+            literal_id: DataTitles.literal_id,
+            unit_id: DataTitles.unit_id,
+            value: parseFloat(value) || 0,
+            created_by: userData.id,
+          };
+        })
+    );
+
+    console.log(formattedData);
+  
+    return { indicators: formattedData };
+  };
+
+  const sendObjetiveIndicators = async (indicators) => {
+    try {
+
+      console.log(indicators);
+
+      if (!Array.isArray(indicators) || indicators.length === 0) {
+        console.error("El array de indicadores es requerido.");
+        return;
+      }
+
+      const response = await axiosInstance.post(
+        "/indicatordata/createindicators",
+        {
+          indicators,
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message;
+
+      showAlert(
+        "Indicadores objetivos anuales",
+        JSON.stringify(message, null, 2),
+        "error",
+        "#1C4384"
+      );
+      console.error(
+        "Error al registrar indicadores objetivos anuales:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  // Función de guardar indicadores
+  const handleSave = async() => {
+
+    const { indicators } = formatData();
+
+    const responseIndicator = await sendObjetiveIndicators(indicators);
+
+    if (responseIndicator?.ok) {
+      showAlert(
+        "Indicadores objetivos anuales",
+        "Indicadores objetivos anuales registrados exitosamente",
+        "success",
+        "#1C4384",
+        () => handleTab(null, 4)
+      );
+    }
+
+    console.log(responseIndicator);
   };
 
   return (
@@ -306,7 +412,7 @@ export default function TargetIndicatorsTab() {
           <Grid container spacing={3}>
             {/* Indicadores Objetivo */}
             <Grid item xs={12} md={6}>
-              <Card sx={{ boxShadow: 1, borderRadius: 1, height: "100%" }}>
+              <Card sx={{ boxShadow: 1, borderRadius: 1, height: "73.5%" }}>
                 <CardHeader
                   title={
                     <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -357,7 +463,7 @@ export default function TargetIndicatorsTab() {
                       {Object.entries(indicadoresObjetivo).map(
                         ([indicador, valor], index) => {
                           const unidad = "COP";
-                          const isCalculated = indicador === "Utilidad Bruta";
+                          const isCalculated = indicador === "Utilidad bruta";
 
                           return (
                             <TableRow key={index} hover>

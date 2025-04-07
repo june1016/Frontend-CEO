@@ -93,7 +93,7 @@ export default function PlanningPage() {
         <InitialIndicatorsTab />
       </TabPanel>
       <TabPanel value={value} index={3}>
-        <TargetIndicatorsTab />
+        <TargetIndicatorsTab handleTab={handleChange}/>
       </TabPanel>
       <TabPanel value={value} index={4}>
         <BudgetTab />
