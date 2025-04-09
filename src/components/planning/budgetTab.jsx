@@ -24,7 +24,7 @@ import ProductionBudgetPlaceholder from "./budget/productionBudgetPlaceholder";
 import MaterialsBudgetPlaceholder from "./budget/materialsBudgetPlaceholder";
 
 // Hooks
-import useBudgetConfiguration from "../../hooks/useBudgetConfiguration";
+import useBudgetConfiguration from "../../hooks/budget/useBudgetConfiguration";
 
 /**
  * Componente principal para la gestión de presupuestos

@@ -11,10 +11,10 @@ import ProductInputForm from "./common/productInputForm";
 import BudgetResultsTable from "./common/budgetResultsTable";
 
 // Hooks
-import useBudgetData from "../../../hooks/useBudgetData";
+import useBudgetData from "../../../hooks/budget/useBudgetData";
 
 // Utils
-import { calculateTotals } from "../../../utils/budgetCalculations";
+import { calculateTotals } from "../../../utils/budget/budgetCalculations";
 
 /**
  * Componente para el presupuesto de ventas
