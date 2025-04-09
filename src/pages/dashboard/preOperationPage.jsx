@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Box, Typography, Tabs, Tab, Tooltip, IconButton } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
-import FinancialDataTab from "../../components/planning/financialDataTab";
-import BalanceSheetTab from "../../components/planning/balanceSheetTab";
-import InitialIndicatorsTab from "../../components/planning/initialIndicatorsTab";
-import TargetIndicatorsTab from "../../components/planning/targetIndicatorsTab";
-import FixedExpensesTab from "../../components/planning/fixedExpensesTab";
+import SuppliersTab from "../../components/preOperation/suppliersTab";
+import BudgetTab from "../../components/preOperation/budgetTab";
+import MachineryTab from "../../components/preOperation/machineryTab";
+import PersonnelTab from "../../components/preOperation/personnelTab";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -14,8 +13,8 @@ function TabPanel(props) {
     <div
       role="tabpanel"
       hidden={value !== index}
-      id={`planning-tabpanel-${index}`}
-      aria-labelledby={`planning-tab-${index}`}
+      id={`pre-operation-tabpanel-${index}`}
+      aria-labelledby={`pre-operation-tab-${index}`}
       {...other}
     >
       {value === index && <Box sx={{ pt: 4 }}>{children}</Box>}
@@ -25,12 +24,12 @@ function TabPanel(props) {
 
 function a11yProps(index) {
   return {
-    id: `planning-tab-${index}`,
-    "aria-controls": `planning-tabpanel-${index}`,
+    id: `pre-operation-tab-${index}`,
+    "aria-controls": `pre-operation-tabpanel-${index}`,
   };
 }
 
-export default function PlanningPage() {
+export default function PreOperationPage() {
   const [value, setValue] = useState(0);
 
   const handleChange = (_, newValue) => {
@@ -41,21 +40,20 @@ export default function PlanningPage() {
     <Box sx={{ p: 4 }}>
       <Box sx={{ mb: 3, display: "flex", alignItems: "center" }}>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          Planificación
+          Pre-Operación
         </Typography>
-        <Tooltip title="En esta sección, podrás gestionar la planificación financiera y operativa de tu empresa. Revisa información financiera relevante, datos históricos e inventarios iniciales, y configura indicadores objetivos alineados a tus metas.">
+        <Tooltip title="Configura todos los aspectos operativos de tu empresa: proveedores, presupuestos, maquinaria y personal.">
           <IconButton size="small" sx={{ ml: 1 }}>
             <InfoIcon fontSize="small" color="primary" />
           </IconButton>
         </Tooltip>
       </Box>
 
-      {/* Solo tabs sin meter todo en una Card */}
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs
           value={value}
           onChange={handleChange}
-          aria-label="planning tabs"
+          aria-label="pre-operation tabs"
           sx={{
             "& .MuiTab-root": {
               textTransform: "none",
@@ -74,30 +72,25 @@ export default function PlanningPage() {
               height: 3,
             },
           }}
-          FixedExpensesTab
         >
-          <Tab label="Datos Financieros" {...a11yProps(0)} />
-          <Tab label="Gastos Fijos Mensuales" {...a11yProps(1)} />
-          <Tab label="Balance General" {...a11yProps(2)} />
-          <Tab label="Indicadores Financieros Iniciales" {...a11yProps(3)} />
-          <Tab label="Indicadores Objs" {...a11yProps(4)} />
+          <Tab label="Proveedores" {...a11yProps(0)} />
+          <Tab label="Presupuestos" {...a11yProps(1)} />
+          <Tab label="Maquinaria" {...a11yProps(2)} />
+          <Tab label="Nómina & Personal" {...a11yProps(3)} />
         </Tabs>
       </Box>
 
       <TabPanel value={value} index={0}>
-        <FinancialDataTab />
+        <SuppliersTab />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <FixedExpensesTab />
+        <BudgetTab />
       </TabPanel>
       <TabPanel value={value} index={2}>
-        <BalanceSheetTab handleTab={handleChange} />
+        <MachineryTab />
       </TabPanel>
       <TabPanel value={value} index={3}>
-        <InitialIndicatorsTab />
-      </TabPanel>
-      <TabPanel value={value} index={4}>
-        <TargetIndicatorsTab handleTab={handleChange} />
+        <PersonnelTab />
       </TabPanel>
     </Box>
   );

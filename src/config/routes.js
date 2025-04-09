@@ -9,7 +9,7 @@ export const AUTH_ROUTES = {
 export const DASHBOARD_ROUTES = {
   DASHBOARD: "/dashboard",
   PLANNING: "/dashboard/planning",
-  PRE_OPERATION: "/dashboard/pre-operation",
+  PRE_OPERATION: "/dashboard/preOperation",
   PRODUCTION: "/dashboard/production",
   INVENTORY: "/dashboard/inventory",
   COMMERCIAL: "/dashboard/commercial",
