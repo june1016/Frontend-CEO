@@ -13,7 +13,7 @@ import {
   TableCell,
 } from "@mui/material";
 import { FileDownload as DownloadIcon } from "@mui/icons-material";
-import { formatNumber } from "../../../../utils/formatters";
+import { formatNumber } from "../../../../utils/formatters/numberFormatters";
 
 /**
  * Componente para mostrar los resultados calculados del presupuesto

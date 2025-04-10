@@ -46,7 +46,7 @@ import {
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
 import Swal from "sweetalert2";
-import showAlert from "../helper/functions";
+import showAlert from "../../utils/alerts/alertHelpers";
 
 export default function BalanceSheetTab({ handleTab }) {
   const theme = useTheme();
@@ -465,7 +465,7 @@ export default function BalanceSheetTab({ handleTab }) {
       return;
     }
 
-        const { financialData } = formatData();
+    const { financialData } = formatData();
 
     const responseFinancialData = await sendFinancialData(financialData);
 

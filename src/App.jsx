@@ -19,7 +19,7 @@ import ResetPasswordPage from "./pages/auth/resetPasswordPage";
 // Dashboard Pages
 import DashboardPage from "./pages/dashboard/dashboardPage";
 import PlanningPage from "./pages/dashboard/planningPage";
-
+import PreOperationPage from "./pages/dashboard/preOperationPage";
 // Componente PrivateRoute para proteger rutas del dashboard
 const PrivateRoute = ({ children }) => {
   const isAuthenticated = Cookies.get("authToken") !== undefined;
@@ -113,12 +113,7 @@ function App() {
             />
             <Route
               path={DASHBOARD_ROUTES.PRE_OPERATION}
-              element={
-                <PlaceholderPage
-                  title="Pre-Operación"
-                  description="Configura todos los aspectos operativos de tu empresa: gastos fijos, maquinaria, proveedores y personal."
-                />
-              }
+              element={<PreOperationPage />}
             />
             <Route
               path={DASHBOARD_ROUTES.PRODUCTION}

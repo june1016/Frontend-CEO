@@ -31,9 +31,9 @@ import {
   Info as InfoIcon,
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
-import showAlert from "../helper/functions";
+import showAlert from "../../utils/alerts/alertHelpers";
 
-export default function TargetIndicatorsTab({handleTab}) {
+export default function TargetIndicatorsTab({ handleTab }) {
   const theme = useTheme();
 
   // State de Margen de Utilidad sobre Costo
@@ -129,7 +129,8 @@ export default function TargetIndicatorsTab({handleTab}) {
         const formattedData = indicatorTitles.reduce((acc, title) => {
           acc[title.name] = {
             title_id: title.id,
-            literal_id: title.AnnualObjectiveIndicators?.[0]?.literal_id || null,
+            literal_id:
+              title.AnnualObjectiveIndicators?.[0]?.literal_id || null,
             unit_id: title.AnnualObjectiveIndicators?.[0]?.unit_id || null,
           };
           return acc;
@@ -165,7 +166,7 @@ export default function TargetIndicatorsTab({handleTab}) {
       indicadoresObjetivo,
       indicadoresLiquidez,
     };
-  
+
     const formattedData = Object.values(allIndicators).flatMap((category) =>
       Object.entries(category)
         .filter(([name]) => formattedDataTitles[name]) // solo los que existan
@@ -182,13 +183,12 @@ export default function TargetIndicatorsTab({handleTab}) {
     );
 
     console.log(formattedData);
-  
+
     return { indicators: formattedData };
   };
 
   const sendObjetiveIndicators = async (indicators) => {
     try {
-
       console.log(indicators);
 
       if (!Array.isArray(indicators) || indicators.length === 0) {
@@ -221,8 +221,7 @@ export default function TargetIndicatorsTab({handleTab}) {
   };
 
   // Función de guardar indicadores
-  const handleSave = async() => {
-
+  const handleSave = async () => {
     const { indicators } = formatData();
 
     const responseIndicator = await sendObjetiveIndicators(indicators);
