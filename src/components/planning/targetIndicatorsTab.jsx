@@ -136,11 +136,9 @@ export default function TargetIndicatorsTab({ handleTab }) {
           return acc;
         }, {});
 
-        console.log(indicatorTitles);
-
         setFormattedDataTitles(formattedData);
       } catch (error) {
-        console.log("Error al obtener datos:", error.message);
+        console.error("Error al obtener datos:", error.message);
       }
     };
 
@@ -182,14 +180,11 @@ export default function TargetIndicatorsTab({ handleTab }) {
         })
     );
 
-    console.log(formattedData);
-
     return { indicators: formattedData };
   };
 
   const sendObjetiveIndicators = async (indicators) => {
     try {
-      console.log(indicators);
 
       if (!Array.isArray(indicators) || indicators.length === 0) {
         console.error("El array de indicadores es requerido.");
@@ -235,8 +230,6 @@ export default function TargetIndicatorsTab({ handleTab }) {
         () => handleTab(null, 4)
       );
     }
-
-    console.log(responseIndicator);
   };
 
   return (

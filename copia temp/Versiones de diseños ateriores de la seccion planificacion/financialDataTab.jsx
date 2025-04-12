@@ -156,7 +156,6 @@ const categoryColors = {
 
 export default function FinancialDataTab() {
   const theme = useTheme();
-  console.log("Tema actual:", theme);
 
   // Calcular totales por categoría
   const totals = useMemo(() => {

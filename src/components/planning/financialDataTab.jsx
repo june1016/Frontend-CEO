@@ -8,6 +8,8 @@ import InventoryView from "./financialData/inventoryView";
 // Hooks personalizados
 import useFinancialData from "../../hooks/financialData/useFinancialData";
 import useSortableData from "../../hooks/financialData/useSortableData";
+import { useRawMaterialsInventory } from "../../hooks/financialData/useRawMaterialsInventory.js";
+import { useIncomeStatement } from "../../hooks/financialData/useIncomeStatement.js";
 
 /**
  * Componente principal para la visualización de datos financieros
@@ -22,13 +24,19 @@ export default function FinancialDataTab() {
     financialData,
     loading,
     error,
-    incomeStatement,
-    rawMaterials,
-    finishedProducts,
-    totals,
-    incomeStatementTotals,
-    inventoryTotals,
+    totals
   } = useFinancialData();
+
+  const {
+    incomeStatement,
+    incomeStatementTotals,
+  } = useIncomeStatement();
+
+  const {
+    rawMaterials,
+    inventoryTotals,
+    finishedProducts
+  } = useRawMaterialsInventory();
 
   // Configuración para ordenamiento de datos
   const sortableData = useSortableData(financialData, "title", "asc");

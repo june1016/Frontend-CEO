@@ -50,7 +50,7 @@ export default function signupForm() {
         type: "manual",
         message: "Las contraseñas no coinciden",
       });
-      console.log(data.password);
+
       return;
     }
 

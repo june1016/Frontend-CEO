@@ -127,11 +127,6 @@ export default function TargetIndicatorsTab() {
 
   // Save indicators function
   const handleSave = () => {
-    console.log({
-      margenUtilidad,
-      indicadoresObjetivo,
-      indicadoresLiquidez,
-    });
     alert("Indicadores guardados con éxito");
   };
 

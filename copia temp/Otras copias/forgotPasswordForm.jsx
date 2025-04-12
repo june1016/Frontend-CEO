@@ -13,8 +13,7 @@ export default function ForgotPasswordForm() {
       setError("Por favor, ingrese su correo electrónico.");
       return;
     }
-    // Aquí iría la lógica para enviar el correo de recuperación
-    console.log("Solicitud de recuperación para:", email);
+
     setIsSubmitted(true);
   };
 
