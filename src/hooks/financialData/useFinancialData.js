@@ -1,10 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../services/api/axiosConfig";
-import {
-  defaultIncomeStatement,
-  defaultRawMaterials,
-  defaultFinishedProducts,
-} from "../../constants/financialData";
 
 /**
  * Hook personalizado para gestionar datos financieros
@@ -15,12 +10,6 @@ export default function useFinancialData() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Estados para datos de ejemplo (que no cambian, pero se podrían hacer editables)
-  const [incomeStatement] = useState(defaultIncomeStatement);
-  const [rawMaterials] = useState(defaultRawMaterials);
-  const [finishedProducts] = useState(defaultFinishedProducts);
-
-  // Obtener datos financieros iniciales
   useEffect(() => {
     const getFinancialData = async () => {
       try {
@@ -79,138 +68,10 @@ export default function useFinancialData() {
     }
   }, [financialData]);
 
-  // Calcular totales para el estado de resultados
-  const incomeStatementTotals = useMemo(() => {
-    try {
-      // Asegurarse de que todos los objetos existen
-      const sales = incomeStatement.sales || {};
-      const costs = incomeStatement.costs || {};
-      const expenses = incomeStatement.expenses || {};
-      const otherItems = incomeStatement.otherItems || {};
-
-      // Calcular ventas totales
-      const totalSales = Object.values(sales).reduce(
-        (sum, value) => sum + (parseFloat(value) || 0),
-        0
-      );
-
-      // Calcular costos totales
-      const totalCosts = Object.values(costs).reduce(
-        (sum, value) => sum + (parseFloat(value) || 0),
-        0
-      );
-
-      // Calcular utilidad bruta
-      const grossProfit = totalSales - totalCosts;
-
-      // Calcular gastos operacionales totales
-      const totalOperatingExpenses = Object.values(expenses).reduce(
-        (sum, value) => sum + (parseFloat(value) || 0),
-        0
-      );
-
-      // Calcular utilidad operacional
-      const operatingProfit = grossProfit - totalOperatingExpenses;
-
-      // Calcular otros gastos totales
-      const totalOtherExpenses = Object.values(otherItems).reduce(
-        (sum, value) => sum + (parseFloat(value) || 0),
-        0
-      );
-
-      // Calcular utilidad antes de impuestos
-      const profitBeforeTaxes = operatingProfit - totalOtherExpenses;
-
-      // Calcular impuestos
-      const taxes = parseFloat(incomeStatement.taxes) || 0;
-
-      // Calcular utilidad neta
-      const netProfit = profitBeforeTaxes - taxes;
-
-      // Calcular EBITDA
-      const ebitda =
-        operatingProfit +
-        (parseFloat(otherItems.depreciationAmortization) || 0);
-
-      return {
-        totalSales,
-        totalCosts,
-        grossProfit,
-        totalOperatingExpenses,
-        operatingProfit,
-        totalOtherExpenses,
-        profitBeforeTaxes,
-        taxes,
-        netProfit,
-        ebitda,
-      };
-    } catch (error) {
-      console.error(
-        "Error al calcular totales del estado de resultados:",
-        error
-      );
-      // Retornar valores predeterminados
-      return {
-        totalSales: 0,
-        totalCosts: 0,
-        grossProfit: 0,
-        totalOperatingExpenses: 0,
-        operatingProfit: 0,
-        totalOtherExpenses: 0,
-        profitBeforeTaxes: 0,
-        taxes: 0,
-        netProfit: 0,
-        ebitda: 0,
-      };
-    }
-  }, [incomeStatement]);
-
-  // Calcular totales para el inventario
-  const inventoryTotals = useMemo(() => {
-    try {
-      if (!Array.isArray(rawMaterials) || !Array.isArray(finishedProducts)) {
-        return {
-          rawMaterialsTotal: 0,
-          finishedProductsTotal: 0,
-          inventoryTotal: 0,
-        };
-      }
-
-      const rawMaterialsTotal = rawMaterials.reduce((sum, material) => {
-        if (!material || typeof material !== "object") return sum;
-        return sum + (parseFloat(material.totalValue) || 0);
-      }, 0);
-
-      const finishedProductsTotal = finishedProducts.reduce((sum, product) => {
-        if (!product || typeof product !== "object") return sum;
-        return sum + (parseFloat(product.totalValue) || 0);
-      }, 0);
-
-      return {
-        rawMaterialsTotal,
-        finishedProductsTotal,
-        inventoryTotal: rawMaterialsTotal + finishedProductsTotal,
-      };
-    } catch (error) {
-      console.error("Error al calcular totales del inventario:", error);
-      // Retornar valores predeterminados
-      return {
-        rawMaterialsTotal: 0,
-        finishedProductsTotal: 0,
-        inventoryTotal: 0,
-      };
-    }
-  }, [rawMaterials, finishedProducts]);
-
   return {
     financialData,
     loading,
     error,
-    incomeStatement,
-    rawMaterials,
-    finishedProducts,
-    totals,
-    incomeStatementTotals,
-    inventoryTotals,
+    totals
   };
 }

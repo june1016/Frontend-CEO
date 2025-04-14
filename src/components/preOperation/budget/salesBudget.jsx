@@ -107,9 +107,6 @@ const SalesBudget = ({ budgetConfig, theme }) => {
 
   // Confirmar guardado del mes 1
   const confirmSave = () => {
-    console.log("Guardando datos de ventas mes 1:", {
-      data: monthlyData[1],
-    });
     // Aquí se implementaría la lógica para guardar los datos
     setOpenConfirmDialog(false);
   };

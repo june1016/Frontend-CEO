@@ -11,7 +11,6 @@ const axiosInstance = axios.create({
 // Interceptor para agregar el token a las peticiones
 axiosInstance.interceptors.request.use(
   (config) => {
-    console.log("Request config:", config);
     const token = Cookies.get("authToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -27,7 +26,6 @@ axiosInstance.interceptors.request.use(
 // Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log("Response data:", response.data);
     return response;
   },
   (error) => {

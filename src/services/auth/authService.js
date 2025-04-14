@@ -6,7 +6,6 @@ export const authService = {
   login: async (credentials) => {
     try {
       const response = await axiosInstance.post("/auth/login", credentials);
-      console.log("Respuesta del servidor:", response.data);
 
       if (response.data.ok && response.data.token) {
         // Guardar el token en cookies

@@ -317,7 +317,7 @@ const IncomeStatementView = ({
                     <TableCell>Impuestos</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.taxes)}
+                        {formatCurrency(incomeStatement.otherItems.taxes)}
                       </Typography>
                     </TableCell>
                   </TableRow>

@@ -139,15 +139,7 @@ export default function BalanceSheetTab() {
 
   // Función para guardar el presupuesto
   const handleSave = () => {
-    // Implementación para guardar el presupuesto
-    console.log({
-      activosCorrientes,
-      pasivosCorrientes,
-      ppe,
-      pasivosLP,
-      patrimonio,
-      totals,
-    });
+
     alert("Presupuesto guardado con éxito");
   };
 
