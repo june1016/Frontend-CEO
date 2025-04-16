@@ -46,7 +46,6 @@ const FixedExpensesTab = ({ theme }) => {
         title="Gastos Fijos Mensuales"
         description="En esta sección podrás revisar los gastos fijos mensuales de tu empresa, incluyendo gastos operativos, obligaciones financieras, gastos de personal y cargas sociales. Estos valores son utilizados para el cálculo de presupuestos y proyecciones financieras."
         icon={<PaymentsIcon />}
-        bgColor="#f0f7ff"
       />
 
       <Grid container spacing={3}>

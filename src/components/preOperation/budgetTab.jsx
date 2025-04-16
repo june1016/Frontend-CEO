@@ -20,7 +20,7 @@ import {
 import BudgetSelector from "./budget/common/budgetSelector";
 import ConfigurationView from "./budget/common/configurationView";
 import SalesBudget from "./budget/salesBudget";
-import ProductionBudgetPlaceholder from "./budget/productionBudgetPlaceholder";
+import ProductionBudget from "./budget/productionBudget";
 import MaterialsBudgetPlaceholder from "./budget/materialsBudgetPlaceholder";
 
 // Hooks
@@ -174,54 +174,57 @@ export default function BudgetTab() {
                 />
 
                 <Box>
-                  <Tabs
-                    value={activeView}
-                    onChange={handleTabChange}
-                    variant="fullWidth"
-                    sx={{
-                      borderBottom: 1,
-                      borderColor: "divider",
-                      "& .MuiTab-root": {
-                        textTransform: "none",
-                        minWidth: 100,
-                        fontWeight: "medium",
-                        transition: "all 0.3s ease",
-                      },
-                      "& .Mui-selected": {
-                        color: `${theme.palette.primary.main} !important`,
-                        fontWeight: "bold",
-                      },
-                      "& .MuiTabs-indicator": {
-                        backgroundColor: theme.palette.primary.main,
-                        height: 3,
-                      },
-                    }}
-                  >
-                    <Tab
-                      label="Configuración Inicial"
-                      value="config"
+                  {/* Solo mostrar las pestañas para el presupuesto de ventas */}
+                  {selectedBudget === "sales" && (
+                    <Tabs
+                      value={activeView}
+                      onChange={handleTabChange}
+                      variant="fullWidth"
                       sx={{
-                        color:
-                          activeView === "config"
-                            ? theme.palette.primary.main
-                            : "text.secondary",
+                        borderBottom: 1,
+                        borderColor: "divider",
+                        "& .MuiTab-root": {
+                          textTransform: "none",
+                          minWidth: 100,
+                          fontWeight: "medium",
+                          transition: "all 0.3s ease",
+                        },
+                        "& .Mui-selected": {
+                          color: `${theme.palette.primary.main} !important`,
+                          fontWeight: "bold",
+                        },
+                        "& .MuiTabs-indicator": {
+                          backgroundColor: theme.palette.primary.main,
+                          height: 3,
+                        },
                       }}
-                    />
-                    <Tab
-                      label="Vista operativa"
-                      value="operational"
-                      sx={{
-                        color:
-                          activeView === "operational"
-                            ? theme.palette.primary.main
-                            : "text.secondary",
-                      }}
-                    />
-                  </Tabs>
+                    >
+                      <Tab
+                        label="Configuración Inicial"
+                        value="config"
+                        sx={{
+                          color:
+                            activeView === "config"
+                              ? theme.palette.primary.main
+                              : "text.secondary",
+                        }}
+                      />
+                      <Tab
+                        label="Vista operativa"
+                        value="operational"
+                        sx={{
+                          color:
+                            activeView === "operational"
+                              ? theme.palette.primary.main
+                              : "text.secondary",
+                        }}
+                      />
+                    </Tabs>
+                  )}
 
                   <Box sx={{ p: 3 }}>
-                    {/* Vista de Configuración */}
-                    {activeView === "config" && (
+                    {/* Vista de Configuración para Ventas */}
+                    {activeView === "config" && selectedBudget === "sales" && (
                       <ConfigurationView
                         budgetConfig={budgetConfig}
                         onSave={handleSaveConfiguration}
@@ -231,7 +234,7 @@ export default function BudgetTab() {
                     )}
 
                     {/* Vista Operativa */}
-                    {activeView === "operational" && (
+                    {(activeView === "operational" || selectedBudget === "production") && (
                       <Box>
                         {selectedBudget === "sales" && (
                           <SalesBudget
@@ -239,9 +242,12 @@ export default function BudgetTab() {
                             theme={theme}
                           />
                         )}
-                        {/* Presupuestos de Producción y Materia Prima (Placeholders) */}
+                        {/* Presupuesto de Producción con vista única */}
                         {selectedBudget === "production" && (
-                          <ProductionBudgetPlaceholder theme={theme} />
+                          <ProductionBudget
+                            budgetConfig={budgetConfig}
+                            theme={theme}
+                          />
                         )}
                         {selectedBudget === "materials" && (
                           <MaterialsBudgetPlaceholder theme={theme} />
