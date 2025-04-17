@@ -21,62 +21,23 @@ import {
 } from "@mui/icons-material";
 import InfoCard from "./financialData/common/infoCard";
 import { formatCurrency } from "../../utils/formatters/currencyFormatters";
+import { useMonthlyExpenses } from "../../hooks/monthlyFixedExpenses/useMonthlyExpenses";
+
+
 
 const FixedExpensesTab = ({ theme }) => {
-  // Datos para las tablas de gastos
-  const operationalExpenses = [
-    { expense: "Arrendamiento", amount: 12000000 },
-    { expense: "Servicios Públicos", amount: 8000000 },
-    { expense: "Mantenimiento", amount: 7500000 },
-    { expense: "Telefonía móvil", amount: 2000000 },
-    { expense: "Cafetería y Papelería", amount: 3000000 },
-    { expense: "Otros gastos operativos", amount: 5000000 },
-  ];
 
-  const financialObligations = [
-    { expense: "Abono a Cuentas x pagar", amount: 1500000 },
-    { expense: "Abono Máquina 1 (NRX31 - Alfaros)", amount: 1500000 },
-    { expense: "Abono Máquina 2 (XLG77 - Betacos)", amount: 1200000 },
-    { expense: "Abono Máquina 3 (CP23H - Gamaroles)", amount: 1000000 },
-    { expense: "Abono otras inversiones", amount: 800000 },
-  ];
+  const { monthlyData, monthlyTotals, loading, error } = useMonthlyExpenses();
+  
+  if (loading) return <p>Cargando gastos mensuales...</p>;
+  if (error) return <p>{error}</p>;
 
-  const personnelExpenses = [
-    {
-      position: "Nómina Gerente (CEO)",
-      quantity: 1,
-      amount: 6000000,
-    },
-    {
-      position: "Nómina Vendedor",
-      quantity: 1,
-      amount: 1500000,
-    },
-    {
-      position: "Nómina operarios",
-      quantity: 3,
-      amount: 5400000,
-    },
-  ];
-
-  const socialCharges = [{ expense: "PRESTACIONES-POS", amount: 5100000 }];
-
-  // Calcular totales
-  const operationalTotal = operationalExpenses.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
-  const financialTotal = financialObligations.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
-  const personnelTotal = personnelExpenses.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
-  const socialTotal = socialCharges.reduce((sum, item) => sum + item.amount, 0);
-  const grandTotal =
-    operationalTotal + financialTotal + personnelTotal + socialTotal;
+  const {
+    financialObligations,
+    operationalExpenses,
+    socialCharges,
+    personnelExpenses,
+  } = monthlyData;
 
   return (
     <Box>
@@ -117,10 +78,10 @@ const FixedExpensesTab = ({ theme }) => {
                 <TableBody>
                   {operationalExpenses.map((item, index) => (
                     <TableRow key={`op-${index}`} hover>
-                      <TableCell>{item.expense}</TableCell>
+                      <TableCell>{item.name}</TableCell>
                       <TableCell>
                         <Typography sx={{ fontWeight: 500 }}>
-                          {formatCurrency(item.amount)}
+                          {formatCurrency(item.value_cop)}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -140,7 +101,7 @@ const FixedExpensesTab = ({ theme }) => {
                         color: theme?.palette.success.main || "#2E7D32",
                       }}
                     >
-                      {formatCurrency(operationalTotal)}
+                      {formatCurrency(monthlyTotals.totalOperatingCosts)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -178,10 +139,10 @@ const FixedExpensesTab = ({ theme }) => {
                 <TableBody>
                   {financialObligations.map((item, index) => (
                     <TableRow key={`fin-${index}`} hover>
-                      <TableCell>{item.expense}</TableCell>
+                      <TableCell>{item.name}</TableCell>
                       <TableCell>
                         <Typography sx={{ fontWeight: 500 }}>
-                          {formatCurrency(item.amount)}
+                          {formatCurrency(item.value_cop)}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -201,7 +162,7 @@ const FixedExpensesTab = ({ theme }) => {
                         color: theme?.palette.success.main || "#2E7D32",
                       }}
                     >
-                      {formatCurrency(financialTotal)}
+                      {formatCurrency(monthlyTotals.totalFinancialObligations)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -240,11 +201,11 @@ const FixedExpensesTab = ({ theme }) => {
                 <TableBody>
                   {personnelExpenses.map((item, index) => (
                     <TableRow key={`per-${index}`} hover>
-                      <TableCell>{item.position}</TableCell>
+                      <TableCell>{item.name}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
                       <TableCell>
                         <Typography sx={{ fontWeight: 500 }}>
-                          {formatCurrency(item.amount)}
+                          {formatCurrency(item.value_cop)}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -265,7 +226,7 @@ const FixedExpensesTab = ({ theme }) => {
                         color: theme?.palette.success.main || "#2E7D32",
                       }}
                     >
-                      {formatCurrency(personnelTotal)}
+                      {formatCurrency(monthlyTotals.totalpersonnelExpenses)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -312,10 +273,10 @@ const FixedExpensesTab = ({ theme }) => {
                 <TableBody>
                   {socialCharges.map((item, index) => (
                     <TableRow key={`soc-${index}`} hover>
-                      <TableCell>{item.expense}</TableCell>
+                      <TableCell>{item.name}</TableCell>
                       <TableCell>
                         <Typography sx={{ fontWeight: 500 }}>
-                          {formatCurrency(item.amount)}
+                          {formatCurrency(item.value_cop)}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -335,7 +296,7 @@ const FixedExpensesTab = ({ theme }) => {
                         color: theme?.palette.success.main || "#2E7D32",
                       }}
                     >
-                      {formatCurrency(socialTotal)}
+                      {formatCurrency(monthlyTotals.totalSocialCharges)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -377,7 +338,7 @@ const FixedExpensesTab = ({ theme }) => {
                     <TableCell>Gastos Operativos</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(operationalTotal)}
+                        {formatCurrency(monthlyTotals.totalOperatingCosts)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -385,7 +346,7 @@ const FixedExpensesTab = ({ theme }) => {
                     <TableCell>Obligaciones Financieras</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(financialTotal)}
+                        {formatCurrency(monthlyTotals.totalFinancialObligations)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -393,7 +354,7 @@ const FixedExpensesTab = ({ theme }) => {
                     <TableCell>Gastos de Personal</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(personnelTotal)}
+                        {formatCurrency(monthlyTotals.totalpersonnelExpenses)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -401,7 +362,7 @@ const FixedExpensesTab = ({ theme }) => {
                     <TableCell>Cargas Sociales</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(socialTotal)}
+                        {formatCurrency(monthlyTotals.totalSocialCharges)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -421,7 +382,7 @@ const FixedExpensesTab = ({ theme }) => {
                         color: theme?.palette.success.main || "#2E7D32",
                       }}
                     >
-                      {formatCurrency(grandTotal)}
+                      {formatCurrency(monthlyTotals.grandTotal)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
