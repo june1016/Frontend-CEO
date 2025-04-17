@@ -10,12 +10,20 @@ import {
   TextField, 
   InputAdornment, 
   Slider, 
-  Divider 
+  Divider,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from "@mui/material";
 import {
   Inventory as InventoryIcon,
   Info as InfoIcon,
-  TrendingUp as TrendingUpIcon
+  TrendingUp as TrendingUpIcon,
+  Save as SaveIcon,
+  Check as CheckIcon
 } from "@mui/icons-material";
 
 // Componentes
@@ -39,6 +47,9 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
   
   // Estado para la política de inventario
   const [inventoryPolicy, setInventoryPolicy] = useState(10); // 10% por defecto
+  
+  // Estado para el diálogo de confirmación
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   
   // Productos y sus inventarios iniciales
   const products = [
@@ -128,6 +139,25 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
     if (newValue >= 0 && newValue <= 30) {
       setInventoryPolicy(newValue);
     }
+  };
+  
+  // Abrir diálogo de confirmación
+  const handleSave = () => {
+    setOpenConfirmDialog(true);
+  };
+  
+  // Confirmar guardado
+  const confirmSave = () => {
+    console.log("Guardando presupuesto de producción:", {
+      month: selectedMonth,
+      inventoryPolicy,
+      productionValues: products.map(p => ({
+        productId: p.id,
+        ...calculateProductionValues(p.id)
+      }))
+    });
+    // Aquí se implementaría la lógica para guardar los datos
+    setOpenConfirmDialog(false);
   };
 
   return (
@@ -293,6 +323,64 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
         columnTitle="Producto"
         itemTitle="name"
       />
+      
+      {/* Botón de Guardado */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<SaveIcon />}
+          onClick={handleSave}
+          sx={{
+            bgcolor: theme.palette.primary.main,
+            "&:hover": {
+              bgcolor: theme.palette.primary.dark,
+            },
+          }}
+        >
+          Guardar Presupuesto de Producción
+        </Button>
+      </Box>
+      
+      {/* Diálogo de Confirmación */}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={() => setOpenConfirmDialog(false)}
+      >
+        <DialogTitle
+          sx={{
+            bgcolor: theme.palette.primary.main,
+            color: "white",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <CheckIcon /> Confirmar Guardado
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <DialogContentText>
+            ¿Estás seguro de que deseas guardar el presupuesto de producción con una política de inventario del {inventoryPolicy}%? 
+            Esto determinará las unidades a producir para cumplir con las ventas proyectadas.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => setOpenConfirmDialog(false)}
+            variant="outlined"
+            color="inherit"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmSave}
+            variant="contained"
+            color="primary"
+            autoFocus
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
