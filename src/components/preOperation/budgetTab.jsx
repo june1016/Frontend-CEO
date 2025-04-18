@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -25,6 +25,8 @@ import MaterialsBudgetPlaceholder from "./budget/materialsBudgetPlaceholder";
 
 // Hooks
 import useBudgetConfiguration from "../../hooks/budget/useBudgetConfiguration";
+import showAlert from "../../utils/functions";
+import axiosInstance from "../../services/api/axiosConfig";
 
 /**
  * Componente principal para la gestión de presupuestos
@@ -36,6 +38,9 @@ export default function BudgetTab() {
   // Estado para selección de presupuesto y vista
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [activeView, setActiveView] = useState("config");
+  const [savedBudgets, setSavedBudgets] = useState(() => {
+    return JSON.parse(localStorage.getItem("savedBudgets")) || [];
+  });
 
   // Tipos de presupuesto
   const budgetTypes = [
@@ -82,8 +87,58 @@ export default function BudgetTab() {
     setActiveView(newValue);
   };
 
+  useEffect(() => {
+    const storedBudgets = JSON.parse(localStorage.getItem("savedBudgets")) || [];
+    setSavedBudgets(storedBudgets);
+  }, []);
+
+  // Guardar cambios en localStorage
+  useEffect(() => {
+    localStorage.setItem("savedBudgets", JSON.stringify(savedBudgets));
+  }, [savedBudgets]);
+
+  const sendSalesBudget = async ({ growthRates, decadeDistribution, createdBy }) => {
+    try {
+      if (
+        !Array.isArray(growthRates) || growthRates.length !== 12 ||
+        !Array.isArray(decadeDistribution) || decadeDistribution.length !== 12
+      ) {
+        console.error("Datos inválidos. Asegúrate de tener 12 meses.");
+        return;
+      }
+
+      const salesBudget = growthRates.map((growth, index) => {
+        const decade = decadeDistribution[index];
+        return {
+          month_id: index + 1,
+          growth,
+          decade_1: decade.d1,
+          decade_2: decade.d2,
+          decade_3: decade.d3,
+          created_by: createdBy
+        };
+      });
+
+      const response = await axiosInstance.post("/salesbudget/createSaleBudget", {
+        salesBudget
+      });
+
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message;
+
+      showAlert(
+        "Presupuesto de ventas",
+        JSON.stringify(message, null, 2),
+        "error",
+        "#1C4384"
+      );
+      console.error("Error al registrar presupuesto de ventas:", error.response?.data || error.message);
+    }
+  };
+
   // Manejar guardar configuración
-  const handleSaveConfiguration = () => {
+  const handleSaveConfiguration = async () => {
     // Validar que todas las distribuciones sumen 100%
     if (!budgetConfig.validateAllDistributions()) {
       alert(
@@ -91,6 +146,32 @@ export default function BudgetTab() {
       );
       return;
     }
+
+    const growthRates = budgetConfig.growthRates;
+
+    const decadeDistribution = budgetConfig.decadeDistribution;
+
+    const userData = JSON.parse(localStorage.getItem("userData")) || null;
+
+    const createdBy = userData.id;
+
+    const responseSendSalesBudget = await sendSalesBudget({
+      growthRates,
+      decadeDistribution,
+      createdBy
+    });
+
+    if (responseSendSalesBudget?.ok) {
+      showAlert(
+        "Guardado Presupuestos de ventas",
+        "Presupuestos de ventas registrados exitosamente",
+        "success",
+        "#1C4384"
+      );
+
+      setSavedBudgets((prev) => [...prev, "config"]);
+    }
+
 
     // Cambiar a vista operativa
     setActiveView("operational");
@@ -126,6 +207,7 @@ export default function BudgetTab() {
             selectedBudget={selectedBudget}
             onSelectBudget={handleSelectBudget}
             theme={theme}
+            savedBudgets={savedBudgets}
           />
 
           {/* Contenido del Presupuesto Seleccionado */}
@@ -240,6 +322,9 @@ export default function BudgetTab() {
                           <SalesBudget
                             budgetConfig={budgetConfig}
                             theme={theme}
+                            onSuccess={() => {
+                              setSavedBudgets((prev) => [...prev, "operational"]);
+                            }}
                           />
                         )}
                         {/* Presupuesto de Producción con vista única */}
@@ -247,6 +332,9 @@ export default function BudgetTab() {
                           <ProductionBudget
                             budgetConfig={budgetConfig}
                             theme={theme}
+                            onSuccess={() => {
+                              setSavedBudgets((prev) => [...prev, "production"]);
+                            }}
                           />
                         )}
                         {selectedBudget === "materials" && (

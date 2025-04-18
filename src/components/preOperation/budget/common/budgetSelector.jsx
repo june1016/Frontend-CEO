@@ -1,5 +1,6 @@
 import React from "react";
 import { Grid, Card, CardContent, Box, Typography } from "@mui/material";
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 /**
  * Componente para seleccionar el tipo de presupuesto
@@ -14,11 +15,25 @@ const BudgetSelector = ({
   selectedBudget,
   onSelectBudget,
   theme,
+  savedBudgets = [],
 }) => {
+
+  const hasConfigAndOperational = ['config', 'operational'].every(item =>
+    savedBudgets.includes(item)
+  );
+
+  const hasAllForMaterials = ['config', 'operational', 'production'].every(item =>
+    savedBudgets.includes(item)
+  );
+
   return (
     <Grid container spacing={3}>
       {budgetTypes.map((budget) => {
+
         const isSelected = selectedBudget === budget.id;
+        const isDisabled =
+          (budget.id === "production" && !hasConfigAndOperational) ||
+          (budget.id === "materials" && !hasAllForMaterials);
         const BudgetIcon = budget.icon;
 
         return (
@@ -38,7 +53,9 @@ const BudgetSelector = ({
                   boxShadow: 2,
                 },
               }}
-              onClick={() => onSelectBudget(isSelected ? null : budget.id)}
+              onClick={() =>
+                !isDisabled && onSelectBudget(isSelected ? null : budget.id)
+              }
             >
               <CardContent
                 sx={{
@@ -56,7 +73,7 @@ const BudgetSelector = ({
                     bgcolor: isSelected
                       ? theme.palette.primary.main
                       : theme.palette.primary.lighter ||
-                        "rgba(28, 67, 132, 0.1)",
+                      "rgba(28, 67, 132, 0.1)",
                     color: isSelected ? "white" : theme.palette.primary.main,
                     display: "flex",
                     alignItems: "center",
@@ -85,6 +102,23 @@ const BudgetSelector = ({
                   >
                     {budget.description}
                   </Typography>
+
+                  {isDisabled && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        mt: 1,
+                        color: "error.main",
+                        gap: 0.5,
+                      }}
+                    >
+                      <InfoOutlinedIcon fontSize="small" />
+                      <Typography variant="caption">
+                        Completa los datos anteriores para habilitar esta opción.
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </CardContent>
             </Card>

@@ -27,6 +27,8 @@ import useBudgetData from "../../../hooks/budget/useBudgetData";
 
 // Utils
 import { calculateTotals } from "../../../utils/budget/budgetCalculations";
+import axiosInstance from "../../../services/api/axiosConfig";
+import showAlert from "../../../utils/functions";
 
 /**
  * Componente para el presupuesto de ventas
@@ -35,15 +37,15 @@ import { calculateTotals } from "../../../utils/budget/budgetCalculations";
  * @param {Object} props.theme Tema de Material UI
  * @returns {JSX.Element} Componente renderizado
  */
-const SalesBudget = ({ budgetConfig, theme }) => {
+const SalesBudget = ({ budgetConfig, theme, onSuccess }) => {
   // Estado para diálogo de confirmación
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
   // Productos para el presupuesto de ventas
   const products = [
-    { id: "alfaros", name: "Alfaros", defaultValue: 2650 },
-    { id: "betacos", name: "Betacos", defaultValue: 1920 },
-    { id: "gamaroles", name: "Gamaroles", defaultValue: 1060 },
+    { id: "alfaros", productId: 1, name: "Alfaros", defaultValue: 2650 },
+    { id: "betacos", productId: 2, name: "Betacos", defaultValue: 1920 },
+    { id: "gamaroles", productId: 3, name: "Gamaroles", defaultValue: 1060 },
   ];
 
   // Hook para manejar los datos del presupuesto
@@ -105,10 +107,49 @@ const SalesBudget = ({ budgetConfig, theme }) => {
     }
   };
 
-  // Confirmar guardado del mes 1
-  const confirmSave = () => {
-    // Aquí se implementaría la lógica para guardar los datos
-    setOpenConfirmDialog(false);
+  const userData = JSON.parse(localStorage.getItem("userData")) || null;
+
+  const createdBy = userData.id;
+
+  const confirmSave = async () => {
+    try {
+      const formattedData = products.map(item => ({
+        product_id: item.productId,
+        quantity: item.defaultValue,
+        created_by: createdBy
+      }));
+
+      const response = await axiosInstance.post("/salesbudget/createProjectedSales", {
+        projectedSalesData: formattedData
+      });
+
+      if (response.data.ok) {
+        showAlert(
+          "Ventas proyectadas",
+          "¡Proyecciones guardadas con éxito!",
+          "success",
+          "#1C4384"
+        );
+
+        if (onSuccess) onSuccess();
+      } else {
+        showAlert(
+          "Ventas proyectadas",
+          "Error al guardar proyecciones",
+          "error",
+          "#1C4384"
+        );
+      }
+    } catch (error) {
+      showAlert(
+        "Ventas proyectadas",
+        "Error al guardar proyecciones",
+        "error",
+        "#1C4384"
+      );
+    } finally {
+      setOpenConfirmDialog(false);
+    }
   };
 
   // Calcular crecimiento acumulado para el mes seleccionado
