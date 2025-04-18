@@ -16,15 +16,19 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  Badge,
+  Chip
 } from "@mui/material";
 import {
   Inventory as InventoryIcon,
   Info as InfoIcon,
   TrendingUp as TrendingUpIcon,
   Save as SaveIcon,
-  Check as CheckIcon
+  Check as CheckIcon,
+  DoneAll as DoneAllIcon
 } from "@mui/icons-material";
+import Swal from "sweetalert2";
 
 // Componentes
 import MonthSelector from "./common/monthSelector";
@@ -33,6 +37,7 @@ import BudgetResultsTable from "./common/budgetResultsTable";
 // Utils
 import { formatNumber } from "../../../utils/formatters/numberFormatters";
 import { calculateTotals } from "../../../utils/budget/budgetCalculations";
+import { showAlert } from "../../../utils/alerts/alertHelpers";
 
 /**
  * Componente para el presupuesto de producción
@@ -45,8 +50,24 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
   // Estado para el mes seleccionado
   const [selectedMonth, setSelectedMonth] = useState(1);
   
-  // Estado para la política de inventario
-  const [inventoryPolicy, setInventoryPolicy] = useState(10); // 10% por defecto
+  // Estado para las políticas de inventario por mes (inicialmente 10% para todos)
+  const [inventoryPolicies, setInventoryPolicies] = useState(() => {
+    const initialPolicies = {};
+    for (let i = 1; i <= 12; i++) {
+      initialPolicies[i] = 10;
+    }
+    return initialPolicies;
+  });
+  
+  // Estado para rastrear qué meses han sido configurados
+  const [configuredMonths, setConfiguredMonths] = useState(() => {
+    // Inicialmente ningún mes está marcado como configurado
+    const initialConfigured = {};
+    for (let i = 1; i <= 12; i++) {
+      initialConfigured[i] = false;
+    }
+    return initialConfigured;
+  });
   
   // Estado para el diálogo de confirmación
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -93,7 +114,8 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
     if (!product) return {};
     
     const salesForecast = getSalesForecast(selectedMonth, productId);
-    const finalInventory = Math.round(salesForecast * (inventoryPolicy / 100));
+    // Usar la política específica del mes seleccionado
+    const finalInventory = Math.round(salesForecast * (inventoryPolicies[selectedMonth] / 100));
     const productionNeeded = salesForecast + finalInventory - product.initialInventory;
     
     return {
@@ -125,11 +147,14 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
       (_, productId) => calculateDecadeValues(productId),
       selectedMonth
     );
-  }, [selectedMonth, inventoryPolicy, budgetConfig.decadeDistribution]);
+  }, [selectedMonth, inventoryPolicies, budgetConfig.decadeDistribution]);
   
   // Manejar cambio en política de inventario (slider)
   const handleSliderChange = (_, newValue) => {
-    setInventoryPolicy(newValue);
+    setInventoryPolicies(prev => ({
+      ...prev,
+      [selectedMonth]: newValue
+    }));
   };
   
   // Manejar cambio en política de inventario (input)
@@ -137,28 +162,92 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
     const newValue = Number(event.target.value);
     // Limitar el valor entre 0 y 30
     if (newValue >= 0 && newValue <= 30) {
-      setInventoryPolicy(newValue);
+      setInventoryPolicies(prev => ({
+        ...prev,
+        [selectedMonth]: newValue
+      }));
     }
   };
   
-  // Abrir diálogo de confirmación
-  const handleSave = () => {
+  // Marcar el mes actual como configurado
+  const markMonthAsConfigured = () => {
+    setConfiguredMonths(prev => ({
+      ...prev,
+      [selectedMonth]: true
+    }));
+  };
+  
+  // Verificar si todos los meses están configurados
+  const areAllMonthsConfigured = () => {
+    return Object.values(configuredMonths).every(status => status === true);
+  };
+  
+  // Abrir diálogo de confirmación para guardar la política del mes actual
+  const handleSaveMonthPolicy = () => {
+    markMonthAsConfigured();
+    Swal.fire({
+      title: 'Política Guardada',
+      text: `Se ha configurado la política de inventario para el Mes ${selectedMonth} al ${inventoryPolicies[selectedMonth]}%.`,
+      icon: 'success',
+      confirmButtonColor: theme.palette.primary.main,
+    });
+  };
+  
+  // Abrir diálogo de confirmación para guardar todo el presupuesto
+  const handleSaveFullBudget = () => {
+    if (!areAllMonthsConfigured()) {
+      // Encontrar qué meses faltan por configurar
+      const unconfiguredMonths = Object.entries(configuredMonths)
+        .filter(([_, status]) => status === false)
+        .map(([month]) => month)
+        .join(', ');
+      
+      showAlert(
+        "Configuración Incompleta",
+        `Debes configurar la política de inventario para todos los meses. Faltan los meses: ${unconfiguredMonths}.`,
+        "warning",
+        theme.palette.primary.main
+      );
+      return;
+    }
+    
     setOpenConfirmDialog(true);
   };
   
   // Confirmar guardado
   const confirmSave = () => {
     console.log("Guardando presupuesto de producción:", {
-      month: selectedMonth,
-      inventoryPolicy,
+      inventoryPolicies,
       productionValues: products.map(p => ({
         productId: p.id,
-        ...calculateProductionValues(p.id)
+        monthlyProduction: Array.from({length: 12}, (_, i) => {
+          const month = i + 1;
+          const salesForMonth = getSalesForecast(month, p.id);
+          const finalInventory = Math.round(salesForMonth * (inventoryPolicies[month] / 100));
+          const productionNeeded = salesForMonth + finalInventory - p.initialInventory;
+          return {
+            month,
+            salesForecast: salesForMonth,
+            finalInventory,
+            productionNeeded: Math.max(0, productionNeeded)
+          };
+        })
       }))
     });
+    
     // Aquí se implementaría la lógica para guardar los datos
+    showAlert(
+      "¡Guardado Exitoso!",
+      "El presupuesto de producción ha sido guardado correctamente.",
+      "success",
+      theme.palette.primary.main
+    );
+    
     setOpenConfirmDialog(false);
   };
+
+  // Verificar si el mes actual ha sido configurado
+  const isCurrentMonthConfigured = configuredMonths[selectedMonth];
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -167,6 +256,7 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
         selectedMonth={selectedMonth}
         onSelectMonth={setSelectedMonth}
         theme={theme}
+        configuredMonths={configuredMonths}
       />
       
       {/* Mensaje Informativo */}
@@ -183,20 +273,42 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
         }}
       >
         <AlertTitle sx={{ fontWeight: "bold" }}>
-          Presupuesto de Producción
+          Presupuesto de Producción - Mes {selectedMonth}
         </AlertTitle>
-        El presupuesto de producción determina las unidades a fabricar según las ventas proyectadas, 
-        manteniendo una política de inventario final y considerando el inventario inicial disponible.
+        {isCurrentMonthConfigured ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <DoneAllIcon color="success" sx={{ fontSize: 20 }} />
+            <Typography variant="body2">
+              Este mes ya tiene una política de inventario configurada al {inventoryPolicies[selectedMonth]}%. 
+              Puedes modificarla y guardar nuevamente.
+            </Typography>
+          </Box>
+        ) : (
+          <Typography variant="body2">
+            Define la política de inventario para este mes y luego presiona "Guardar Política del Mes". 
+            Debes configurar todos los meses antes de guardar el presupuesto completo.
+          </Typography>
+        )}
       </Alert>
       
       {/* Panel de Política de Inventario */}
       <Card sx={{ boxShadow: 1, border: "1px solid #E5E7EB" }}>
         <CardContent>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <InventoryIcon sx={{ color: theme.palette.primary.main, mr: 1 }} />
-            <Typography variant="h6" fontWeight="bold" color={theme.palette.primary.dark}>
-              Política de Inventario Final
-            </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <InventoryIcon sx={{ color: theme.palette.primary.main, mr: 1 }} />
+              <Typography variant="h6" fontWeight="bold" color={theme.palette.primary.dark}>
+                Política de Inventario Final - Mes {selectedMonth}
+              </Typography>
+            </Box>
+            {isCurrentMonthConfigured && (
+              <Chip 
+                label="Configurado" 
+                color="success" 
+                size="small"
+                icon={<CheckIcon />}
+              />
+            )}
           </Box>
           
           <Box sx={{ px: 2 }}>
@@ -208,7 +320,7 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
             <Grid container spacing={2} alignItems="center">
               <Grid item xs>
                 <Slider
-                  value={inventoryPolicy}
+                  value={inventoryPolicies[selectedMonth]}
                   onChange={handleSliderChange}
                   aria-labelledby="inventory-policy-slider"
                   valueLabelDisplay="auto"
@@ -227,7 +339,7 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
               </Grid>
               <Grid item>
                 <TextField
-                  value={inventoryPolicy}
+                  value={inventoryPolicies[selectedMonth]}
                   onChange={handleInputChange}
                   variant="outlined"
                   size="small"
@@ -238,6 +350,21 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
                 />
               </Grid>
             </Grid>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleSaveMonthPolicy}
+                startIcon={<CheckIcon />}
+                sx={{
+                  color: theme.palette.primary.main,
+                  borderColor: theme.palette.primary.main,
+                }}
+              >
+                Guardar Política del Mes {selectedMonth}
+              </Button>
+            </Box>
           </Box>
         </CardContent>
       </Card>
@@ -283,7 +410,7 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
                       </Box>
                       <Box>
                         <Typography variant="caption" color="text.secondary">
-                          Inventario Final ({inventoryPolicy}%)
+                          Inventario Final ({inventoryPolicies[selectedMonth]}%)
                         </Typography>
                         <Typography variant="body1" fontWeight="medium">
                           {formatNumber(values.finalInventory)}
@@ -329,7 +456,7 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
         <Button
           variant="contained"
           startIcon={<SaveIcon />}
-          onClick={handleSave}
+          onClick={handleSaveFullBudget}
           sx={{
             bgcolor: theme.palette.primary.main,
             "&:hover": {
@@ -359,8 +486,8 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
         </DialogTitle>
         <DialogContent sx={{ mt: 2 }}>
           <DialogContentText>
-            ¿Estás seguro de que deseas guardar el presupuesto de producción con una política de inventario del {inventoryPolicy}%? 
-            Esto determinará las unidades a producir para cumplir con las ventas proyectadas.
+            ¿Estás seguro de que deseas guardar el presupuesto de producción completo? 
+            Has configurado las políticas de inventario para los 12 meses.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>

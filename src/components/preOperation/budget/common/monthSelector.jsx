@@ -1,6 +1,6 @@
 import React from "react";
-import { Box, Typography, Button, Paper } from "@mui/material";
-import { CalendarToday as CalendarIcon } from "@mui/icons-material";
+import { Box, Typography, Button, Paper, Badge } from "@mui/material";
+import { CalendarToday as CalendarIcon, Check as CheckIcon } from "@mui/icons-material";
 
 /**
  * Componente para seleccionar el mes en la vista operativa
@@ -8,9 +8,10 @@ import { CalendarToday as CalendarIcon } from "@mui/icons-material";
  * @param {number} props.selectedMonth Mes seleccionado
  * @param {Function} props.onSelectMonth Función para manejar la selección de mes
  * @param {Object} props.theme Tema de Material UI
+ * @param {Object} props.configuredMonths Objeto que indica qué meses están configurados
  * @returns {JSX.Element} Componente renderizado
  */
-const MonthSelector = ({ selectedMonth, onSelectMonth, theme }) => {
+const MonthSelector = ({ selectedMonth, onSelectMonth, theme, configuredMonths = {} }) => {
   return (
     <Paper
       sx={{
@@ -46,32 +47,50 @@ const MonthSelector = ({ selectedMonth, onSelectMonth, theme }) => {
       >
         {Array.from({ length: 12 }).map((_, index) => {
           const month = index + 1;
+          const isConfigured = configuredMonths[month] === true;
+          
           return (
-            <Button
+            <Badge
               key={month}
-              variant={selectedMonth === month ? "contained" : "outlined"}
-              onClick={() => onSelectMonth(month)}
+              badgeContent={isConfigured ? <CheckIcon fontSize="small" /> : null}
+              color="success"
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              overlap="circular"
               sx={{
-                minWidth: "auto",
-                bgcolor:
-                  selectedMonth === month
-                    ? theme.palette.primary.main
-                    : "transparent",
-                color:
-                  selectedMonth === month
-                    ? "white"
-                    : theme.palette.primary.main,
-                borderColor: theme.palette.primary.main,
-                "&:hover": {
-                  bgcolor:
-                    selectedMonth === month
-                      ? theme.palette.primary.dark
-                      : "rgba(28, 67, 132, 0.1)",
-                },
+                '& .MuiBadge-badge': {
+                  width: 18,
+                  height: 18,
+                  padding: 0,
+                  minWidth: 18,
+                }
               }}
             >
-              Mes {month}
-            </Button>
+              <Button
+                key={month}
+                variant={selectedMonth === month ? "contained" : "outlined"}
+                onClick={() => onSelectMonth(month)}
+                sx={{
+                  minWidth: "auto",
+                  bgcolor:
+                    selectedMonth === month
+                      ? theme.palette.primary.main
+                      : "transparent",
+                  color:
+                    selectedMonth === month
+                      ? "white"
+                      : theme.palette.primary.main,
+                  borderColor: theme.palette.primary.main,
+                  "&:hover": {
+                    bgcolor:
+                      selectedMonth === month
+                        ? theme.palette.primary.dark
+                        : "rgba(28, 67, 132, 0.1)",
+                  },
+                }}
+              >
+                Mes {month}
+              </Button>
+            </Badge>
           );
         })}
       </Box>
