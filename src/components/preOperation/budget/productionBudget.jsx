@@ -38,6 +38,7 @@ import BudgetResultsTable from "./common/budgetResultsTable";
 import { formatNumber } from "../../../utils/formatters/numberFormatters";
 import { calculateTotals } from "../../../utils/budget/budgetCalculations";
 import { showAlert } from "../../../utils/alerts/alertHelpers";
+import axiosInstance from "../../../services/api/axiosConfig";
 
 /**
  * Componente para el presupuesto de producción
@@ -46,7 +47,7 @@ import { showAlert } from "../../../utils/alerts/alertHelpers";
  * @param {Object} props.theme Tema de Material UI
  * @returns {JSX.Element} Componente renderizado
  */
-const ProductionBudget = ({ budgetConfig, theme }) => {
+const ProductionBudget = ({ budgetConfig, theme, onSuccess }) => {
   // Estado para el mes seleccionado
   const [selectedMonth, setSelectedMonth] = useState(1);
   
@@ -213,37 +214,54 @@ const ProductionBudget = ({ budgetConfig, theme }) => {
     
     setOpenConfirmDialog(true);
   };
+
+  const userData = JSON.parse(localStorage.getItem("userData")) || null;
+
+  const userId = userData.id;
+
+  const sendInventoryPolicies = async (policies, created_by) => {
+    try {
+      const payload = {
+        created_by,
+        policies
+      };
+  
+      const response = await axiosInstance.post("/inventorypolice/createinventorypolice", payload);
+  
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message;
+  
+      showAlert(
+        "Política de inventario",
+        JSON.stringify(message, null, 2),
+        "error",
+        "#1C4384"
+      );
+      console.error(
+        "Error al registrar política de inventario:",
+        error.response?.data || error.message
+      );
+    }
+  };
   
   // Confirmar guardado
-  const confirmSave = () => {
-    console.log("Guardando presupuesto de producción:", {
-      inventoryPolicies,
-      productionValues: products.map(p => ({
-        productId: p.id,
-        monthlyProduction: Array.from({length: 12}, (_, i) => {
-          const month = i + 1;
-          const salesForMonth = getSalesForecast(month, p.id);
-          const finalInventory = Math.round(salesForMonth * (inventoryPolicies[month] / 100));
-          const productionNeeded = salesForMonth + finalInventory - p.initialInventory;
-          return {
-            month,
-            salesForecast: salesForMonth,
-            finalInventory,
-            productionNeeded: Math.max(0, productionNeeded)
-          };
-        })
-      }))
-    });
-    
-    // Aquí se implementaría la lógica para guardar los datos
-    showAlert(
-      "¡Guardado Exitoso!",
-      "El presupuesto de producción ha sido guardado correctamente.",
-      "success",
-      theme.palette.primary.main
-    );
-    
-    setOpenConfirmDialog(false);
+  const confirmSave = async () => {
+
+    const response = await sendInventoryPolicies(inventoryPolicies, userId);
+  
+    if (response?.ok) {
+      showAlert(
+        "¡Guardado Exitoso!",
+        "El presupuesto de producción ha sido guardado correctamente.",
+        "success",
+        theme.palette.primary.main
+      );
+
+      setOpenConfirmDialog(false);
+      
+      if (onSuccess) onSuccess();
+    }
   };
 
   // Verificar si el mes actual ha sido configurado

@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { FileDownload as DownloadIcon } from "@mui/icons-material";
 import { formatNumber } from "../../../../utils/formatters/numberFormatters";
+import axiosInstance from "../../../../services/api/axiosConfig";
 
 /**
  * Componente para mostrar los resultados calculados del presupuesto
@@ -35,6 +36,47 @@ const BudgetResultsTable = ({
   columnTitle = "Producto",
   itemTitle = "name",
 }) => {
+
+  const generateReport = async () => {
+    try {
+      const dataToSend = {
+        month: selectedMonth,
+        products: products.map((product) => {
+          const values = calculateValues(selectedMonth, product.id);
+          return {
+            name: product[itemTitle],
+            d1: values.d1,
+            d2: values.d2,
+            d3: values.d3,
+            total: values.total,
+          };
+        }),
+        totals: {
+          d1: totals.d1Total,
+          d2: totals.d2Total,
+          d3: totals.d3Total,
+          total: totals.grandTotal,
+        },
+      };
+  
+      const response = await axiosInstance.post("/salesbudgetreport", dataToSend, {
+        responseType: "blob", // ⚠️ Esto es muy importante para recibir un PDF
+      });
+
+      // Crear una URL para el blob y descargar
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Reporte_Mes_${selectedMonth}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al exportar PDF:", error);
+    }
+  };
+
   return (
     <Card sx={{ boxShadow: 2, border: "1px solid #E5E7EB" }}>
       <CardHeader
@@ -52,6 +94,7 @@ const BudgetResultsTable = ({
             variant="outlined"
             size="small"
             startIcon={<DownloadIcon />}
+            onClick={generateReport}
             sx={{
               color: theme.palette.primary.main,
               borderColor: "rgba(28, 67, 132, 0.3)",

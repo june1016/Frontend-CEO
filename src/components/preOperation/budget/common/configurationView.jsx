@@ -139,10 +139,24 @@ const ConfigurationView = ({
                     <Box sx={{ display: "flex", justifyContent: "center" }}>
                       <TextField
                         type="number"
-                        value={growthRates[index]}
-                        onChange={(e) =>
-                          handleGrowthChange(month, e.target.value)
-                        }
+                        value={String(growthRates[index])}
+                        onChange={(e) => {
+                          let rawValue = e.target.value;
+
+                          if (rawValue === "") {
+                            handleGrowthChange(month, 0);
+                            return;
+                          }
+
+                          rawValue = rawValue.replace(/^0+(?=\d)/, "");
+
+                          // Convertir a número
+                          const numericValue = Number(rawValue);
+
+                          if (!isNaN(numericValue)) {
+                            handleGrowthChange(month, numericValue);
+                          }
+                        }}
                         variant="outlined"
                         size="small"
                         sx={{ width: "100px" }}
@@ -169,27 +183,22 @@ const ConfigurationView = ({
                                   size="small"
                                   sx={{ p: 0 }}
                                   onClick={() =>
-                                    handleGrowthChange(
-                                      month,
-                                      String(growthRates[index] + 1)
-                                    )
+                                    handleGrowthChange(month, growthRates[index] + 1)
                                   }
-                                ></IconButton>
+                                />
                                 <IconButton
                                   size="small"
                                   sx={{ p: 0 }}
                                   onClick={() =>
-                                    handleGrowthChange(
-                                      month,
-                                      String(growthRates[index] - 1)
-                                    )
+                                    handleGrowthChange(month, growthRates[index] - 1)
                                   }
-                                ></IconButton>
+                                />
                               </Box>
                             </InputAdornment>
                           ),
                         }}
                       />
+
                     </Box>
                   </TableCell>
                   {["d1", "d2", "d3"].map((decade) => (
@@ -197,10 +206,22 @@ const ConfigurationView = ({
                       <Box sx={{ display: "flex", justifyContent: "center" }}>
                         <TextField
                           type="number"
-                          value={distribution[decade]}
-                          onChange={(e) =>
-                            handleDecadeChange(month, decade, e.target.value)
-                          }
+                          value={String(distribution[decade])}
+                          onChange={(e) => {
+                            let rawValue = e.target.value;
+
+                            if (rawValue === "") {
+                              handleDecadeChange(month, decade, 0);
+                              return;
+                            }
+
+                            rawValue = rawValue.replace(/^0+(?=\d)/, "");
+
+                            const numericValue = Number(rawValue);
+                            if (!isNaN(numericValue)) {
+                              handleDecadeChange(month, decade, numericValue);
+                            }
+                          }}
                           variant="outlined"
                           size="small"
                           sx={{
