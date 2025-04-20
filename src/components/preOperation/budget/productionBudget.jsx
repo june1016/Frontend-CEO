@@ -186,12 +186,17 @@ const ProductionBudget = ({ budgetConfig, theme, onSuccess }) => {
   // Abrir diálogo de confirmación para guardar la política del mes actual
   const handleSaveMonthPolicy = () => {
     markMonthAsConfigured();
+  
     Swal.fire({
       title: 'Política Guardada',
       text: `Se ha configurado la política de inventario para el Mes ${selectedMonth} al ${inventoryPolicies[selectedMonth]}%.`,
       icon: 'success',
       confirmButtonColor: theme.palette.primary.main,
     });
+  
+    if (selectedMonth < 12) {
+      setSelectedMonth(selectedMonth + 1);
+    }
   };
   
   // Abrir diálogo de confirmación para guardar todo el presupuesto
