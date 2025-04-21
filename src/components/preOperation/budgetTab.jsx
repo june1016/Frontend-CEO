@@ -322,6 +322,7 @@ export default function BudgetTab() {
                           <SalesBudget
                             budgetConfig={budgetConfig}
                             theme={theme}
+                            budgetType={currentBudgetType}
                             onSuccess={() => {
                               setSavedBudgets((prev) => [...prev, "operational"]);
                             }}
@@ -332,6 +333,7 @@ export default function BudgetTab() {
                           <ProductionBudget
                             budgetConfig={budgetConfig}
                             theme={theme}
+                            budgetType={currentBudgetType}
                             onSuccess={() => {
                               setSavedBudgets((prev) => [...prev, "production"]);
                             }}

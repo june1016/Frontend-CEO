@@ -32,7 +32,7 @@ const BudgetResultsTable = ({
   selectedMonth,
   theme,
   totals,
-  title = "Resultados Calculados",
+  title,
   columnTitle = "Producto",
   itemTitle = "name",
 }) => {
@@ -51,16 +51,11 @@ const BudgetResultsTable = ({
             total: values.total,
           };
         }),
-        totals: {
-          d1: totals.d1Total,
-          d2: totals.d2Total,
-          d3: totals.d3Total,
-          total: totals.grandTotal,
-        },
+        title,
       };
   
       const response = await axiosInstance.post("/salesbudgetreport", dataToSend, {
-        responseType: "blob", // ⚠️ Esto es muy importante para recibir un PDF
+        responseType: "blob", // Esto es muy importante para recibir un PDF
       });
 
       // Crear una URL para el blob y descargar

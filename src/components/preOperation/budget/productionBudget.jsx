@@ -47,7 +47,7 @@ import axiosInstance from "../../../services/api/axiosConfig";
  * @param {Object} props.theme Tema de Material UI
  * @returns {JSX.Element} Componente renderizado
  */
-const ProductionBudget = ({ budgetConfig, theme, onSuccess }) => {
+const ProductionBudget = ({ budgetConfig, theme,  budgetType, onSuccess }) => {
   // Estado para el mes seleccionado
   const [selectedMonth, setSelectedMonth] = useState(1);
   
@@ -469,7 +469,7 @@ const ProductionBudget = ({ budgetConfig, theme, onSuccess }) => {
         selectedMonth={selectedMonth}
         theme={theme}
         totals={productionTotals}
-        title="Distribución de Producción por Década"
+        title={budgetType?.title}
         columnTitle="Producto"
         itemTitle="name"
       />

@@ -37,7 +37,7 @@ import showAlert from "../../../utils/functions";
  * @param {Object} props.theme Tema de Material UI
  * @returns {JSX.Element} Componente renderizado
  */
-const SalesBudget = ({ budgetConfig, theme, onSuccess }) => {
+const SalesBudget = ({ budgetConfig, theme, budgetType, onSuccess }) => {
   // Estado para diálogo de confirmación
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
@@ -220,6 +220,8 @@ const SalesBudget = ({ budgetConfig, theme, onSuccess }) => {
         showSaveButton={isFirstMonth}
       />
 
+    
+
       {/* Tabla de Resultados */}
       <BudgetResultsTable
         products={products}
@@ -227,7 +229,7 @@ const SalesBudget = ({ budgetConfig, theme, onSuccess }) => {
         selectedMonth={selectedMonth}
         theme={theme}
         totals={totals}
-        title="Resultados Calculados"
+        title={budgetType?.title}
         columnTitle="Producto"
         itemTitle="name"
       />
