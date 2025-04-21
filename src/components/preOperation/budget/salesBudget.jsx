@@ -152,8 +152,6 @@ const SalesBudget = ({ budgetConfig, theme, budgetType, onSuccess }) => {
     }
   };
 
-  console.log(budgetType);
-
   // Calcular crecimiento acumulado para el mes seleccionado
   const getAccumulatedGrowth = () => {
     if (selectedMonth === 1) return 0;

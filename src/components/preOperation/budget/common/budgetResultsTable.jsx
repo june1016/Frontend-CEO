@@ -37,8 +37,6 @@ const BudgetResultsTable = ({
   itemTitle = "name",
 }) => {
 
-  console.log(title);
-
   const generateReport = async () => {
     try {
       const dataToSend = {
