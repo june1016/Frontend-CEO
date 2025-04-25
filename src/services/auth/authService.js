@@ -14,6 +14,8 @@ export const authService = {
         // Guardar datos del usuario en localStorage si están disponibles
         if (response.data.user) {
           localStorage.setItem("userData", JSON.stringify(response.data.user));
+
+          localStorage.setItem("userData", JSON.stringify(response.data.user));
         }
 
         return response.data;

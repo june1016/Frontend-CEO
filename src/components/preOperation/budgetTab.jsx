@@ -27,6 +27,7 @@ import MaterialsBudgetPlaceholder from "./budget/materialsBudgetPlaceholder";
 import useBudgetConfiguration from "../../hooks/budget/useBudgetConfiguration";
 import showAlert from "../../utils/functions";
 import axiosInstance from "../../services/api/axiosConfig";
+import InfoCard from "../planning/financialData/common/infoCard";
 
 /**
  * Componente principal para la gestión de presupuestos
@@ -182,6 +183,11 @@ export default function BudgetTab() {
 
   return (
     <Box sx={{ width: "100%" }}>
+      <InfoCard
+        title="Configuración del Presupuesto"
+        description="Define el crecimiento mensual y la distribución por décadas para todo el año. Estos valores no
+        podrán modificarse durante la operación."
+      />
       <Card sx={{ boxShadow: 2, mb: 4, overflow: "hidden" }}>
         <CardHeader
           title={
