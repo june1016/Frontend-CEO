@@ -18,9 +18,12 @@ import {
   KeyboardArrowDown,
   PlayArrowOutlined,
 } from "@mui/icons-material";
-import MonthProgress from "./monthProgress";
+import MonthProgress, {  } from "./monthProgress";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
+import { resetOperation, startOperation } from "../../utils/timeManagement/operationTime";
+import StartOperationModal from "../common/startOperationModal";
+import showAlert from "../../utils/functions";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   boxShadow: "none",
@@ -28,6 +31,7 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   color: theme.palette.text.primary,
 }));
+
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -87,31 +91,33 @@ const Navbar = () => {
     handleClose();
   };
 
+  const handleStartOperation = async () => {
+    try {
+      await startOperation();
+      
+      window.dispatchEvent(new CustomEvent('operationUpdated'));
+      window.dispatchEvent(new CustomEvent('progressUpdated'));
+      
+    } catch (error) {
+      console.error("Error al iniciar operación:", error);
+      showAlert(
+        "Error",
+        "No se pudo iniciar la simulación",
+        "error"
+      );
+    }
+  };
+
+
   return (
     <StyledAppBar position="fixed">
-      <Toolbar sx={{ gap: 2 }}>
-        <MonthProgress />
-
-        <Box sx={{ flexGrow: 1 }} />
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Box sx={{ ml: '280px' }}>
+          <MonthProgress />
+        </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={<PlayArrowOutlined />}
-            sx={{
-              bgcolor: "#1C4384",
-              "&:hover": {
-                bgcolor: "#153265",
-              },
-              fontSize: "0.95rem",
-              px: 3,
-              py: 1,
-              borderRadius: 1.5,
-            }}
-          >
-            Iniciar Operaciones
-          </Button>
-
+          <StartOperationModal onConfirm={handleStartOperation} />
           <IconButton
             size="large"
             sx={{

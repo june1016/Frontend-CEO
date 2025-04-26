@@ -21,13 +21,13 @@ import BudgetSelector from "./budget/common/budgetSelector";
 import ConfigurationView from "./budget/common/configurationView";
 import SalesBudget from "./budget/salesBudget";
 import ProductionBudget from "./budget/productionBudget";
-import MaterialsBudgetPlaceholder from "./budget/materialsBudgetPlaceholder";
 
 // Hooks
 import useBudgetConfiguration from "../../hooks/budget/useBudgetConfiguration";
 import showAlert from "../../utils/functions";
 import axiosInstance from "../../services/api/axiosConfig";
 import InfoCard from "../planning/financialData/common/infoCard";
+import MaterialsBudget from "./budget/materialsBudget";
 
 /**
  * Componente principal para la gestión de presupuestos
@@ -345,10 +345,15 @@ export default function BudgetTab() {
                             }}
                           />
                         )}
-                        {selectedBudget === "materials" && (
-                          <MaterialsBudgetPlaceholder theme={theme} />
-                        )}
                       </Box>
+                    )}
+                    {/* Presupuesto de Materia Prima */}
+                    {(selectedBudget === "materials") && (
+                      <MaterialsBudget
+                        budgetConfig={budgetConfig}
+                        theme={theme}
+                        budgetType={currentBudgetType}
+                      />
                     )}
                   </Box>
                 </Box>

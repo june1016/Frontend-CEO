@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import axiosInstance from "../../../services/api/axiosConfig";
 import showAlert from "../../../utils/alerts/alertHelpers";
+import { updateProgress } from "../../dashboard/monthProgress";
 
 const ShiftAssignmentView = () => {
   const [data, setData] = useState([]);
@@ -140,6 +141,7 @@ const ShiftAssignmentView = () => {
           }
         );
       }
+      updateProgress(5); 
 
       showAlert(
         "Asignación de turnos",

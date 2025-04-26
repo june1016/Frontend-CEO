@@ -39,6 +39,7 @@ import { formatNumber } from "../../../utils/formatters/numberFormatters";
 import { calculateTotals } from "../../../utils/budget/budgetCalculations";
 import { showAlert } from "../../../utils/alerts/alertHelpers";
 import axiosInstance from "../../../services/api/axiosConfig";
+import { updateProgress } from "../../dashboard/monthProgress";
 
 /**
  * Componente para el presupuesto de producción
@@ -256,6 +257,7 @@ const ProductionBudget = ({ budgetConfig, theme,  budgetType, onSuccess }) => {
     const response = await sendInventoryPolicies(inventoryPolicies, userId);
   
     if (response?.ok) {
+      updateProgress(4); 
       showAlert(
         "¡Guardado Exitoso!",
         "El presupuesto de producción ha sido guardado correctamente.",

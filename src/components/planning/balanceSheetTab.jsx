@@ -45,8 +45,8 @@ import {
   Check as CheckIcon,
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
-import Swal from "sweetalert2";
 import showAlert from "../../utils/alerts/alertHelpers";
+import { updateProgress } from "../dashboard/monthProgress";
 
 export default function BalanceSheetTab({ handleTab }) {
   const theme = useTheme();
@@ -470,6 +470,7 @@ export default function BalanceSheetTab({ handleTab }) {
     const responseFinancialData = await sendFinancialData(financialData);
 
     if (responseFinancialData?.ok) {
+      updateProgress(1); 
       showAlert(
         "Balance general inicial",
         "Datos financieros registrados exitosamente",

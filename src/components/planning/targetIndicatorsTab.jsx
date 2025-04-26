@@ -32,6 +32,7 @@ import {
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert from "../../utils/alerts/alertHelpers";
+import { updateProgress } from "../dashboard/monthProgress";
 
 export default function TargetIndicatorsTab({ handleTab }) {
   const theme = useTheme();
@@ -222,6 +223,7 @@ export default function TargetIndicatorsTab({ handleTab }) {
     const responseIndicator = await sendObjetiveIndicators(indicators);
 
     if (responseIndicator?.ok) {
+      updateProgress(2); 
       showAlert(
         "Indicadores objetivos anuales",
         "Indicadores objetivos anuales registrados exitosamente",

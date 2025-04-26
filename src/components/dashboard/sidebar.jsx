@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Drawer,
   List,
@@ -89,49 +89,68 @@ const menuItems = [
     text: "Panel de control",
     icon: <DashboardOutlined />,
     path: DASHBOARD_ROUTES.DASHBOARD,
+    alwaysEnabled: true, // Nuevo campo para items que siempre están habilitados
   },
   {
     text: "Planificación",
     icon: <AssessmentOutlined />,
     path: DASHBOARD_ROUTES.PLANNING,
+    alwaysEnabled: true,
   },
   {
     text: "Pre-Operación",
     icon: <PlayArrowOutlined />,
     path: DASHBOARD_ROUTES.PRE_OPERATION,
+    alwaysEnabled: true,
   },
   {
     text: "Producción y Operaciones",
     icon: <FactoryOutlined />,
     path: DASHBOARD_ROUTES.PRODUCTION,
+    alwaysEnabled: false, // Estos items requieren operationStatus
   },
   {
     text: "Inventarios y Compras",
     icon: <ShoppingCartOutlined />,
     path: DASHBOARD_ROUTES.INVENTORY,
+    alwaysEnabled: false,
   },
   {
     text: "Gestión Comercial",
     icon: <BusinessOutlined />,
     path: DASHBOARD_ROUTES.COMMERCIAL,
+    alwaysEnabled: false,
   },
 ];
+
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [operationStarted, setOperationStarted] = useState(
+    !!localStorage.getItem("operationStatus")
+  );
+
+  // Escuchar cambios en el estado de operación
+  useEffect(() => {
+    const handleOperationUpdate = () => {
+      setOperationStarted(!!localStorage.getItem("operationStatus"));
+    };
+    
+    window.addEventListener('operationUpdated', handleOperationUpdate);
+    return () => {
+      window.removeEventListener('operationUpdated', handleOperationUpdate);
+    };
+  }, []);
 
   const handleLogout = () => {
-    // Asegurarse de que el logout limpie correctamente las cookies y localStorage
     authService.logout();
-    // Redireccionar al login después de cerrar sesión
     navigate("/login");
   };
 
   const handleNavigation = (path) => {
     navigate(path);
   };
-
   return (
     <Drawer
       variant="permanent"
@@ -180,26 +199,39 @@ const Sidebar = () => {
       </Logo>
 
       <List sx={{ px: 1, py: 1 }}>
-        {menuItems.map((item) => (
-          <StyledListItemButton
-            key={item.text}
-            selected={location.pathname === item.path}
-            onClick={() => handleNavigation(item.path)}
-            sx={{
-              mb: 0.5,
-              "&:last-child": { mb: 0 },
-            }}
-          >
-            <StyledListItemIcon>{item.icon}</StyledListItemIcon>
-            <ListItemText
-              primary={item.text}
-              primaryTypographyProps={{
-                fontSize: "0.95rem",
-                fontWeight: location.pathname === item.path ? 600 : 500,
+        {menuItems.map((item) => {
+          const disabled = !item.alwaysEnabled && !operationStarted;
+          return (
+            <StyledListItemButton
+              key={item.text}
+              selected={location.pathname === item.path}
+              onClick={() => !disabled && handleNavigation(item.path)}
+              disabled={disabled}
+              sx={{
+                mb: 0.5,
+                "&:last-child": { mb: 0 },
+                "&.Mui-disabled": {
+                  opacity: 0.5,
+                  pointerEvents: "none",
+                },
               }}
-            />
-          </StyledListItemButton>
-        ))}
+            >
+              <StyledListItemIcon>
+                {React.cloneElement(item.icon, {
+                  color: disabled ? "disabled" : "inherit",
+                })}
+              </StyledListItemIcon>
+              <ListItemText
+                primary={item.text}
+                primaryTypographyProps={{
+                  fontSize: "0.95rem",
+                  fontWeight: location.pathname === item.path ? 600 : 500,
+                  color: disabled ? "text.disabled" : "inherit",
+                }}
+              />
+            </StyledListItemButton>
+          );
+        })}
       </List>
 
       <Box
