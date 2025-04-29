@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { Save as SaveIcon, CheckCircle as CheckCircleIcon } from "@mui/icons-material";
 import SelectionCard from "./common/SelectionCard";
+import { updateProgress } from "../../dashboard/monthProgress";
 
 const SupplierSelections = ({ 
   suppliers, 
@@ -30,6 +31,7 @@ const SupplierSelections = ({
   const handleSave = async () => {
     try {
       await saveSelections();
+      updateProgress(3); 
       setSuccessMessage("Selecciones guardadas correctamente");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {

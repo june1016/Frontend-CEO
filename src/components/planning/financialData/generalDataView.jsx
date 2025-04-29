@@ -20,7 +20,7 @@ const GeneralDataView = ({ financialData, totals, sortableData, theme }) => {
       {/* Tarjetas de KPI */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {Object.entries(totals).map(([category, total]) => (
-          <Grid item xs={12} sm={6} md={3} key={category}>
+          <Grid item xs={12} sm={6} md={4} key={category}>
             <FinancialSummaryCard category={category} total={total} />
           </Grid>
         ))}

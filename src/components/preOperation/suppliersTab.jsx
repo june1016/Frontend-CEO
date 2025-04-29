@@ -26,21 +26,22 @@ import SupplierSelections from "./suppliers/SupplierSelections";
 
 // Hook personalizado
 import useSuppliers from "../../hooks/suppliers/useSuppliers";
+import InfoCard from "../planning/financialData/common/infoCard";
 
 export default function SuppliersTab() {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
-  const { 
-    suppliers, 
-    materials, 
-    selections, 
-    updateSelection, 
+  const {
+    suppliers,
+    materials,
+    selections,
+    updateSelection,
     saveSelections,
     hasStaffMember,
     isOperationalMonth,
     currentDecade,
-    loading, 
-    error 
+    loading,
+    error
   } = useSuppliers();
 
   const handleTabChange = (event, newValue) => {
@@ -52,40 +53,10 @@ export default function SuppliersTab() {
 
   return (
     <Box>
-      {/* Alerta informativa */}
-      <Card
-        sx={{
-          mb: 4,
-          bgcolor: "primary.light",
-          color: "white",
-          background:
-            "linear-gradient(to right, rgba(28, 67, 132, 0.05), rgba(28, 67, 132, 0.1))",
-          border: "none",
-        }}
-      >
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-            <StorefrontIcon
-              sx={{ fontSize: 40, color: theme.palette.primary.main }}
-            />
-            <Box>
-              <Typography
-                variant="h6"
-                fontWeight={600}
-                sx={{ mb: 0.5, color: "primary.main" }}
-              >
-                Gestión de Proveedores
-              </Typography>
-              <Typography variant="body2" sx={{ color: "text.primary" }}>
-                {isOperationalMonth 
-                  ? "Administre sus relaciones con proveedores. Recuerde que solo puede cambiar de proveedor en la primera década de cada mes."
-                  : "Seleccione los proveedores para cada material. Compare precios, condiciones de pago y descuentos para tomar la mejor decisión estratégica."
-                }
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+      <InfoCard
+        title="Gestión de Proveedores"
+        description="Administre sus relaciones con proveedores. Recuerde que solo puede cambiar de proveedor en la primera década de cada mes"
+      />
 
       {/* Tarjeta principal */}
       <Card sx={{ boxShadow: 2, mb: 4, overflow: "hidden" }}>
@@ -136,20 +107,20 @@ export default function SuppliersTab() {
                   },
                 }}
               >
-                <Tab 
-                  icon={<StorefrontIcon sx={{ fontSize: 20 }} />} 
-                  iconPosition="start" 
-                  label="Proveedores" 
+                <Tab
+                  icon={<StorefrontIcon sx={{ fontSize: 20 }} />}
+                  iconPosition="start"
+                  label="Proveedores"
                 />
-                <Tab 
-                  icon={<CompareIcon sx={{ fontSize: 20 }} />} 
-                  iconPosition="start" 
-                  label="Comparativa" 
+                <Tab
+                  icon={<CompareIcon sx={{ fontSize: 20 }} />}
+                  iconPosition="start"
+                  label="Comparativa"
                 />
-                <Tab 
-                  icon={<SelectionIcon sx={{ fontSize: 20 }} />} 
-                  iconPosition="start" 
-                  label="Mis Selecciones" 
+                <Tab
+                  icon={<SelectionIcon sx={{ fontSize: 20 }} />}
+                  iconPosition="start"
+                  label="Mis Selecciones"
                 />
               </Tabs>
             </Box>
@@ -158,22 +129,22 @@ export default function SuppliersTab() {
             <Box sx={{ p: 3 }}>
               {/* Si estamos en mes operativo (1-12) y fuera de la primera década, mostrar alerta */}
               {isOperationalMonth && currentDecade > 1 && (
-                <Alert 
-                  severity="warning" 
+                <Alert
+                  severity="warning"
                   icon={<InfoIcon />}
                   sx={{ mb: 3 }}
                 >
                   <AlertTitle>Cambios no disponibles</AlertTitle>
                   Solo puede cambiar de proveedor durante la primera década del mes.
-                  {hasStaffMember('secretaria') && 
+                  {hasStaffMember('secretaria') &&
                     " Su secretaria le recuerda que la próxima oportunidad será al inicio del siguiente mes."}
                 </Alert>
               )}
 
               {/* Panel de Proveedores */}
               {activeTab === 0 && (
-                <SuppliersList 
-                  suppliers={suppliers} 
+                <SuppliersList
+                  suppliers={suppliers}
                   hasProductionManager={hasStaffMember('jefe_produccion')}
                   loading={loading}
                 />
@@ -181,8 +152,8 @@ export default function SuppliersTab() {
 
               {/* Panel de Comparativa */}
               {activeTab === 1 && (
-                <SupplierComparison 
-                  suppliers={suppliers} 
+                <SupplierComparison
+                  suppliers={suppliers}
                   materials={materials}
                   hasProductionManager={hasStaffMember('jefe_produccion')}
                   loading={loading}
@@ -191,7 +162,7 @@ export default function SuppliersTab() {
 
               {/* Panel de Selecciones */}
               {activeTab === 2 && (
-                <SupplierSelections 
+                <SupplierSelections
                   suppliers={suppliers}
                   materials={materials}
                   selections={selections}

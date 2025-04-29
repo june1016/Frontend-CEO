@@ -15,6 +15,7 @@ import {
 import { formatCurrency } from "../../../../utils/formatters/currencyFormatters";
 
 const ComparisonTable = ({ suppliers, materials, compareBy, hasProductionManager }) => {
+
   // Función para encontrar el mejor valor según el criterio de comparación
   const findBestValue = (materialId, criterion) => {
     let bestValue = null;
@@ -65,7 +66,7 @@ const ComparisonTable = ({ suppliers, materials, compareBy, hasProductionManager
 
   // Renderizar el valor apropiado según el criterio de comparación
   const renderValue = (supplier, material, criterion) => {
-    const materialData = supplier.materials.find(m => m.materialId === material.id);
+      const materialData = supplier.materials.find(m => m.id === material.id);
     if (!materialData) return "-";
 
     switch (criterion) {
@@ -117,6 +118,7 @@ const ComparisonTable = ({ suppliers, materials, compareBy, hasProductionManager
               <TableCell>{material.unit}</TableCell>
               {suppliers.map((supplier) => {
                 const bestValue = isBestValue(supplier.id, material.id, compareBy);
+
                 return (
                   <TableCell key={supplier.id} align="center">
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
