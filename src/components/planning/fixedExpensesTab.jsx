@@ -23,10 +23,84 @@ import InfoCard from "./financialData/common/infoCard";
 import { formatCurrency } from "../../utils/formatters/currencyFormatters";
 import { useMonthlyExpenses } from "../../hooks/monthlyFixedExpenses/useMonthlyExpenses";
 
-
+// Componente reutilizable para tablas de gastos
+const ExpenseTable = ({ title, icon, data, total, theme, columns = 2, note }) => {
+  const hasQuantity = columns === 3;
+  
+  return (
+    <Card sx={{ boxShadow: 1, height: "100%", display: "flex", flexDirection: "column" }}>
+      <CardContent
+        sx={{
+          py: 2,
+          px: 2,
+          bgcolor: theme?.palette.primary.main || "#1C4384",
+          color: "white",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          {icon}
+          <Typography variant="h6">{title}</Typography>
+        </Box>
+      </CardContent>
+      
+      <TableContainer sx={{ flexGrow: 1 }}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ bgcolor: "#F3F4F6" }}>
+              <TableCell sx={{ fontWeight: "bold" }}>Gasto</TableCell>
+              {hasQuantity && <TableCell sx={{ fontWeight: "bold" }}>Cantidad</TableCell>}
+              <TableCell sx={{ fontWeight: "bold" }}>Valor (COP)</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((item, index) => (
+              <TableRow key={`item-${index}`} hover>
+                <TableCell>{item.name}</TableCell>
+                {hasQuantity && <TableCell>{item.quantity}</TableCell>}
+                <TableCell>
+                  <Typography sx={{ fontWeight: 500 }}>
+                    {formatCurrency(item.value_cop)}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ))}
+            
+            {/* Fila de total siempre al final de la tabla */}
+            <TableRow sx={{ bgcolor: "#EBF5FF" }}>
+              <TableCell
+                colSpan={hasQuantity ? 2 : 1}
+                sx={{
+                  fontWeight: "bold",
+                  color: theme?.palette.primary.dark || "#153265",
+                }}
+              >
+                Total mensual
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: "bold",
+                  color: theme?.palette.success.main || "#2E7D32",
+                }}
+              >
+                {formatCurrency(total)}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+      
+      {note && (
+        <Box sx={{ p: 2, bgcolor: "#FFFBEB", borderTop: "1px solid #FEF3C7" }}>
+          <Typography variant="subtitle2" color="warning.dark">
+            {note}
+          </Typography>
+        </Box>
+      )}
+    </Card>
+  );
+};
 
 const FixedExpensesTab = ({ theme }) => {
-
   const { monthlyData, monthlyTotals, loading, error } = useMonthlyExpenses();
   
   if (loading) return <p>Cargando gastos mensuales...</p>;
@@ -51,258 +125,54 @@ const FixedExpensesTab = ({ theme }) => {
       <Grid container spacing={3}>
         {/* Gastos Operativos */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ mb: 3, boxShadow: 1, height: "100%" }}>
-            <CardContent
-              sx={{
-                py: 2,
-                px: 2,
-                bgcolor: theme?.palette.primary.main || "#1C4384",
-                color: "white",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <PaymentsIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Gastos Operativos</Typography>
-              </Box>
-            </CardContent>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: "#F3F4F6" }}>
-                    <TableCell sx={{ fontWeight: "bold" }}>Gasto</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Valor (COP)
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {operationalExpenses.map((item, index) => (
-                    <TableRow key={`op-${index}`} hover>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontWeight: 500 }}>
-                          {formatCurrency(item.value_cop)}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow sx={{ bgcolor: "#EBF5FF" }}>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: theme?.palette.primary.dark || "#153265",
-                      }}
-                    >
-                      Total mensual
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: theme?.palette.success.main || "#2E7D32",
-                      }}
-                    >
-                      {formatCurrency(monthlyTotals.totalOperatingCosts)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
+          <ExpenseTable
+            title="Gastos Operativos"
+            icon={<PaymentsIcon sx={{ mr: 1 }} />}
+            data={operationalExpenses}
+            total={monthlyTotals.totalOperatingCosts}
+            theme={theme}
+          />
         </Grid>
 
         {/* Obligaciones Financieras */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ mb: 3, boxShadow: 1, height: "100%" }}>
-            <CardContent
-              sx={{
-                py: 2,
-                px: 2,
-                bgcolor: theme?.palette.primary.main || "#1C4384",
-                color: "white",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <AccountBalanceIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Obligaciones Financieras</Typography>
-              </Box>
-            </CardContent>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: "#F3F4F6" }}>
-                    <TableCell sx={{ fontWeight: "bold" }}>Gasto</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Valor (COP)
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {financialObligations.map((item, index) => (
-                    <TableRow key={`fin-${index}`} hover>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontWeight: 500 }}>
-                          {formatCurrency(item.value_cop)}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow sx={{ bgcolor: "#EBF5FF" }}>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: theme?.palette.primary.dark || "#153265",
-                      }}
-                    >
-                      Total mensual
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: theme?.palette.success.main || "#2E7D32",
-                      }}
-                    >
-                      {formatCurrency(monthlyTotals.totalFinancialObligations)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
+          <ExpenseTable
+            title="Obligaciones Financieras"
+            icon={<AccountBalanceIcon sx={{ mr: 1 }} />}
+            data={financialObligations}
+            total={monthlyTotals.totalFinancialObligations}
+            theme={theme}
+          />
         </Grid>
 
         {/* Gastos de Personal */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ mb: 3, boxShadow: 1, height: "100%" }}>
-            <CardContent
-              sx={{
-                py: 2,
-                px: 2,
-                bgcolor: theme?.palette.primary.main || "#1C4384",
-                color: "white",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <GroupIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Gastos de Personal</Typography>
-              </Box>
-            </CardContent>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: "#F3F4F6" }}>
-                    <TableCell sx={{ fontWeight: "bold" }}>Gasto</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Cantidad</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Valor (COP)
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {personnelExpenses.map((item, index) => (
-                    <TableRow key={`per-${index}`} hover>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontWeight: 500 }}>
-                          {formatCurrency(item.value_cop)}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow sx={{ bgcolor: "#EBF5FF" }}>
-                    <TableCell
-                      colSpan={2}
-                      sx={{
-                        fontWeight: "bold",
-                        color: theme?.palette.primary.dark || "#153265",
-                      }}
-                    >
-                      Total mensual
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: theme?.palette.success.main || "#2E7D32",
-                      }}
-                    >
-                      {formatCurrency(monthlyTotals.totalpersonnelExpenses)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Box
-              sx={{ p: 2, bgcolor: "#FFFBEB", borderTop: "1px solid #FEF3C7" }}
-            >
-              <Typography variant="subtitle2" color="warning.dark">
+          <ExpenseTable
+            title="Gastos de Personal"
+            icon={<GroupIcon sx={{ mr: 1 }} />}
+            data={personnelExpenses}
+            total={monthlyTotals.totalpersonnelExpenses}
+            theme={theme}
+            columns={3}
+            note={
+              <>
                 <strong>Nota importante:</strong> Los demás cargos son
                 opcionales y serán decisiones que el CEO podrá tomar durante la
-                configuración de la nómina y personal.
-              </Typography>
-            </Box>
-          </Card>
+                configuración de la nómina y personal. 
+              </>
+            }
+          />
         </Grid>
 
         {/* Cargas Sociales */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ mb: 3, boxShadow: 1, height: "100%" }}>
-            <CardContent
-              sx={{
-                py: 2,
-                px: 2,
-                bgcolor: theme?.palette.primary.main || "#1C4384",
-                color: "white",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <LocalAtmIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Cargas Sociales</Typography>
-              </Box>
-            </CardContent>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: "#F3F4F6" }}>
-                    <TableCell sx={{ fontWeight: "bold" }}>Gasto</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Valor (COP)
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {socialCharges.map((item, index) => (
-                    <TableRow key={`soc-${index}`} hover>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontWeight: 500 }}>
-                          {formatCurrency(item.value_cop)}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow sx={{ bgcolor: "#EBF5FF" }}>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: theme?.palette.primary.dark || "#153265",
-                      }}
-                    >
-                      Total mensual
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: theme?.palette.success.main || "#2E7D32",
-                      }}
-                    >
-                      {formatCurrency(monthlyTotals.totalSocialCharges)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
+          <ExpenseTable
+            title="Cargas Sociales"
+            icon={<LocalAtmIcon sx={{ mr: 1 }} />}
+            data={socialCharges}
+            total={monthlyTotals.totalSocialCharges}
+            theme={theme}
+          />
         </Grid>
 
         {/* Resumen de Gastos Fijos */}

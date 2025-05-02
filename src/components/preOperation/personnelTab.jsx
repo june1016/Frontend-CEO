@@ -1,20 +1,20 @@
+// src/components/preOperation/personnelTab.jsx
 import React, { useState } from "react";
 import {
   Box,
-  Typography,
   Card,
   CardContent,
   CardHeader,
-  useTheme,
   Tabs,
   Tab,
+  useTheme,
+  alpha
 } from "@mui/material";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import InfoCard from "../planning/financialData/common/infoCard";
-import OperationalStructureView from "./personal/OrganizationalStructureView";
-import ShiftAssignmentView from "./personal/ShiftAssignmentView";
-
-// import ShiftAssignmentView from "./views/ShiftAssignmentView";
+import OrganizationalStructureView from "./personnel/organizationalStructureView";
+import ShiftAssignmentView from "./personnel/shiftAssignmentView";
 
 const PersonnelTab = () => {
   const theme = useTheme();
@@ -22,90 +22,78 @@ const PersonnelTab = () => {
 
   const handleTabChange = (_, newValue) => setTabValue(newValue);
 
-  const renderTabContent = () => {
-    switch (tabValue) {
-      case 0:
-        return (
-          <Box sx={{ py: 4 }}>
-            <Typography variant="h5" fontWeight={600} gutterBottom>
-              Estructura Operacional del Personal
-            </Typography>
-
-            <Typography variant="body2" color="text.secondary">
-              Aquí puedes definir los departamentos, cargos y jerarquía de tu equipo.
-            </Typography>
-            <OperationalStructureView />
-          </Box>
-        );
-      case 1:
-        return (
-          <Box sx={{ py: 4 }}>
-            <Typography variant="h5" fontWeight={600} mb={2}>
-              Asignación de Turnos
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Asigna turnos y horarios de trabajo al personal según sus roles.
-            </Typography>
-            <ShiftAssignmentView />
-          </Box>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <Box>
       {/* Tarjeta informativa */}
       <InfoCard
         title="Gestión del Talento Humano"
-        description="Gestiona tu personal, define la estructura organizacional, asigna roles,
-            administra turnos y controla los costos asociados a la nómina."
+        description="Gestiona tu personal, define la estructura organizacional, asigna roles, administra turnos y controla los costos asociados a la nómina para optimizar la eficiencia operativa de tu empresa."
+        icon={<PeopleAltIcon />}
       />
 
-      <Card sx={{ p: 4 }}>
+      <Card sx={{ boxShadow: 2, overflow: "hidden" }}>
         <CardHeader
           title={
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <PeopleAltIcon sx={{ marginRight: 1 }} />
-              Nómina & Personal
+              <span>Nómina & Personal</span>
             </Box>
           }
           subheader="Gestión de estructura organizacional y costos de personal"
           sx={{
             backgroundColor: theme.palette.primary.main,
             color: "white",
+            p: 2,
           }}
           subheaderTypographyProps={{ color: "white" }}
         />
 
-        <CardContent>
-
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            aria-label="tabs de nómina"
-            variant="standard"
+        <CardContent sx={{ p: 0 }}>
+          <Box
             sx={{
-              alignSelf: "flex-start",
-              "& .MuiTabs-flexContainer": {
-                justifyContent: "flex-start",
-              },
-              "& .MuiTab-root": {
-                minWidth: 120,
-                fontWeight: 500,
-                textTransform: "none",
-              },
-              "& .Mui-selected": {
-                fontWeight: 600,
-              },
+              borderBottom: 1,
+              borderColor: "divider",
+              bgcolor: alpha(theme.palette.primary.light, 0.04)
             }}
           >
-            <Tab label="Estructura Organizacional" />
-            <Tab label="Asignación de Turnos" />
-          </Tabs>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              aria-label="tabs de nómina"
+              variant="standard"
+              sx={{
+                "& .MuiTabs-flexContainer": {
+                  justifyContent: "flex-start",
+                },
+                "& .MuiTab-root": {
+                  minWidth: 120,
+                  fontWeight: 500,
+                  textTransform: "none",
+                  px: 3,
+                  py: 2,
+                  "&.Mui-selected": {
+                    fontWeight: 600,
+                  },
+                },
+              }}
+            >
+              <Tab 
+                icon={<PeopleAltIcon />} 
+                iconPosition="start" 
+                label="Estructura Organizacional" 
+              />
+              <Tab 
+                icon={<ScheduleIcon />} 
+                iconPosition="start" 
+                label="Asignación de Turnos" 
+              />
+            </Tabs>
+          </Box>
 
-          {renderTabContent()}
+          <Box sx={{ p: 3 }}>
+            {tabValue === 0 && <OrganizationalStructureView />}
+            {tabValue === 1 && <ShiftAssignmentView />}
+          </Box>
         </CardContent>
       </Card>
     </Box>

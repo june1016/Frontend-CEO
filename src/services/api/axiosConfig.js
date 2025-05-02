@@ -7,7 +7,7 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
-
+console.log(import.meta.env.VITE_API_URL);
 // Interceptor para agregar el token a las peticiones
 axiosInstance.interceptors.request.use(
   (config) => {
