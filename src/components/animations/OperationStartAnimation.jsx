@@ -1,7 +1,7 @@
 // components/OperationStartAnimation.jsx
 import { useState, useEffect, useRef } from 'react';
 import { Box, Typography, keyframes, styled } from '@mui/material';
-import ParticlesBackground from './ParticlesBackground';
+import ParticlesBackground from './particlesBackground';
 
 const fadeIn = keyframes`
   0% { opacity: 0; transform: scale(0.8); }

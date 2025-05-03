@@ -23,7 +23,7 @@ export const useBalanceSheet = (handleTab) => {
     "Muebles y enseres": "",
     "Patentes": "",
     "Maquinaria y equipo": "",
-    "Equipos de cómputo": "",
+    "Equipos de oficina": "",
   });
 
   const [pasivosLP, setPasivosLP] = useState({

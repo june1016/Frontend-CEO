@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import ScheduleIcon from '@mui/icons-material/Schedule';
-import InfoCard from "../planning/financialData/common/infoCard";
+import InfoCard from "../common/infoCard";
 import OrganizationalStructureView from "./personnel/organizationalStructureView";
 import ShiftAssignmentView from "./personnel/shiftAssignmentView";
 
@@ -28,7 +28,6 @@ const PersonnelTab = () => {
       <InfoCard
         title="Gestión del Talento Humano"
         description="Gestiona tu personal, define la estructura organizacional, asigna roles, administra turnos y controla los costos asociados a la nómina para optimizar la eficiencia operativa de tu empresa."
-        icon={<PeopleAltIcon />}
       />
 
       <Card sx={{ boxShadow: 2, overflow: "hidden" }}>
