@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { Save as SaveIcon, CheckCircle as CheckCircleIcon } from "@mui/icons-material";
 import SelectionCard from "./common/SelectionCard";
-import { updateProgress } from "../../dashboard/monthProgress";
+import { updateProgress } from "../../dashboard/MonthProgress";
 
 const SupplierSelections = ({ 
   suppliers, 

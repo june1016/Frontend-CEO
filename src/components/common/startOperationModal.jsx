@@ -18,14 +18,21 @@ import {
 import { PlayArrowOutlined, Warning } from '@mui/icons-material';
 import OperationStartAnimation from '../animations/OperationStartAnimation';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
+import showAlert from '../../utils/functions';
 
 const StartOperationModal = ({ onConfirm }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [isOperationStarted, setIsOperationStarted] = useState(
-    !!localStorage.getItem("operationStatus")
-  );
+  const [isOperationStarted, setIsOperationStarted] = useState(() => {
+    const storedStatus = localStorage.getItem("operationStatus");
+    try {
+      const parsed = JSON.parse(storedStatus);
+      return parsed?.operationStarted === true;
+    } catch {
+      return false;
+    }
+  });
 
   const handleOpen = () => {
     if (!isOperationStarted) {
@@ -37,10 +44,26 @@ const StartOperationModal = ({ onConfirm }) => {
 
   const handleConfirm = async () => {
     try {
-      setShowAnimation(true);
-      await onConfirm();
-      setIsOperationStarted(true);
-      handleClose();
+      const setupStatus = JSON.parse(localStorage.getItem("operationStatus"));
+      
+      if (setupStatus?.isSetupComplete) {
+        setShowAnimation(true);
+        await onConfirm();
+        setIsOperationStarted(true);
+        handleClose();
+      } else {
+        const completedTabs = setupStatus?.completedTabs || 0;
+        const totalTabs = setupStatus?.totalTabs || 5;
+
+        handleClose();
+
+        showAlert(
+          "Error",
+          `Debes completar todos los tabs. Tabs completados: ${completedTabs} de ${totalTabs}.`,
+          "error",
+          "#1C4384",
+        );
+      }
     } catch (error) {
       console.error("Error al iniciar operación:", error);
       setShowAnimation(false);

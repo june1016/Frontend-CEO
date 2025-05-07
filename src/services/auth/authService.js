@@ -86,13 +86,15 @@ export const authService = {
   // Cerrar sesión
   logout: () => {
     // Eliminar el token de cookies
-    Cookies.remove("authToken");
+  Cookies.remove("authToken");
 
-    // Eliminar datos del usuario del localStorage
-    localStorage.removeItem("userData");
+  // Eliminar datos del usuario del localStorage (limpiar todo el localStorage)
+  localStorage.clear();
 
-    // Opcionalmente, eliminar otros datos de sesión
-    sessionStorage.clear();
+  // Opcionalmente, eliminar otros datos de sesión
+  sessionStorage.clear();
+
+  // Puedes agregar más lógica de limpieza si es necesario, como redirigir al usuario a la página de inicio de sesión
   },
 
   // Verificar si el usuario está autenticado

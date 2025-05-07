@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../services/api/axiosConfig';
 import showAlert from '../../utils/alerts/alertHelpers';
-import { updateProgress } from '../../components/dashboard/monthProgress';
+import { updateProgress } from '../../components/dashboard/MonthProgress';
 
 export const useShiftAssignment = () => {
   const [data, setData] = useState([]);
@@ -23,7 +23,7 @@ export const useShiftAssignment = () => {
   const fetchOperatorCount = async () => {
     try {
       const response = await axiosInstance.get(
-        `/payroll-improvements-assignments/user/${userId || 1}`
+        `/payrol-assig/payroll-improvements-assignments/user/${userId || 1}`
       );
       const allAssignments = response.data.data;
 
@@ -172,7 +172,7 @@ export const useShiftAssignment = () => {
 
       if (response.data.ok) {
         await axiosInstance.post(
-          "/payroll-improvements-assignments/available", // Ruta corregida
+          "/payrol-assig/payroll-improvements-assignments/available", // Ruta corregida
           {
             user_id: userId,
             available_quantity: operatorsAvailable,
@@ -227,7 +227,7 @@ export const useShiftAssignment = () => {
   // Actualizar resumen cuando cambien las asignaciones
   useEffect(() => {
     fetchUserAssignments();
-  }, [assignmentSummary]);
+  }, []);
 
   return {
     loading,

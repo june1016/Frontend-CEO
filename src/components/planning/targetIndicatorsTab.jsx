@@ -32,7 +32,7 @@ import {
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert from "../../utils/alerts/alertHelpers";
-import { updateProgress } from "../dashboard/monthProgress";
+import { updateProgress } from "../dashboard/MonthProgress";
 
 export default function TargetIndicatorsTab({ handleTab }) {
   const theme = useTheme();

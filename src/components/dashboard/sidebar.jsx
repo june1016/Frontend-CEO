@@ -127,17 +127,19 @@ const menuItems = [
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [operationStarted, setOperationStarted] = useState(
-    !!localStorage.getItem("operationStatus")
-  );
-
+  const [operationStarted, setOperationStarted] = useState(() => {
+    const status = JSON.parse(localStorage.getItem("operationStatus"));
+    return status?.operationStarted === true;
+  });
   // Escuchar cambios en el estado de operación
   useEffect(() => {
     const handleOperationUpdate = () => {
-      setOperationStarted(!!localStorage.getItem("operationStatus"));
+      const status = JSON.parse(localStorage.getItem("operationStatus"));
+      setOperationStarted(status?.operationStarted === true);
     };
-    
+  
     window.addEventListener('operationUpdated', handleOperationUpdate);
+  
     return () => {
       window.removeEventListener('operationUpdated', handleOperationUpdate);
     };

@@ -18,12 +18,12 @@ import {
   KeyboardArrowDown,
   PlayArrowOutlined,
 } from "@mui/icons-material";
-import MonthProgress, {  } from "./monthProgress";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
 import { resetOperation, startOperation } from "../../utils/timeManagement/operationTime";
 import StartOperationModal from "../common/startOperationModal";
 import showAlert from "../../utils/functions";
+import MonthProgress from "./MonthProgress";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   boxShadow: "none",

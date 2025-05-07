@@ -8,8 +8,6 @@ import {
 const MaterialsTable = ({ userId, projectedSales }) => {
   const [materials, setMaterials] = useState([]);
 
-  console.log("Proyecciones de ventas recibidas:", projectedSales);
-
   useEffect(() => {
     const fetchMaterials = async () => {
       try {

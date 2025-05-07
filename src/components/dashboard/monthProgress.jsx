@@ -1,97 +1,198 @@
 import { useState, useEffect } from "react";
 import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import { CheckCircleOutline } from "@mui/icons-material";
-import { getSimulatedTime } from "../../utils/timeManagement/operationTime.js";
 import {
   resetOperation,
   updateProgress,
-  startOperation
+  startOperation,
+  OPERATION_STATUS_KEY,
+  PROGRESS_MONTH_KEY,
+  upsertProgressInBackend,
 } from "../../utils/timeManagement/operationTime.js";
+import { getSimulatedTime } from "../../utils/timeManagement/operationTime.js";
 
 const MonthProgress = () => {
   const theme = useTheme();
   const [currentProgress, setCurrentProgress] = useState(0);
-  const [simulatedTime, setSimulatedTime] = useState(null);
+
   const [progressData, setProgressData] = useState({
+    currentMonth: 1,
+    currentDecade: 1,
+    isDecember: false,
+    elapsedMinutes: 0,
+  });
+
+  const [operationStatus, setOperationStatus] = useState({
     completedTabs: 0,
     totalTabs: 5,
     isSetupComplete: false,
-    operationStarted: false
+    operationStarted: false,
   });
+
+  const [previousDecade, setPreviousDecade] = useState(null);
+  const [previousMonth, setPreviousMonth] = useState(null);
+
+  useEffect(() => {
+    const runInitialProgress = () => {
+      const rawStatus = localStorage.getItem("operationStatus");
+      if (!rawStatus) return;
+  
+      const status = JSON.parse(rawStatus);
+  
+      if (status.operationStarted) return;
+  
+      const { completedTabs, totalTabs } = status;
+  
+      const progressPercent = Math.round((completedTabs / totalTabs) * 100);
+      setCurrentProgress(progressPercent);
+    };
+  
+    runInitialProgress();
+  }, [currentProgress]);
+
+  useEffect(() => {
+    const initializeSimulatedTime = async () => {
+      const simulated = await getSimulatedTime();
+  
+      if (simulated) {
+        const updatedProgress = {
+          currentMonth: simulated.currentMonth,
+          currentDecade: simulated.currentDecade,
+          isDecember: simulated.isDecember,
+          elapsedMinutes: simulated.elapsedMinutes,
+        };
+  
+        setProgressData(updatedProgress);
+  
+        const status = {
+          completedTabs: 5,
+          totalTabs: 5,
+          isSetupComplete: true,
+          operationStarted: true,
+        };
+  
+        setOperationStatus(status);
+        localStorage.setItem(OPERATION_STATUS_KEY, JSON.stringify(status));
+      }
+    };
+  
+    initializeSimulatedTime();
+  }, []);
 
   useEffect(() => {
     const updateData = () => {
-      const operationStatus = !!localStorage.getItem("operationStatus");
-      const progress = JSON.parse(localStorage.getItem('month_progress')) || {
+      const status = JSON.parse(localStorage.getItem(OPERATION_STATUS_KEY)) || {
         completedTabs: 0,
         totalTabs: 5,
         isSetupComplete: false,
-        operationStarted: false
+        operationStarted: false,
       };
-      
-      setProgressData({
-        ...progress,
-        operationStarted: operationStatus || progress.operationStarted
-      });
+      const progress = JSON.parse(localStorage.getItem(PROGRESS_MONTH_KEY)) || {
+        currentMonth: 1,
+        currentDecade: 1,
+        isDecember: false,
+        elapsedMinutes: 0,
+      };
+
+      setOperationStatus(status);
+      setProgressData(progress);
     };
 
-    window.addEventListener('operationUpdated', updateData);
-    window.addEventListener('progressUpdated', updateData);
-    
+    window.addEventListener("operationUpdated", updateData);
+    window.addEventListener("progressUpdated", updateData);
+
     updateData();
-    
+
     return () => {
-      window.removeEventListener('operationUpdated', updateData);
-      window.removeEventListener('progressUpdated', updateData);
+      window.removeEventListener("operationUpdated", updateData);
+      window.removeEventListener("progressUpdated", updateData);
     };
   }, []);
 
   useEffect(() => {
+    const setupStatus = JSON.parse(localStorage.getItem("operationStatus"));
+    
+    if (setupStatus?.isSetupComplete && 
+      (progressData.currentMonth !== previousMonth || progressData.currentDecade !== previousDecade)) {
+      upsertProgressInBackend({
+        currentMonth: progressData.currentMonth,
+        currentDecade: progressData.currentDecade,
+        isDecember: progressData.isDecember,
+      });
+    }
+  }, [progressData.currentMonth, progressData.currentDecade]);
+  
+
+  useEffect(() => {
     const calculateSetupProgress = () => {
-      return progressData.totalTabs > 0 
-        ? (progressData.completedTabs / progressData.totalTabs) * 100 
+      return operationStatus.totalTabs > 0
+        ? (operationStatus.completedTabs / operationStatus.totalTabs) * 100
         : 0;
     };
 
-    const calculateOperationProgress = (time) => {
-      if (!time) return 0;
-      const decadeProgress = (time.currentDecade - 1) * 33.33;
-      if (time.isDecember && time.currentDecade === 3) return 100;
+    const calculateOperationProgress = (monthData) => {
+      const { currentDecade, isDecember } = monthData;
+      if (isDecember && currentDecade === 3) return 100;
+      const decadeProgress = (currentDecade - 1) * 33.33;
       return Math.min(decadeProgress, 100);
     };
 
     const update = () => {
-      const time = getSimulatedTime();
-      setSimulatedTime(time);
-      
-      const progress = progressData.operationStarted
-        ? calculateOperationProgress(time)
+      const progress = operationStatus.operationStarted
+        ? calculateOperationProgress(progressData)
         : calculateSetupProgress();
-      
+
       setCurrentProgress(progress);
     };
 
-    update();
-    const interval = setInterval(update, 1000);
+    if (
+      progressData.currentDecade !== previousDecade ||
+      progressData.currentMonth !== previousMonth
+    ) {
+      update();
+      setPreviousDecade(progressData.currentDecade);
+      setPreviousMonth(progressData.currentMonth);
+    }
+
+    const interval = setInterval(() => {
+      const newStoredTime =
+        JSON.parse(localStorage.getItem(PROGRESS_MONTH_KEY)) || {
+          currentMonth: 1,
+          currentDecade: 1,
+          isDecember: false,
+          elapsedMinutes: 0,
+        };
+
+      setProgressData(newStoredTime);
+
+      if (
+        newStoredTime.currentDecade !== previousDecade ||
+        newStoredTime.currentMonth !== previousMonth
+      ) {
+        update();
+        setPreviousDecade(newStoredTime.currentDecade);
+        setPreviousMonth(newStoredTime.currentMonth);
+      }
+    }, 1000);
+
     return () => clearInterval(interval);
-  }, [progressData]);
+  }, [operationStatus, progressData, previousDecade, previousMonth]);
 
   const getProgressColor = () => {
     if (currentProgress >= 100) return theme.palette.success.main;
-    return progressData.operationStarted 
+    return operationStatus.operationStarted
       ? theme.palette.primary.main
       : theme.palette.primary.main;
   };
 
   const getProgressText = () => {
-    if (progressData.operationStarted) {
-      return simulatedTime
-        ? `Mes ${simulatedTime.currentMonth} (Década ${simulatedTime.currentDecade})`
-        : "Operación en progreso";
+    if (operationStatus.operationStarted) {
+      return `Mes ${progressData.currentMonth} (Década ${progressData.currentDecade})`;
     }
-    return progressData.isSetupComplete
-      ? "Configuración completada!"
-      : `Mes 0 - Configuración  (${progressData.completedTabs}/${progressData.totalTabs} pasos)`;
+
+    return operationStatus.isSetupComplete
+      ? "¡Configuración completada!"
+      : `Mes 0 - Configuración (${operationStatus.completedTabs}/${operationStatus.totalTabs} pasos)`;
   };
 
   return (
@@ -105,7 +206,7 @@ const MonthProgress = () => {
           sx={{
             color: getProgressColor(),
             backgroundColor: "transparent",
-          }}  
+          }}
         />
         <Box
           top={0}
