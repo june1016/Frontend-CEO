@@ -56,6 +56,7 @@ import {
   Cell,
   ReferenceLine,
 } from "recharts";
+import InfoCard from ".././common/infoCard";
 
 // Datos de las cards de indicadores financieros
 const indicatorCards = [
@@ -352,40 +353,11 @@ export default function InitialIndicatorsTab() {
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Alerta informativa */}
-      <Card
-        sx={{
-          mb: 4,
-          bgcolor: "primary.light",
-          color: "white",
-          background:
-            "linear-gradient(to right, rgba(28, 67, 132, 0.05), rgba(28, 67, 132, 0.1))",
-          border: "none",
-        }}
-      >
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-            <Avatar sx={{ bgcolor: "primary.main", width: 40, height: 40 }}>
-              <AssessmentIcon />
-            </Avatar>
-            <Box>
-              <Typography
-                variant="h6"
-                fontWeight={600}
-                sx={{ mb: 0.5, color: "primary.main" }}
-              >
-                Indicadores Financieros Iniciales
-              </Typography>
-              <Typography variant="body2" sx={{ color: "text.primary" }}>
-                Visualice los indicadores financieros clave que reflejan el
-                estado inicial de su empresa. Estos valores servirán como punto
-                de referencia para establecer sus metas en la sección de
-                Indicadores Objetivo.
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+      {/* Tarjeta informativa */}
+      <InfoCard
+        title="Indicadores Financieros Iniciales"
+        description="Visualice los indicadores financieros clave que reflejan elestado inicial de su empresa. Estos valores servirán como punto de referencia para establecer sus metas en la sección de Indicadores Objetivo."
+      />
 
       <Card sx={{ mb: 4 }}>
         <CardContent sx={{ p: 0 }}>

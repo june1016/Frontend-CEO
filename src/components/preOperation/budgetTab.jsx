@@ -26,7 +26,7 @@ import ProductionBudget from "./budget/productionBudget";
 import useBudgetConfiguration from "../../hooks/budget/useBudgetConfiguration";
 import showAlert from "../../utils/functions";
 import axiosInstance from "../../services/api/axiosConfig";
-import InfoCard from "../planning/financialData/common/infoCard";
+import InfoCard from "../common/infoCard";
 import MaterialsBudget from "./budget/materialsBudget";
 
 /**

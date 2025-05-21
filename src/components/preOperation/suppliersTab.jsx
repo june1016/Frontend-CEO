@@ -26,7 +26,7 @@ import SupplierSelections from "./suppliers/SupplierSelections";
 
 // Hook personalizado
 import useSuppliers from "../../hooks/suppliers/useSuppliers";
-import InfoCard from "../planning/financialData/common/infoCard";
+import InfoCard from "../common/infoCard";
 
 export default function SuppliersTab() {
   const theme = useTheme();
@@ -67,7 +67,7 @@ export default function SuppliersTab() {
               <Typography variant="h5" fontWeight="bold">
                 Proveedores
               </Typography>
-            </Box>
+            </Box>  
           }
           sx={{
             bgcolor: theme.palette.primary.main,

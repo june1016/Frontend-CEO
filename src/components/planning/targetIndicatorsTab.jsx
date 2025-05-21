@@ -32,7 +32,8 @@ import {
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert from "../../utils/alerts/alertHelpers";
-import { updateProgress } from "../dashboard/MonthProgress";
+import { updateProgress } from "../dashboard/monthProgress";
+import InfoCard from ".././common/infoCard";
 
 export default function TargetIndicatorsTab({ handleTab }) {
   const theme = useTheme();
@@ -236,40 +237,11 @@ export default function TargetIndicatorsTab({ handleTab }) {
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Alerta informativa */}
-      <Card
-        sx={{
-          mb: 4,
-          bgcolor: "primary.light",
-          color: "white",
-          background:
-            "linear-gradient(to right, rgba(28, 67, 132, 0.05), rgba(28, 67, 132, 0.1))",
-          border: "none",
-        }}
-      >
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-            <Avatar sx={{ bgcolor: "primary.main", width: 40, height: 40 }}>
-              <InfoIcon />
-            </Avatar>
-            <Box>
-              <Typography
-                variant="h6"
-                fontWeight={600}
-                sx={{ mb: 0.5, color: "primary.main" }}
-              >
-                Indicadores Objetivo
-              </Typography>
-              <Typography variant="body2" sx={{ color: "text.primary" }}>
-                En esta sección puede establecer los objetivos financieros
-                anuales para su empresa. Estos indicadores servirán como metas a
-                alcanzar durante la operación y serán el punto de referencia
-                para evaluar el desempeño de su gestión.
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+      {/* Tarjeta informativa */}
+      <InfoCard
+        title="Indicadores Objetivos Anuales"
+        description="En esta sección puede establecer los objetivos financieros anuales para su empresa. Estos indicadores servirán como metas a alcanzar durante la operación y serán el punto de referencia para evaluar el desempeño de su gestión."
+      />
 
       {/* Container principal */}
       <Card sx={{ boxShadow: 2, mb: 4, overflow: "hidden" }}>

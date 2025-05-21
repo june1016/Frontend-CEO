@@ -19,7 +19,7 @@ import {
   LocalAtm as LocalAtmIcon,
   Assessment as AssessmentIcon,
 } from "@mui/icons-material";
-import InfoCard from "./financialData/common/infoCard";
+import InfoCard from ".././common/infoCard";
 import { formatCurrency } from "../../utils/formatters/currencyFormatters";
 import { useMonthlyExpenses } from "../../hooks/monthlyFixedExpenses/useMonthlyExpenses";
 
@@ -119,7 +119,6 @@ const FixedExpensesTab = ({ theme }) => {
       <InfoCard
         title="Gastos Fijos Mensuales"
         description="En esta sección podrás revisar los gastos fijos mensuales de tu empresa, incluyendo gastos operativos, obligaciones financieras, gastos de personal y cargas sociales. Estos valores son utilizados para el cálculo de presupuestos y proyecciones financieras."
-        icon={<PaymentsIcon />}
       />
 
       <Grid container spacing={3}>

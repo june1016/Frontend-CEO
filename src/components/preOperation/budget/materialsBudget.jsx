@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";  // Importa axios
 import { Box, Alert, AlertTitle, Typography, Chip, Card, CardContent, CardHeader } from "@mui/material";
-import { DoneAll as DoneAllIcon } from "@mui/icons-material";
 import MonthSelector from "./common/monthSelector";
 import axiosInstance from "../../../services/api/axiosConfig.js";
-import InfoCard from "../../planning/financialData/common/infoCard";
+import InfoCard from "../../common/infoCard.jsx";
 import MaterialsTable from "./common/materialsTable.jsx";
 
 // Definimos el componente

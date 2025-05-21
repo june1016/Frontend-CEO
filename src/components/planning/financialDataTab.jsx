@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Tabs, Tab, useTheme } from "@mui/material";
-import InfoCard from "./financialData/common/infoCard";
+import InfoCard from ".././common/infoCard.jsx";
 import GeneralDataView from "./financialData/generalDataView";
 import IncomeStatementView from "./financialData/incomeStatementView";
 import InventoryView from "./financialData/inventoryView";

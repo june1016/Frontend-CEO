@@ -19,7 +19,7 @@ import {
   Assignment,
   Description,
 } from "@mui/icons-material";
-import InfoCard from "./common/infoCard";
+import InfoCard from "../../common/infoCard";
 import { formatCurrency } from "../../../utils/formatters/currencyFormatters";
 
 /**
