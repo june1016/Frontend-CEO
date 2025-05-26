@@ -10,6 +10,7 @@ import {
   Menu,
   MenuItem,
   Typography,
+  Chip,
 } from "@mui/material";
 import { styled, alpha } from "@mui/material/styles";
 import {
@@ -40,6 +41,9 @@ const Navbar = () => {
     name: "",
     lastName: "",
     email: "",
+    name_rol: "",
+    group_name: "",
+    rol_id: ""
   });
 
   // Recuperar datos del usuario al cargar el componente
@@ -77,6 +81,10 @@ const Navbar = () => {
     return "Usuario";
   };
 
+  const getUserRoleName = () => {
+    return userData.name_rol || "Sin rol";
+  };
+
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -94,10 +102,10 @@ const Navbar = () => {
   const handleStartOperation = async () => {
     try {
       await startOperation();
-      
+
       window.dispatchEvent(new CustomEvent('operationUpdated'));
       window.dispatchEvent(new CustomEvent('progressUpdated'));
-      
+
     } catch (error) {
       console.error("Error al iniciar operación:", error);
       showAlert(
@@ -108,51 +116,33 @@ const Navbar = () => {
     }
   };
 
-
   return (
     <StyledAppBar position="fixed">
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Box sx={{ ml: '280px' }}>
-          <MonthProgress />
+          {userData.rol_id !== 1 && userData.rol_id !== 2 && (
+            <MonthProgress />
+          )}
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <StartOperationModal onConfirm={handleStartOperation} />
-          <IconButton
-            size="large"
-            sx={{
-              color: "text.secondary",
-              "&:hover": {
-                backgroundColor: alpha("#000", 0.04),
-              },
-            }}
-          >
-            <Badge
-              badgeContent={3}
-              color="error"
-              sx={{
-                "& .MuiBadge-badge": {
-                  fontSize: "0.75rem",
-                  height: 18,
-                  minWidth: 18,
-                },
-              }}
-            >
-              <NotificationsOutlined />
-            </Badge>
-          </IconButton>
 
-          <IconButton
-            size="large"
-            sx={{
-              color: "text.secondary",
-              "&:hover": {
-                backgroundColor: alpha("#000", 0.04),
-              },
-            }}
-          >
-            <QuestionAnswerOutlined />
-          </IconButton>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          {userData.rol_id !== 1 && userData.rol_id !== 2 &&  (
+            <StartOperationModal onConfirm={handleStartOperation} />
+          )}
+
+          {userData.rol_id !== 1 && userData.group_name && (
+            <Chip
+              label={userData.group_name}
+              color="primary"
+              variant="outlined"
+              sx={{
+                fontWeight: 500,
+                bgcolor: "background.paper",
+                borderColor: "primary.main",
+              }}
+            />
+          )}
 
           <Box sx={{ display: "flex", alignItems: "center", ml: 1 }}>
             <Avatar
@@ -193,7 +183,7 @@ const Navbar = () => {
                   lineHeight: 1.2,
                 }}
               >
-                Estudiante
+                {getUserRoleName()}
               </Typography>
             </Box>
             <IconButton
