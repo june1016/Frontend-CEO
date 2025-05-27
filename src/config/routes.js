@@ -16,6 +16,18 @@ export const DASHBOARD_ROUTES = {
   SETTINGS: "/dashboard/settings",
 };
 
+export const ADMIN_DASHBOARD_ROUTES = {
+  ADMIN_HOME: "/admin",
+  ADMIN_GROUPS: "/admin/groups",
+  ADMIN_USERS: "/admin/users",
+  ADMIN_UNIVERSITY: "/admin/university",
+};
+
+export const TEACHER_DASHBOARD_ROUTES = {
+  TEACHER_HOME: "/teacher",
+  TEACHER_PLANNING: "/teacher/planning",
+};
+
 export const DEFAULT_ROUTE = AUTH_ROUTES.LOGIN;
 
 // Rutas de autenticación
@@ -67,5 +79,35 @@ export const dashboardRoutes = [
   {
     path: DASHBOARD_ROUTES.SETTINGS,
     component: "settingsPage",
+  },
+];
+
+export const adminDashboardRoutes = [
+  {
+    path: ADMIN_DASHBOARD_ROUTES.ADMIN_HOME,
+    component: "adminDashboard",
+  },
+  {
+    path: ADMIN_DASHBOARD_ROUTES.ADMIN_GROUPS,
+    component: "adminGrousPage",
+  },
+  {
+    path: ADMIN_DASHBOARD_ROUTES.ADMIN_USERS,
+    component: "adminUsersPage",
+  },
+  {
+    path: ADMIN_DASHBOARD_ROUTES.ADMIN_UNIVERSITY,
+    component: "adminUniversityPage",
+  },
+];
+
+export const teacherDashboardRoutes = [
+  {
+    path: TEACHER_DASHBOARD_ROUTES.TEACHER_HOME,
+    component: "TeacherPlanningIntro",
+  },
+  {
+    path: TEACHER_DASHBOARD_ROUTES.TEACHER_PLANNING,
+    component: "GeneralDataView",
   },
 ];

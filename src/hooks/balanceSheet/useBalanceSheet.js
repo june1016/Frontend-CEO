@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../services/api/axiosConfig';
 import showAlert from '../../utils/alerts/alertHelpers';
-import { updateProgress } from '../../components/dashboard/monthProgress';
+import { updateProgress } from '../../components/dashboard/MonthProgress';
 
 export const useBalanceSheet = (handleTab) => {
   // Estado para cada sección del balance

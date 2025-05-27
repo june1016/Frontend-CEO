@@ -35,7 +35,6 @@ const MaterialsBudget = ({ theme, budgetConfig, budgetType }) => {
                 const response = await axiosInstance.get(`/salesbudget/getProjectSales/${userId}`);
                 if (response.data.ok) {
                     setProjectedSales(response.data.data);
-                    console.log(projectedSales);
                 } else {
                     console.error("Error al obtener las proyecciones de ventas.");
                 }

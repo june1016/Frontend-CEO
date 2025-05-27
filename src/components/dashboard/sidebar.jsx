@@ -19,11 +19,18 @@ import {
   PlayArrowOutlined,
   ShoppingCartOutlined,
   FactoryOutlined,
+  PeopleAltOutlined,
+  SchoolOutlined,
+  HomeOutlined,
+  GroupWorkOutlined,
+  GroupOutlined,
+  Diversity3Outlined,
+  School,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
-import { DASHBOARD_ROUTES } from "../../config/routes";
+import { DASHBOARD_ROUTES, ADMIN_DASHBOARD_ROUTES, TEACHER_DASHBOARD_ROUTES } from "../../config/routes";
 
 const drawerWidth = 260;
 
@@ -84,7 +91,7 @@ const ActionButton = styled(Button)(({ theme }) => ({
 }));
 
 // Definición de secciones del menú con sus rutas e iconos
-const menuItems = [
+const menuItemsStudent = [
   {
     text: "Panel de control",
     icon: <DashboardOutlined />,
@@ -123,24 +130,72 @@ const menuItems = [
   },
 ];
 
+const menuItemsTeacher = [
+  {
+    text: "Inicio",
+    icon: <HomeOutlined />,
+    path: TEACHER_DASHBOARD_ROUTES.TEACHER_HOME,
+    alwaysEnabled: true,
+  },
+  {
+    text: "Gestionar planificación",
+    icon: <AssessmentOutlined />,
+    path: TEACHER_DASHBOARD_ROUTES.TEACHER_PLANNING,
+    alwaysEnabled: true,
+  },
+];
+
+const menuItemsAdmin = [
+  {
+    text: "Inicio",
+    icon: <HomeOutlined />,
+    path: ADMIN_DASHBOARD_ROUTES.ADMIN_HOME,
+    alwaysEnabled: true,
+  },
+  {
+    text: "Gestión de Grupos",
+    icon: <Diversity3Outlined />,
+    path: ADMIN_DASHBOARD_ROUTES.ADMIN_GROUPS,
+    alwaysEnabled: true,
+  },
+  {
+    text: "Gestión de Usuarios",
+    icon: <PeopleAltOutlined />,
+    path: ADMIN_DASHBOARD_ROUTES.ADMIN_USERS,
+    alwaysEnabled: true,
+  },
+  {
+    text: "Gestión de Universidades",
+    icon: <School />,
+    path: ADMIN_DASHBOARD_ROUTES.ADMIN_UNIVERSITY,
+    alwaysEnabled: true,
+  },
+];
+
+
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [operationStarted, setOperationStarted] = useState(
-    !!localStorage.getItem("operationStatus")
-  );
 
-  // Escuchar cambios en el estado de operación
+  const [operationStarted, setOperationStarted] = useState(() => {
+    const status = JSON.parse(localStorage.getItem("operationStatus"));
+    return status?.operationStarted === true;
+  });
+
+  const [userRole, setUserRole] = useState(() => {
+    const user = JSON.parse(localStorage.getItem("userData"));
+    return user?.rol_id || 0;
+  });
+
   useEffect(() => {
     const handleOperationUpdate = () => {
-      setOperationStarted(!!localStorage.getItem("operationStatus"));
+      const status = JSON.parse(localStorage.getItem("operationStatus"));
+      setOperationStarted(status?.operationStarted === true);
     };
-    
-    window.addEventListener('operationUpdated', handleOperationUpdate);
-    return () => {
-      window.removeEventListener('operationUpdated', handleOperationUpdate);
-    };
+
+    window.addEventListener("operationUpdated", handleOperationUpdate);
+    return () => window.removeEventListener("operationUpdated", handleOperationUpdate);
   }, []);
 
   const handleLogout = () => {
@@ -151,6 +206,14 @@ const Sidebar = () => {
   const handleNavigation = (path) => {
     navigate(path);
   };
+
+  const menuItems =
+    userRole === 1
+      ? menuItemsAdmin
+      : userRole === 2
+        ? menuItemsTeacher
+        : menuItemsStudent;
+
   return (
     <Drawer
       variant="permanent"

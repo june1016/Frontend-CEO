@@ -1,59 +1,89 @@
-const STORAGE_KEY = 'operationStatus';
-const PROGRESS_KEY = 'month_progress';
+import axiosInstance from "../../services/api/axiosConfig";
 
-const SIMULATION_CONFIG = {
-  totalRealMinutes: 120,
-  totalSimulatedMonths: 12,
-  decadesPerMonth: 3,
+export const OPERATION_STATUS_KEY = 'operationStatus';
+export const PROGRESS_MONTH_KEY = 'monthProgress';
+
+export const getUserId = () => {
+  const userData = JSON.parse(localStorage.getItem("userData")) || null;
+  return userData?.id;
 };
 
-export const startOperation = () => {
-  const now = new Date();
-  
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    startTime: now.toISOString()
-  }));
-  
-  const progress = JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {
-    completedTabs: 0,
-    totalTabs: 5,
-    isSetupComplete: false,
-    operationStarted: false
-  };
-  
-  const newProgress = {
-    ...progress,
-    operationStarted: true,
-    isSetupComplete: true
-  };
-  
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(newProgress));
-  
-  window.dispatchEvent(new CustomEvent('operationUpdated'));
-  window.dispatchEvent(new CustomEvent('progressUpdated'));
-  
-  return newProgress;
+export const startOperation = async () => {
+  try {
+    const userId = getUserId();
+
+    if (!userId) {
+      throw new Error('El usuario no está autenticado.');
+    }
+
+    const response = await axiosInstance.post('/progress/operation-progress/start', {
+      user_id: userId
+    });
+
+    if (!response.data.ok) {
+      throw new Error(response.data.message || 'Error al iniciar la operación.');
+    }
+
+    const { 
+      month_id: currentMonth, 
+      current_decade: currentDecade, 
+      is_december: isDecember
+    } = response.data.progress;
+
+    const operationStatus = {
+      completedTabs: 0,
+      totalTabs: 5,
+      isSetupComplete: true,
+      operationStarted: true
+    };
+    localStorage.setItem(OPERATION_STATUS_KEY, JSON.stringify(operationStatus));
+
+    // Guardar el progreso del mes simulado en localStorage (separado)
+    const progressMonth = {
+      currentMonth,
+      currentDecade,
+      isDecember,
+      elapsedMinutes: 0
+    };
+    localStorage.setItem(PROGRESS_MONTH_KEY, JSON.stringify(progressMonth));
+
+    // Disparar eventos de actualización
+    window.dispatchEvent(new CustomEvent('operationUpdated'));
+    window.dispatchEvent(new CustomEvent('progressUpdated'));
+
+    return { operationStatus, progressMonth };
+  } catch (error) {
+    console.error('Error al iniciar la operación:', error);
+    return null;
+  }
 };
 
 export const resetOperation = () => {
-  localStorage.removeItem(STORAGE_KEY);
+  try {
+    const userId = getUserId();
+    if (!userId) {
+      throw new Error('El usuario no está autenticado.');
+    }
 
-  const initialProgress = {
-    completedTabs: 0,
-    totalTabs: 5,
-    isSetupComplete: false,
-    operationStarted: false
-  };
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(initialProgress));
-  
-  window.dispatchEvent(new CustomEvent('operationUpdated'));
-  window.dispatchEvent(new CustomEvent('progressUpdated'));
-  
-  return initialProgress;
+    // Limpiar la información de la operación y progreso en localStorage
+    localStorage.removeItem(OPERATION_STATUS_KEY); // Eliminar la operación
+    const allProgress = JSON.parse(localStorage.getItem(PROGRESS_MONTH_KEY)) || {};
+    delete allProgress[userId]; // Eliminar el progreso del usuario
+    localStorage.setItem(PROGRESS_MONTH_KEY, JSON.stringify(allProgress));
+
+    // Disparar eventos de restablecimiento
+    window.dispatchEvent(new CustomEvent('operationReset'));
+    window.dispatchEvent(new CustomEvent('progressReset'));
+
+    return true;
+  } catch (error) {
+    console.error('Error al restablecer la operación:', error);
+    return false;
+  }
 };
 
 export const updateProgress = (completedTabs) => {
-  const currentProgress = JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {
+  const currentProgress = JSON.parse(localStorage.getItem(OPERATION_STATUS_KEY)) || {
     completedTabs: 0,
     totalTabs: 5,
     isSetupComplete: false,
@@ -69,7 +99,7 @@ export const updateProgress = (completedTabs) => {
     isSetupComplete: validatedTabs >= currentProgress.totalTabs
   };
 
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(newProgress));
+  localStorage.setItem(OPERATION_STATUS_KEY, JSON.stringify(newProgress));
 
   window.dispatchEvent(new CustomEvent('progressUpdated', {
     detail: newProgress
@@ -78,26 +108,114 @@ export const updateProgress = (completedTabs) => {
   return newProgress;
 };
 
-export const getSimulatedTime = () => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return null;
+const updateProgressInStorage = (newProgress) => {
+  localStorage.setItem(PROGRESS_MONTH_KEY, JSON.stringify(newProgress));
+};
 
-  const { startTime } = JSON.parse(stored);
-  const now = new Date();
-  const start = new Date(startTime);
-  const elapsedMs = now.getTime() - start.getTime();
+export const updateOperationProgress = (updatedProgress) => {
+  try {
+    const userId = getUserId();
+    if (!userId) {
+      throw new Error('El usuario no está autenticado.');
+    }
 
-  const elapsedMinutes = elapsedMs / 60000;
-  const simulatedMonths = (elapsedMinutes / SIMULATION_CONFIG.totalRealMinutes) * SIMULATION_CONFIG.totalSimulatedMonths;
+    const allProgress = JSON.parse(localStorage.getItem(PROGRESS_MONTH_KEY)) || {};
+    const currentProgress = allProgress[userId] || {};
 
-  const currentMonth = Math.min(Math.floor(simulatedMonths) + 1, 12);
-  const fractionalMonth = simulatedMonths % 1;
-  const currentDecade = fractionalMonth < 1 / 3 ? 1 : fractionalMonth < 2 / 3 ? 2 : 3;
+    const newProgress = {
+      ...currentProgress,
+      ...updatedProgress,
+    };
 
-  return {
-    currentMonth,
-    currentDecade,
-    isDecember: currentMonth === 12,
-    elapsedMinutes,
-  };
+    allProgress[userId] = newProgress;
+
+    localStorage.setItem(PROGRESS_MONTH_KEY, JSON.stringify(allProgress));
+
+    // Disparar el evento de actualización
+    window.dispatchEvent(new CustomEvent('progressUpdated'));
+
+    return newProgress;
+  } catch (error) {
+    console.error('Error al actualizar el progreso de la operación:', error);
+    return null;
+  }
+};
+
+export const getOperationStatus = () => {
+  try {
+    const storedOperationStatus = JSON.parse(localStorage.getItem(PROGRESS_MONTH_KEY)) || {};
+
+    const userId = getUserId();
+    if (!userId || !storedOperationStatus[userId]) {
+      console.error('No se ha encontrado el estado de la operación del usuario.');
+      return null;
+    }
+
+    return storedOperationStatus[userId];
+  } catch (error) {
+    console.error('Error al obtener el estado de la operación:', error);
+    return null;
+  }
+};
+
+export const getSimulatedTime = async () => {
+  try {
+    const userId = getUserId();
+    if (!userId) {
+      console.error('No se ha encontrado el ID de usuario.');
+      return null;
+    }
+
+    const response = await axiosInstance.get(`progress/operation-progress/time/${userId}`);
+
+    if (!response.data.ok) {
+      return null;
+    }
+
+    const {
+      currentMonth,
+      currentDecade,
+      isDecember,
+      elapsedMinutes,
+      startedAt,
+    } = response.data.data;
+
+    const storedProgress = {
+      currentMonth,
+      currentDecade,
+      isDecember,
+      startTime: startedAt,
+      elapsedMinutes,
+    };
+
+    updateProgressInStorage(storedProgress);
+
+    return {
+      currentMonth,
+      currentDecade,
+      isDecember,
+      elapsedMinutes,
+    };
+
+  } catch (error) {
+    console.error('Error al obtener tiempo simulado desde backend:', error);
+    return null;
+  }
+};
+
+export const upsertProgressInBackend = async ({
+  currentMonth,
+  currentDecade,
+  isDecember,
+}) => {
+  try {
+    await axiosInstance.post("progress/operation-progress/upsert", {
+      user_id: getUserId(),
+      month_id: currentMonth,
+      current_decade: currentDecade,
+      is_december: isDecember,
+    });
+  } catch (error) {
+    console.error("Error actualizando el progreso:", error);
+  }
 };

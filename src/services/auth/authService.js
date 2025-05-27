@@ -14,8 +14,6 @@ export const authService = {
         // Guardar datos del usuario en localStorage si están disponibles
         if (response.data.user) {
           localStorage.setItem("userData", JSON.stringify(response.data.user));
-
-          localStorage.setItem("userData", JSON.stringify(response.data.user));
         }
 
         return response.data;
@@ -54,6 +52,12 @@ export const authService = {
           name: userData.name,
           lastName: userData.lastName,
           email: userData.email,
+          rol_id: userData.rol_id,
+          name_rol: userData.name_rol,
+          group_id: userData.group_id,
+          group_name: userData.group_name,
+          teacher_id: userData.teacher_id,
+          teacher_name: userData.teacher_name
         };
 
         localStorage.setItem("userData", JSON.stringify(userToSave));
@@ -88,11 +92,13 @@ export const authService = {
     // Eliminar el token de cookies
     Cookies.remove("authToken");
 
-    // Eliminar datos del usuario del localStorage
-    localStorage.removeItem("userData");
+    // Eliminar datos del usuario del localStorage (limpiar todo el localStorage)
+    localStorage.clear();
 
     // Opcionalmente, eliminar otros datos de sesión
     sessionStorage.clear();
+
+    // Puedes agregar más lógica de limpieza si es necesario, como redirigir al usuario a la página de inicio de sesión
   },
 
   // Verificar si el usuario está autenticado
