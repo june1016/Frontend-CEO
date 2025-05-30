@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axiosInstance from '../../services/api/axiosConfig.js';
 import {
     Box,
     Typography,
@@ -32,6 +33,8 @@ import DateRangeIcon from '@mui/icons-material/DateRange';
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 import PublicIcon from '@mui/icons-material/Public';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
+import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers.js";
+
 
 // Función para formatear la fecha
 function formatDate(date) {
@@ -43,29 +46,31 @@ function formatDate(date) {
     });
 }
 
+
 export default function AdminUniversityPage() {
-    const [universities, setUniversities] = useState([
-        {
-            id: 1,
-            name: "Universidad Nacional",
-            city: "Bogotá",
-            country: "Colombia",
-            createdAt: "2024-03-15",
-        },
-        {
-            id: 2,
-            name: "Pontificia Universidad Católica",
-            city: "Lima",
-            country: "Perú",
-            createdAt: "2023-11-02",
-        },
-    ]);
+    const [universities, setUniversities] = useState([]);
 
     const [filter, setFilter] = useState("");
     const [openDialog, setOpenDialog] = useState(false);
     const [editingUniversity, setEditingUniversity] = useState(null);
     const [form, setForm] = useState({ name: "", city: "", country: "" });
     const [errors, setErrors] = useState({ name: false, city: false, country: false });
+
+
+    useEffect(() => {
+        const fetchUniversities = async () => {
+            try {
+                const response = await axiosInstance.get("/university/getAll");
+                const data = response.data.universities;
+
+                setUniversities(data);
+            } catch (error) {
+                console.error("Error al obtener universidades:", error.message);
+            }
+        };
+
+        fetchUniversities();
+    }, []);
 
     const filteredUniversities = universities.filter(
         (u) =>
@@ -90,6 +95,29 @@ export default function AdminUniversityPage() {
         setEditingUniversity(null);
     };
 
+    const handleUpdateUniversity = async () => {
+        if (!validateForm()) return;
+
+        try {
+            const response = await axiosInstance.put(`/university/update/${editingUniversity.id}`, {
+                name: form.name.trim(),
+                city: form.city.trim(),
+                country: form.country.trim(),
+            });
+
+            if (response.data.ok) {
+                setUniversities((prev) =>
+                    prev.map((u) =>
+                        u.id === editingUniversity.id ? response.data.university : u
+                    )
+                );
+                handleCloseDialog();
+            }
+        } catch (error) {
+            console.error("Error al actualizar universidad:", error.message);
+        }
+    };
+
     const validateForm = () => {
         const newErrors = {
             name: !form.name.trim(),
@@ -100,40 +128,51 @@ export default function AdminUniversityPage() {
         return !newErrors.name && !newErrors.city && !newErrors.country;
     };
 
-    const handleSaveUniversity = () => {
+    const handleSaveUniversity = async () => {
         if (!validateForm()) return;
 
         if (editingUniversity) {
-            setUniversities((prev) =>
-                prev.map((u) =>
-                    u.id === editingUniversity.id
-                        ? { ...u, name: form.name.trim(), city: form.city.trim(), country: form.country.trim() }
-                        : u
-                )
-            );
+            await handleUpdateUniversity();
         } else {
-            setUniversities((prev) => [
-                ...prev,
-                {
-                    id: Date.now(),
+            try {
+                const response = await axiosInstance.post("/university/create", {
                     name: form.name.trim(),
                     city: form.city.trim(),
                     country: form.country.trim(),
-                    createdAt: new Date().toISOString().split("T")[0],
-                },
-            ]);
-        }
+                });
 
-        handleCloseDialog();
+                if (response.data.ok) {
+                    setUniversities((prev) => [...prev, response.data.university]);
+                    handleCloseDialog();
+                }
+            } catch (error) {
+                console.error("Error al crear universidad:", error.message);
+            }
+        }
     };
 
-    const handleDeleteUniversity = (id) => {
+
+    const handleDeleteUniversity = async (id) => {
         const university = universities.find((u) => u.id === id);
-        const confirmDelete = window.confirm(`¿Eliminar "${university.name}"?`);
-        if (confirmDelete) {
-            setUniversities((prev) => prev.filter((u) => u.id !== id));
-        }
+
+        showConfirmation(
+            `¿Eliminar "${university.name}"?`,
+            "Esta acción no se puede deshacer.",
+            async () => {
+                try {
+                    const response = await axiosInstance.post(`/university/delete/${id}`);
+                    if (response.data.ok) {
+                        setUniversities((prev) => prev.filter((u) => u.id !== id));
+                        showAlert("Eliminado", `"${university.name}" ha sido eliminada.`, "success");
+                    }
+                } catch (error) {
+                    console.error("Error al eliminar universidad:", error.message);
+                    showAlert("Error", "No se pudo eliminar la universidad.", "error");
+                }
+            }
+        );
     };
+
 
     return (
         <Box sx={{ p: 4 }}>
@@ -194,6 +233,10 @@ export default function AdminUniversityPage() {
                                 <DateRangeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
                                 Creado
                             </TableCell>
+                            <TableCell sx={{ color: "#fff" }}>
+                                <DateRangeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
+                                Actualizado
+                            </TableCell>
                             <TableCell sx={{ color: "#fff" }} align="right">
                                 <SettingsIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
                                 Acciones
@@ -213,7 +256,8 @@ export default function AdminUniversityPage() {
                                     <TableCell>{u.name}</TableCell>
                                     <TableCell>{u.city}</TableCell>
                                     <TableCell>{u.country}</TableCell>
-                                    <TableCell>{formatDate(u.createdAt)}</TableCell>
+                                    <TableCell>{formatDate(u.created_at)}</TableCell>
+                                    <TableCell>{formatDate(u.updated_at)}</TableCell>
                                     <TableCell align="right">
                                         <IconButton onClick={() => handleOpenDialog(u)}>
                                             <EditIcon />
