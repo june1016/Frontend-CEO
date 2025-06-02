@@ -25,6 +25,7 @@ import {
   InputLabel,
   FormControl,
   InputAdornment,
+  CircularProgress,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -60,13 +61,14 @@ export default function AdminUsersPage() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-
+  const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [form, setForm] = useState({ name: "", lastName: "", email: "", password: "", rol: rols[0] });
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [userResponse, rolResponse] = await Promise.all([
           axiosInstance.get("/users/"),
@@ -80,6 +82,8 @@ export default function AdminUsersPage() {
         setRols(rolsData);
       } catch (error) {
         console.error("Error al cargar usuarios o rols:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -189,8 +193,6 @@ export default function AdminUsersPage() {
   const totalDocentes = countByrol("Docente");
   const totalAdmins = countByrol("Administrador");
   const totalEstudiantes = countByrol("Estudiante");
-
-  console.log(users);
 
   return (
     <Box sx={{ p: 4 }}>
@@ -326,7 +328,7 @@ export default function AdminUsersPage() {
                 <DateRangeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
                 Creado
               </TableCell>
-               <TableCell sx={{ color: "#fff" }}>
+              <TableCell sx={{ color: "#fff" }}>
                 <DateRangeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
                 Actualizado
               </TableCell>
@@ -337,44 +339,54 @@ export default function AdminUsersPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredUsers?.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={4} align="center">
-                  No se encontraron usuarios
+                <TableCell colSpan={5} align="center">
+                  <Box sx={{ py: 4 }}>
+                    <CircularProgress />
+                    <Typography variant="body2" mt={2}>Cargando usuarios...</Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
-            ) : (
-              filteredUsers?.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.lastName}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={user.rol}
-                      color={
-                        user.rol === "Administrador"
-                          ? "secondary"
-                          : user.rol === "Docente"
-                            ? "primary"
-                            : "success"
-                      }
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{user.createdAt}</TableCell>
-                  <TableCell>{user.updatedAt}</TableCell>
-                  <TableCell align="right">
-                    <IconButton onClick={() => handleOpenDialog(user)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => handleDeleteUser(user.id)}>
-                      <DeleteIcon />
-                    </IconButton>
+            ) :
+              filteredUsers?.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    No se encontraron usuarios
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              ) : (
+                filteredUsers?.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.lastName}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={user.rol}
+                        color={
+                          user.rol === "Administrador"
+                            ? "secondary"
+                            : user.rol === "Docente"
+                              ? "primary"
+                              : "success"
+                        }
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{user.createdAt}</TableCell>
+                    <TableCell>{user.updatedAt}</TableCell>
+                    <TableCell align="right">
+                      <IconButton onClick={() => handleOpenDialog(user)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton color="error" onClick={() => handleDeleteUser(user.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
           </TableBody>
         </Table>
       </TableContainer>

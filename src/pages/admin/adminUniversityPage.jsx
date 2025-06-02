@@ -20,6 +20,7 @@ import {
     DialogContent,
     DialogActions,
     InputAdornment,
+    CircularProgress,
 } from "@mui/material";
 import {
     Edit as EditIcon,
@@ -49,7 +50,7 @@ function formatDate(date) {
 
 export default function AdminUniversityPage() {
     const [universities, setUniversities] = useState([]);
-
+    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("");
     const [openDialog, setOpenDialog] = useState(false);
     const [editingUniversity, setEditingUniversity] = useState(null);
@@ -58,6 +59,7 @@ export default function AdminUniversityPage() {
 
 
     useEffect(() => {
+        setLoading(true);
         const fetchUniversities = async () => {
             try {
                 const response = await axiosInstance.get("/university/getAll");
@@ -66,6 +68,8 @@ export default function AdminUniversityPage() {
                 setUniversities(data);
             } catch (error) {
                 console.error("Error al obtener universidades:", error.message);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -99,7 +103,7 @@ export default function AdminUniversityPage() {
         if (!validateForm()) return;
 
         try {
-            const response = await axiosInstance.put(`/university/update/${editingUniversity.id}`, {
+            const response = await axiosInstance.post(`/university/update/${editingUniversity.id}`, {
                 name: form.name.trim(),
                 city: form.city.trim(),
                 country: form.country.trim(),
@@ -244,7 +248,16 @@ export default function AdminUniversityPage() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredUniversities.length === 0 ? (
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} align="center">
+                                    <Box sx={{ py: 4 }}>
+                                        <CircularProgress />
+                                        <Typography variant="body2" mt={2}>Cargando universidades...</Typography>
+                                    </Box>
+                                </TableCell>
+                            </TableRow>
+                        ) : filteredUniversities.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={5} align="center">
                                     No se encontraron universidades

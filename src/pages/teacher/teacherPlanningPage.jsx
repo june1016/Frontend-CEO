@@ -97,7 +97,7 @@ export default function TeacherPlanning() {
       amount: item.amount,
       updated_by: 1
     }));
-    console.log("Datos a guardar:", payload);
+
     alert("Cambios guardados (ver consola)");
   };
 
