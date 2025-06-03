@@ -23,6 +23,7 @@ import {
     Chip,
     InputAdornment,
     CircularProgress,
+    Fade,
 } from "@mui/material";
 
 import {
@@ -42,6 +43,9 @@ import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 import { useTheme } from "@mui/material/styles";
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers";
+import { getFieldsGroups } from "../../data/fieldsForm";
+import { groupSchema } from "../../utils/validations/groupsFormSchema";
+import FormDialog from "../../components/admin/formDialog";
 
 export default function AdminGroupsPage() {
     const theme = useTheme();
@@ -53,7 +57,19 @@ export default function AdminGroupsPage() {
     const [universities, setUniversities] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingGroup, setEditingGroup] = useState(null);
-    const [form, setForm] = useState({ name: "", teacher: "", university: "", students: [] });
+    const [form, setForm] = useState({ name: "", teacher: "", university: "", students: [] })
+    const [open, setOpen] = useState(false);
+    const [selectedDescription, setSelectedDescription] = useState('');
+
+    const handleOpenModal = (description) => {
+        setSelectedDescription(description);
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        setTimeout(() => setSelectedDescription(''), 300);
+    };
 
     const [openStudentsModal, setOpenStudentsModal] = useState(false);
     const [studentsToShow, setStudentsToShow] = useState([]);
@@ -88,11 +104,29 @@ export default function AdminGroupsPage() {
 
     const handleOpenDialog = (group = null) => {
         setEditingGroup(group);
-        setForm(
-            group
-                ? { ...group }
-                : { name: "", teacher: "", university: "", students: [] }
-        );
+
+        console.log(group)
+
+        if (group) {
+            setForm({
+                name: group.name,
+                teacher:
+                    teachers.find(
+                        (t) => `${t.name} ${t.lastName}` === group.teacher
+                    )?.id ?? "",
+                university:
+                    universities.find((u) => u.name === group.university)?.id ?? "",
+                students: group.students
+            });
+        } else {
+            setForm({
+                name: "",
+                teacher: "",
+                university: "",
+                students: []
+            });
+        }
+
         setOpenDialog(true);
     };
 
@@ -101,13 +135,20 @@ export default function AdminGroupsPage() {
         setEditingGroup(null);
     };
 
-    const handleSaveGroup = async () => {
+    const handleSaveGroup = async ({
+        name,
+        description,
+        teacher_id,
+        university_id,
+        students
+    }) => {
         try {
             const payload = {
-                name: form.name,
-                teacher_id: form.teacher,
-                university_id: form.university,
-                student_ids: form.students.map((s) => s.id),
+                name,
+                teacher_id,
+                description,
+                university_id,
+                student_ids: students,
             };
 
             if (editingGroup) {
@@ -156,6 +197,11 @@ export default function AdminGroupsPage() {
         g.university.toLowerCase().includes(filter.toLowerCase())
     );
 
+    const fieldsGroups = getFieldsGroups({ teachers, universities, students });
+
+    const teacherField = fieldsGroups.find((f) => f.name === "teacher");
+    const universityField = fieldsGroups.find((f) => f.name === "university");
+
     return (
         <Box sx={{ p: 4 }}>
             <Typography variant="h4" fontWeight={700} sx={{ mb: 3 }}>
@@ -200,6 +246,7 @@ export default function AdminGroupsPage() {
                     <TableHead>
                         <TableRow sx={{ backgroundColor: theme.palette.primary.main }}>
                             <TableCell sx={{ color: "#fff" }}><GroupIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />Grupo</TableCell>
+                            <TableCell sx={{ color: "#fff" }}><PersonIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />Descripcion</TableCell>
                             <TableCell sx={{ color: "#fff" }}><PersonIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />Docente</TableCell>
                             <TableCell sx={{ color: "#fff" }}><SchoolIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />Universidad</TableCell>
                             <TableCell sx={{ color: "#fff" }}><PermContactCalendarIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />Estudiantes</TableCell>
@@ -220,6 +267,21 @@ export default function AdminGroupsPage() {
                             filteredGroups.map((group) => (
                                 <TableRow key={group.id}>
                                     <TableCell>{group.name}</TableCell>
+                                    <TableCell>
+                                        {group?.description?.length > 50 ? (
+                                            <>
+                                                {group.description.slice(0, 50)}...
+                                                <Button
+                                                    size="small"
+                                                    onClick={() => handleOpenModal(group.description)}
+                                                >
+                                                    Ver más
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            group.description
+                                        )}
+                                    </TableCell>
                                     <TableCell>{group.teacher}</TableCell>
                                     <TableCell>{group.university}</TableCell>
                                     <TableCell>
@@ -256,75 +318,31 @@ export default function AdminGroupsPage() {
                 </Table>
             </TableContainer>
 
-            <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-                <DialogTitle>{editingGroup ? "Editar Grupo" : "Nuevo Grupo"}</DialogTitle>
-                <DialogContent sx={{ pt: 2 }}>
-                    <TextField
-                        fullWidth
-                        label="Nombre del Grupo"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        select
-                        label="Docente Asignado"
-                        value={form.teacher}
-                        onChange={(e) => setForm({ ...form, teacher: e.target.value })}
-                        margin="normal"
-                    >
-                        {teachers.map((t) => (
-                            <MenuItem key={t.id} value={t.id}>
-                                {t.name} {t.lastName}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-
-                    <TextField
-                        fullWidth
-                        select
-                        label="Universidad"
-                        value={form.university}
-                        onChange={(e) => setForm({ ...form, university: e.target.value })}
-                        margin="normal"
-                    >
-                        {universities.map((u) => (
-                            <MenuItem key={u.id} value={u.id}>
-                                {u.name}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-
-                    {console.log(form.students)}
-                    {console.log(students)}
-                    <Autocomplete
-                        multiple
-                        options={students}
-                        filterSelectedOptions
-                        getOptionLabel={(option) => `${option.name} ${option.lastName}`}
-                        value={form.students}
-                        onChange={(e, newValue) => setForm({ ...form, students: newValue })}
-                        renderTags={(value, getTagProps) =>
-                            value.map((option, index) => (
-                                <Chip key={option.id} label={`${option.name} ${option.lastName}`} {...getTagProps({ index })} />
-                            ))
-                        }
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Estudiantes"
-                                margin="normal"
-                                placeholder="Buscar o seleccionar"
-                            />
-                        )}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancelar</Button>
-                    <Button onClick={handleSaveGroup} variant="contained">Guardar</Button>
-                </DialogActions>
-            </Dialog>
+            <FormDialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                title={editingGroup ? "Editar Grupo" : "Nuevo Grupo"}
+                schema={groupSchema}
+                fields={fieldsGroups}
+                defaultValues={{
+                    name: editingGroup?.name || "",
+                    description: editingGroup?.description || "",
+                    teacher:
+                        teacherField?.options.find((opt) => opt.label === editingGroup?.teacher)?.value || "",
+                    university:
+                        universityField?.options.find((opt) => opt.label === editingGroup?.university)?.value || "",
+                    students: editingGroup?.students || [],
+                }}
+                onSave={(data) => {
+                    handleSaveGroup({
+                        name: data.name,
+                        description: data.description,
+                        teacher_id: data.teacher,
+                        university_id: data.university,
+                        students: data.students.map((s) => s.id)
+                    });
+                }}
+            />
 
             <Dialog open={openStudentsModal} onClose={handleCloseStudentsModal} fullWidth maxWidth="xs">
                 <DialogTitle>Estudiantes del Grupo</DialogTitle>
@@ -340,6 +358,19 @@ export default function AdminGroupsPage() {
                 <DialogActions>
                     <Button onClick={handleCloseStudentsModal}>Cerrar</Button>
                 </DialogActions>
+            </Dialog>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                TransitionComponent={Fade}
+                transitionDuration={300}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>Descripción completa</DialogTitle>
+                <DialogContent dividers>
+                    {selectedDescription}
+                </DialogContent>
             </Dialog>
         </Box>
     );
