@@ -105,8 +105,6 @@ export default function AdminGroupsPage() {
     const handleOpenDialog = (group = null) => {
         setEditingGroup(group);
 
-        console.log(group)
-
         if (group) {
             setForm({
                 name: group.name,

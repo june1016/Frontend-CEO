@@ -33,8 +33,6 @@ const FormDialog = ({
   });
 
 useEffect(() => {
-  console.log("🟡 Default values recibidos:", defaultValues); // 👈 Aquí
-
   reset(defaultValues);
 }, [defaultValues, open]);
 
