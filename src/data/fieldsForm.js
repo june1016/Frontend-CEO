@@ -36,3 +36,21 @@ export const getFieldsGroups = ({ teachers, universities, students }) => [
         multiple: true
     }
 ];
+
+export const fieldsUniversity = [
+  {
+    type: "text",
+    name: "name",
+    label: "Nombre"
+  },
+  {
+    type: "text",
+    name: "city",
+    label: "Ciudad"
+  },
+  {
+    type: "text",
+    name: "country",
+    label: "País"
+  }
+];

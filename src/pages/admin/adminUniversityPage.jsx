@@ -35,6 +35,9 @@ import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 import PublicIcon from '@mui/icons-material/Public';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers.js";
+import FormDialog from "../../components/admin/formDialog.jsx";
+import { universitySchema } from "../../utils/validations/universitySchema.js";
+import { fieldsUniversity } from "../../data/fieldsForm.js";
 
 
 // Función para formatear la fecha
@@ -100,7 +103,6 @@ export default function AdminUniversityPage() {
     };
 
     const handleUpdateUniversity = async () => {
-        if (!validateForm()) return;
 
         try {
             const response = await axiosInstance.post(`/university/update/${editingUniversity.id}`, {
@@ -122,36 +124,38 @@ export default function AdminUniversityPage() {
         }
     };
 
-    const validateForm = () => {
-        const newErrors = {
-            name: !form.name.trim(),
-            city: !form.city.trim(),
-            country: !form.country.trim(),
+    const handleSaveUniversity = async ({ name, city, country }) => {
+
+        const payload = {
+            name: name.trim(),
+            city: city.trim(),
+            country: country.trim(),
         };
-        setErrors(newErrors);
-        return !newErrors.name && !newErrors.city && !newErrors.country;
-    };
 
-    const handleSaveUniversity = async () => {
-        if (!validateForm()) return;
+        const isEditing = !!editingUniversity;
+        const url = isEditing
+            ? `/university/update/${editingUniversity.id}`
+            : "/university/create";
 
-        if (editingUniversity) {
-            await handleUpdateUniversity();
-        } else {
-            try {
-                const response = await axiosInstance.post("/university/create", {
-                    name: form.name.trim(),
-                    city: form.city.trim(),
-                    country: form.country.trim(),
-                });
+        try {
+            const response = await axiosInstance.post(url, payload);
 
-                if (response.data.ok) {
-                    setUniversities((prev) => [...prev, response.data.university]);
-                    handleCloseDialog();
-                }
-            } catch (error) {
-                console.error("Error al crear universidad:", error.message);
+            if (response.data.ok) {
+                const updatedUniversity = response.data.university;
+
+                setUniversities((prev) =>
+                    isEditing
+                        ? prev.map((u) => (u.id === editingUniversity.id ? updatedUniversity : u))
+                        : [...prev, updatedUniversity]
+                );
+
+                handleCloseDialog();
             }
+        } catch (error) {
+            console.error(
+                `Error al ${isEditing ? "actualizar" : "crear"} universidad:`,
+                error.message
+            );
         }
     };
 
@@ -286,46 +290,21 @@ export default function AdminUniversityPage() {
                 </Table>
             </TableContainer>
 
-            {/* Modal crear/editar universidad */}
-            <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="xs">
-                <DialogTitle>{editingUniversity ? "Editar Universidad" : "Nueva Universidad"}</DialogTitle>
-                <DialogContent sx={{ pt: 2 }}>
-                    <TextField
-                        fullWidth
-                        label="Nombre"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        margin="normal"
-                        autoFocus
-                        error={errors.name}
-                        helperText={errors.name && "Este campo es obligatorio"}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Ciudad"
-                        value={form.city}
-                        onChange={(e) => setForm({ ...form, city: e.target.value })}
-                        margin="normal"
-                        error={errors.city}
-                        helperText={errors.city && "Este campo es obligatorio"}
-                    />
-                    <TextField
-                        fullWidth
-                        label="País"
-                        value={form.country}
-                        onChange={(e) => setForm({ ...form, country: e.target.value })}
-                        margin="normal"
-                        error={errors.country}
-                        helperText={errors.country && "Este campo es obligatorio"}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancelar</Button>
-                    <Button variant="contained" onClick={handleSaveUniversity}>
-                        Guardar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <FormDialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                title={editingUniversity ? "Editar Universidad" : "Nueva Universidad"}
+                schema={universitySchema}
+                fields={fieldsUniversity}
+                defaultValues={{
+                    name: editingUniversity?.name || "",
+                    city: editingUniversity?.city || "",
+                    country: editingUniversity?.country || ""
+                }}
+                onSave={(data) => {
+                    handleSaveUniversity(data);
+                }}
+            />
         </Box>
     );
 }
