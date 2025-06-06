@@ -143,20 +143,32 @@ export default function AdminGroupsPage() {
         try {
             const payload = {
                 name,
-                teacher_id,
                 description,
+                teacher_id,
                 university_id,
                 student_ids: students,
             };
 
-            if (editingGroup) {
-                await axiosInstance.post(`/groups/update/${editingGroup.id}`, payload);
-            } else {
-                await axiosInstance.post("/groups/create", payload);
-            }
+            const isEditing = Boolean(editingGroup);
+            const url = isEditing
+                ? `/groups/update/${editingGroup.id}`
+                : "/groups/create";
 
-            fetchPrincipalData();
-            handleCloseDialog();
+            const response = await axiosInstance.post(url, payload);
+
+            if (response.data.ok) {
+                const updatedGroup = response.data.group;
+
+                setGroups((prevGroups) =>
+                    isEditing
+                        ? prevGroups.map((group) =>
+                            group.id === editingGroup.id ? updatedGroup : group
+                        )
+                        : [...prevGroups, updatedGroup]
+                );
+
+                handleCloseDialog();
+            }
         } catch (error) {
             console.error("Error al guardar el grupo:", error.message);
         }
