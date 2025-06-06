@@ -97,7 +97,7 @@ const AdminDashboard = () => {
             <InfoCard
               icon={<GroupIcon color="primary" />}
               title="Grupos Académicos"
-              description="Organiza grupos asignando fácilmente estudiantes y docentes a cada uno según el plan de pasantías."
+              description="Organiza grupos asignando fácilmente estudiantes y docentes a cada uno según el plan de pasantía."
             />
 
             <InfoCard

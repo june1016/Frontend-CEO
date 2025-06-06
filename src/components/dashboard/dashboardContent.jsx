@@ -36,7 +36,7 @@ const dashboardContent = () => {
               letterSpacing: "-0.5px",
             }}
           >
-            ¡Bienvenido a Pasantías.com!
+            ¡Bienvenido a Pasantía.com!
           </Typography>
 
           <Typography
