@@ -46,6 +46,7 @@ import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers";
 import { getFieldsGroups } from "../../data/fieldsForm";
 import { groupSchema } from "../../utils/validations/groupsFormSchema";
 import FormDialog from "../../components/admin/formDialog";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
 
 export default function AdminGroupsPage() {
     const theme = useTheme();
@@ -168,9 +169,16 @@ export default function AdminGroupsPage() {
                 );
 
                 handleCloseDialog();
+
+                const toastMessage = isEditing
+                    ? `Grupo "${name}" actualizado exitosamente`
+                    : `Grupo "${name}" creado exitosamente`;
+
+                showToast(toastMessage, 'success');
             }
         } catch (error) {
             console.error("Error al guardar el grupo:", error.message);
+            showToast("Ocurrió un error al guardar el grupo", 'error');
         }
     };
 
@@ -182,9 +190,9 @@ export default function AdminGroupsPage() {
                 try {
                     await axiosInstance.post(`/groups/delete/${id}`);
                     fetchPrincipalData();
-                    showAlert("Eliminado", `Se ha eliminado correctamente el grupo "${groupName}".`, "success");
+                    showToast(`Grupo "${groupName}" eliminado exitosamente`, "success");
                 } catch (error) {
-                    showAlert("Error", `No se pudo eliminar el grupo "${groupName}".`, "error");
+                    showToast(`No se pudo eliminar el grupo "${groupName}"`, "error");
                     console.error(error);
                 }
             }
@@ -214,6 +222,9 @@ export default function AdminGroupsPage() {
 
     return (
         <Box sx={{ p: 4 }}>
+
+            <ToastNotification />
+
             <Typography variant="h4" fontWeight={700} sx={{ mb: 3 }}>
                 Gestión de Grupos
             </Typography>
@@ -343,15 +354,7 @@ export default function AdminGroupsPage() {
                         universityField?.options.find((opt) => opt.label === editingGroup?.university)?.value || "",
                     students: editingGroup?.students || [],
                 }}
-                onSave={(data) => {
-                    handleSaveGroup({
-                        name: data.name,
-                        description: data.description,
-                        teacher_id: data.teacher,
-                        university_id: data.university,
-                        students: data.students.map((s) => s.id)
-                    });
-                }}
+                onSave={handleSaveGroup}
             />
 
             <Dialog open={openStudentsModal} onClose={handleCloseStudentsModal} fullWidth maxWidth="xs">

@@ -47,6 +47,10 @@ import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import FormDialog from "../../components/admin/formDialog";
+import { userSchema } from "../../utils/validations/userSchema";
+import { getFieldsUsers } from "../../data/fieldsForm";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -102,76 +106,85 @@ export default function AdminUsersPage() {
     setEditingUser(null);
   };
 
-  const handleSaveUser = async () => {
-    if (!form.name.trim()) {
-      showAlert("Error", "El nombre es obligatorio", "error");
-      return;
-    }
+  const handleSaveUser = async ({
+    name,
+    lastName,
+    email,
+    password,
+    rol,
+  }) => {
+    const isEditing = Boolean(editingUser);
+
+    const payload = {
+      name: name.trim(),
+      lastName,
+      email,
+      password,
+      rol: rol?.id || rol,
+    };
 
     try {
-      if (editingUser) {
-        const response = await axiosInstance.post(`/users/${editingUser.id}`, {
-          name: form.name.trim(),
-          lastName: form.lastName,
-          email: form.email,
-          password: form.password,
-          rol: form.rol,
-        });
+      const response = isEditing
+        ? await axiosInstance.post(`/users/${editingUser.id}`, payload)
+        : await axiosInstance.post(`/users/create`, payload);
 
-        const updatedUser = response.data.user;
+      const savedUser = response.data.user;
 
-        setUsers((prev) =>
-          prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
-        );
-        showAlert("Actualizado", `"${form.name}" ha sido actualizado exitosamente.`, "success");
-      } else {
+      setUsers((prev) =>
+        isEditing
+          ? prev.map((u) => (u.id === savedUser.id ? savedUser : u))
+          : [
+            ...prev,
+            {
+              ...savedUser,
+              createdAt: new Date().toISOString().split("T")[0],
+            },
+          ]
+      );
 
-        const response = await axiosInstance.post(`/users/create`, {
-          name: form.name.trim(),
-          lastName: form.lastName,
-          email: form.email,
-          password: form.password,
-          rol: form.rol,
-        });
-
-        const newUser = response.data.user;
-
-        setUsers((prev) => [
-          ...prev,
-          {
-            ...newUser,
-            createdAt: new Date().toISOString().split("T")[0],
-          },
-        ]);
-        showAlert("Creado", `"${newUser.name}" "Usuario creado exitosamente"`, "success");
-      }
+      showToast(
+        `"${savedUser.name}" ha sido ${isEditing ? "actualizado" : "creado"
+        } exitosamente.`,
+        "success"
+      );
 
       handleCloseDialog();
     } catch (error) {
-      handleCloseDialog();
       console.error("Error al guardar el usuario:", error.message);
-      showAlert("Error", error.message, "error");
+      showToast("Error al guardar el usuario", "error");
+      handleCloseDialog();
     }
   };
 
+
   const handleDeleteUser = async (id) => {
-    const user = users.find((u) => u.id === id);
+    const userToDelete = users.find((u) => u.id === id);
 
     showConfirmation(
-      `¿Eliminar a "${user.name}"?`,
+      `¿Eliminar a "${userToDelete.name}"?`,
       "Esta acción no se puede deshacer.",
       async () => {
         try {
-          const user = await axiosInstance.post("/users/delete-user", { id });
+          await axiosInstance.post("/users/delete-user", { id });
+
           setUsers((prev) => prev.filter((u) => u.id !== id));
-          showAlert("Eliminado", "Se ha eliminado correctamente al usuario", "success");
+
+          showToast(
+            `"${userToDelete.name}" ha sido eliminado exitosamente.`,
+            "success"
+          );
         } catch (error) {
-          showAlert("Error", `No se pudo eliminar a "${user.name}".`, "error");
-          console.error(error);
+          console.error("Error al eliminar usuario:", error.message);
+
+          showToast(
+            `No se pudo eliminar a "${userToDelete.name}".`,
+            "error"
+          );
         }
       }
     );
   };
+
 
   const filteredUsers = users.filter((user) => {
     const term = filters.search?.toLowerCase() || "";
@@ -194,8 +207,14 @@ export default function AdminUsersPage() {
   const totalAdmins = countByrol("Administrador");
   const totalEstudiantes = countByrol("Estudiante");
 
+  const isEditing = !!editingUser;
+
+
   return (
     <Box sx={{ p: 4 }}>
+
+      <ToastNotification />
+
       <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 2 }}>
         Gestión de Usuarios
       </Typography>
@@ -391,85 +410,22 @@ export default function AdminUsersPage() {
         </Table>
       </TableContainer>
 
-      {/* Modal */}
-      <Dialog
+      <FormDialog
         open={openDialog}
         onClose={handleCloseDialog}
-        fullWidth
-        maxWidth="xs"
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="form-dialog-title">{editingUser ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <TextField
-            fullWidth
-            label="Nombre"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            margin="normal"
-            autoFocus
-          />
-          <TextField
-            fullWidth
-            label="Apellido"
-            value={form.lastName}
-            onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-            margin="normal"
-            autoFocus
-          />
-          <TextField
-            fullWidth
-            label="Correo"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            margin="normal"
-            autoFocus
-          />
-          {!editingUser && (
-            <TextField
-              fullWidth
-              label="Contraseña"
-              type={showPassword ? 'text' : 'password'}
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              margin="normal"
-              autoFocus
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          )}
-          <TextField
-            fullWidth
-            select
-            label="Rol"
-            value={form.rol}
-            onChange={(e) => setForm({ ...form, rol: e.target.value })}
-            margin="normal"
-          >
-            {rols.map((r) => (
-              <MenuItem key={r.id} value={r.id}>
-                {r.name_rol}
-              </MenuItem>
-            ))}
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button variant="contained" onClick={handleSaveUser}>
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
+        title={editingUser ? "Editar Usuario" : "Nuevo Usuario"}
+        schema={userSchema}
+        fields={getFieldsUsers({ rols, showPassword, setShowPassword, isEditing })}
+        defaultValues={{
+          name: editingUser?.name || "",
+          lastName: editingUser?.lastName || "",
+          email: editingUser?.email || "",
+          password: "",
+          rol: editingUser?.rol || "",
+          isEditing,
+        }}
+        onSave={handleSaveUser}
+      />
     </Box>
   );
 }

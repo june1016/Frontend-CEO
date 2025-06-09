@@ -38,6 +38,7 @@ import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers.js"
 import FormDialog from "../../components/admin/formDialog.jsx";
 import { universitySchema } from "../../utils/validations/universitySchema.js";
 import { fieldsUniversity } from "../../data/fieldsForm.js";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
 
 
 // Función para formatear la fecha
@@ -125,7 +126,6 @@ export default function AdminUniversityPage() {
     };
 
     const handleSaveUniversity = async ({ name, city, country }) => {
-
         const payload = {
             name: name.trim(),
             city: city.trim(),
@@ -150,11 +150,21 @@ export default function AdminUniversityPage() {
                 );
 
                 handleCloseDialog();
+
+                showToast(
+                    `Universidad ${name} ${isEditing ? "editada" : "creada"} exitosamente`,
+                    "success"
+                );
             }
         } catch (error) {
             console.error(
-                `Error al ${isEditing ? "actualizar" : "crear"} universidad:`,
+                `Error al ${isEditing ? "actualizar" : "crear"} ${name} universidad:`,
                 error.message
+            );
+
+            showToast(
+                `No se pudo ${isEditing ? "editar" : "crear"} la ${name} universidad`,
+                "error"
             );
         }
     };
@@ -171,11 +181,11 @@ export default function AdminUniversityPage() {
                     const response = await axiosInstance.post(`/university/delete/${id}`);
                     if (response.data.ok) {
                         setUniversities((prev) => prev.filter((u) => u.id !== id));
-                        showAlert("Eliminado", `"${university.name}" ha sido eliminada.`, "success");
+                        showToast(`"${university.name}" ha sido eliminada.`, "success");
                     }
                 } catch (error) {
                     console.error("Error al eliminar universidad:", error.message);
-                    showAlert("Error", "No se pudo eliminar la universidad.", "error");
+                    showToast("No se pudo eliminar la universidad.", "error");
                 }
             }
         );
@@ -184,6 +194,9 @@ export default function AdminUniversityPage() {
 
     return (
         <Box sx={{ p: 4 }}>
+
+            <ToastNotification />
+
             <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 2 }}>
                 Gestión de Universidades
             </Typography>
@@ -301,9 +314,7 @@ export default function AdminUniversityPage() {
                     city: editingUniversity?.city || "",
                     country: editingUniversity?.country || ""
                 }}
-                onSave={(data) => {
-                    handleSaveUniversity(data);
-                }}
+                onSave={handleSaveUniversity}
             />
         </Box>
     );

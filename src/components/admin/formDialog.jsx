@@ -7,11 +7,14 @@ import {
   MenuItem,
   Button,
   Autocomplete,
-  Chip
+  Chip,
+  InputAdornment,
+  IconButton
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const FormDialog = ({
   open,
@@ -32,9 +35,11 @@ const FormDialog = ({
     defaultValues
   });
 
-useEffect(() => {
-  reset(defaultValues);
-}, [defaultValues, open]);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, open]);
 
   const handleFormSubmit = (data) => {
     onSave(data);
@@ -127,6 +132,40 @@ useEffect(() => {
                           helperText={errors[field.name]?.message}
                         />
                       )}
+                    />
+                  )}
+                />
+              );
+            }
+
+            if (field.type === "password" && !field.hidden) {
+              return (
+                <Controller
+                  key={field.name}
+                  name={field.name}
+                  control={control}
+                  render={({ field: f }) => (
+                    <TextField
+                      fullWidth
+                      type={showPassword ? "text" : "password"}
+                      label={field.label}
+                      value={f.value ?? ""}
+                      onChange={f.onChange}
+                      error={!!errors[field.name]}
+                      helperText={errors[field.name]?.message}
+                      margin="normal"
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowPassword((prev) => !prev)}
+                              edge="end"
+                            >
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   )}
                 />
