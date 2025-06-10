@@ -24,10 +24,6 @@ import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from '@mui/icons-material/Save';
 
-// ...importaciones anteriores
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-
 // Nuevos datos iniciales
 const initialOperatingExpenses = [
     { id: 1, type: "Gastos de Administración", value_cop: 198000000 },
@@ -36,7 +32,7 @@ const initialOperatingExpenses = [
 ];
 
 const initialOtherExpenses = [
-    { id: 1, concept: "Gastos Financieros", value_cop: 72000000 },
+    { id: 1, concept: "Gastos Financieros", value_cop: 72000000  },
     { id: 2, concept: "Depreciación y Amortización", value_cop: 48000000 },
     { id: 3, concept: "Impuestos", value_cop: 30000000 }
 ];
@@ -67,7 +63,7 @@ export default function FinancialStatements() {
 
     const [editItem, setEditItem] = useState(null);
     const [editValue, setEditValue] = useState("");
-    const [editType, setEditType] = useState(""); // "sale" o "cost"
+    const [editType, setEditType] = useState("");
 
     const [operatingExpenses, setOperatingExpenses] = useState(initialOperatingExpenses);
     const [otherExpenses, setOtherExpenses] = useState(initialOtherExpenses);
@@ -83,8 +79,6 @@ export default function FinancialStatements() {
         setEditValue("");
         setEditType("");
     };
-
-
 
     const handleSave = () => {
         if (editType === "sale") {
