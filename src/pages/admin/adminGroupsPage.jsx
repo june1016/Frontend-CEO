@@ -137,50 +137,59 @@ export default function AdminGroupsPage() {
     const handleSaveGroup = async ({
         name,
         description,
-        teacher_id,
-        university_id,
-        students
+        teacher,
+        university,
+        students,
     }) => {
+        const isEditing = Boolean(editingGroup);
+
+        const payload = {
+            name,
+            description,
+            teacher_id: teacher,
+            university_id: university,
+            student_ids: students.map((s) => s.id),
+        };
+
+        const url = isEditing
+            ? `/groups/update/${editingGroup.id}`
+            : "/groups/create";
+
         try {
-            const payload = {
-                name,
-                description,
-                teacher_id,
-                university_id,
-                student_ids: students,
-            };
-
-            const isEditing = Boolean(editingGroup);
-            const url = isEditing
-                ? `/groups/update/${editingGroup.id}`
-                : "/groups/create";
-
             const response = await axiosInstance.post(url, payload);
 
-            if (response.data.ok) {
-                const updatedGroup = response.data.group;
-
-                setGroups((prevGroups) =>
-                    isEditing
-                        ? prevGroups.map((group) =>
-                            group.id === editingGroup.id ? updatedGroup : group
-                        )
-                        : [...prevGroups, updatedGroup]
-                );
-
-                handleCloseDialog();
-
-                const toastMessage = isEditing
-                    ? `Grupo "${name}" actualizado exitosamente`
-                    : `Grupo "${name}" creado exitosamente`;
-
-                showToast(toastMessage, 'success');
+            if (!response.data.ok) {
+                throw new Error(response.data.message || "Error desconocido");
             }
+
+            const updatedGroup = response.data.group;
+
+            setGroups((prevGroups) =>
+                isEditing
+                    ? prevGroups.map((group) =>
+                        group.id === editingGroup.id ? updatedGroup : group
+                    )
+                    : [...prevGroups, updatedGroup]
+            );
+
+            handleCloseDialog();
+
+            const toastMessage = isEditing
+                ? `Grupo "${name}" actualizado exitosamente`
+                : `Grupo "${name}" creado exitosamente`;
+
+            showToast(toastMessage, "success");
         } catch (error) {
-            console.error("Error al guardar el grupo:", error.message);
-            showToast("Ocurrió un error al guardar el grupo", 'error');
+            const backendMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                "Ocurrió un error inesperado";
+
+            showToast(backendMessage, "error");
+            console.error("Error al guardar el grupo:", backendMessage);
         }
     };
+
 
     const handleDeleteGroup = (id, groupName) => {
         showConfirmation(

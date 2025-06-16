@@ -37,34 +37,96 @@ import { getUserId } from "../../utils/timeManagement/operationTime";
 import { categoryColors, iconMapping } from "../../constants/financialData";
 import { formatCurrency } from "../../utils/formatters/currencyFormatters";
 import SummaryCard from "../../components/planning/balanceSheet/summaryCard";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import FormDialog from "../../components/admin/formDialog";
+import { fieldsAmountEdit } from "../../data/fieldsForm";
+import { amountSchema } from "../../utils/validations/amountSchema";
+import showAlert from "../../utils/alerts/alertHelpers";
 
 export default function TeacherPlanning() {
   const theme = useTheme();
   const [data, setData] = useState(null);
   const [editRow, setEditRow] = useState(null);
+  const [createdBy, setCreatedBy] = useState(1);
   const [newAmount, setNewAmount] = useState("");
+  const [formattedDataTitles, setFormattedDataTitles] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
+  const fetchFinancialData = async (userId = createdBy) => {
+    try {
+      const response = await axiosInstance.get(
+        "/financialdata/getfinancialdata/by-user",
+        {
+          params: { created_by: userId }
+        }
+      );
+
+      setData(response.data.financialData);
+    } catch (error) {
+      console.error("Error al cargar datos financieros:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchFinancialData = async () => {
+    const getFinancialTitle = async () => {
+      try {
+        const response = await axiosInstance.get("/financialdata/getDatatitles");
+        const financialTitles = response.data.financialTitles;
+
+        const formattedData = financialTitles.reduce((acc, title) => {
+          acc[title.name] = {
+            title_id: title.id,
+            literal_id: title.FinancialData[0]?.literal_id || null,
+          };
+          return acc;
+        }, {});
+
+        setFormattedDataTitles(formattedData);
+      } catch (error) {
+        console.error("Error al obtener títulos financieros:", error.message);
+      }
+    };
+
+    getFinancialTitle();
+  }, []);
+
+  useEffect(() => {
+    const loadFinancialData = async () => {
+      const realUserId = getUserId();
+
       try {
         const response = await axiosInstance.get(
           "/financialdata/getfinancialdata/by-user",
           {
-            params: { created_by: getUserId() }
+            params: { created_by: realUserId },
           }
-        )
+        );
 
-        console.log(data);
+        const financialData = response.data.financialData;
 
-        const rawData = response.data.financialData;
+        if (financialData.length > 0) {
 
-        setData(rawData);
+          setCreatedBy(realUserId);
+          setData(financialData);
+        } else {
+
+          const defaultResponse = await axiosInstance.get(
+            "/financialdata/getfinancialdata/by-user",
+            {
+              params: { created_by: 1 },
+            }
+          );
+
+          setCreatedBy(realUserId);
+          setData(defaultResponse.data.financialData);
+        }
       } catch (error) {
         console.error("Error al cargar datos financieros:", error);
       }
     };
 
-    fetchFinancialData();
+    loadFinancialData();
   }, []);
 
   const totals = useMemo(() => {
@@ -77,49 +139,93 @@ export default function TeacherPlanning() {
 
         if (category === "Activos") acc.totalActivos += amount;
         else if (category === "Pasivos") acc.totalPasivos += amount;
+        else if (category === "Patrimonio") acc.totalPatrimonio += amount;
         else acc.otros += amount;
 
         return acc;
       },
-      { totalActivos: 0, totalPasivos: 0, otros: 0 }
+      {
+        totalActivos: 0,
+        totalPasivos: 0,
+        totalPatrimonio: 0,
+        otros: 0,
+      }
     );
 
-    result.patrimonio = result.totalActivos - result.totalPasivos;
+    result.balance = (result.totalActivos) - (result.totalPasivos + result.totalPatrimonio);
+
     return result;
   }, [data]);
 
+
   const handleOpenEdit = (item) => {
-    setEditRow(item);
-    setNewAmount(item.amount);
+    setEditingItem(item);
+    setOpenDialog(true);
   };
 
-  const handleClose = () => {
-    setEditRow(null);
-    setNewAmount("");
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditingItem(null);
   };
 
-  const handleSave = () => {
+  const handleSaveAmount = ({ amount }) => {
     const updated = data.map((item) =>
-      item.id === editRow.id ? { ...item, amount: Number(newAmount) } : item
+      item.id === editingItem.id ? { ...item, amount: Number(amount) } : item
     );
+
     setData(updated);
-    handleClose();
+    handleCloseDialog();
   };
 
-  const handleFinalSave = () => {
-    const payload = data.map((item) => ({
-      id: item.id,
-      title_id: item.title.id,
-      amount: item.amount,
-      updated_by: 1
-    }));
+  const handleFinalSave = async () => {
 
-    alert("Cambios guardados (ver consola)");
+    if (Math.abs(totals.balance) >= 0.01) {
+      showAlert(
+        `Balance es ${totals.balance}`,
+        "El balance no cuadra. Por favor, revise los valores ingresados",
+        "error",
+        "#1C4384"
+      );
+      return;
+    }
+
+    try {
+      const realUserId = getUserId();
+
+      const payload = {
+        financialData: data.map((item) => {
+          const titleKey = item.title;
+          const formatted = formattedDataTitles[titleKey];
+
+          return {
+            title_id: formatted.title_id,
+            literal_id: formatted.literal_id,
+            amount: parseFloat(item.amount),
+            created_by: realUserId,
+          };
+        }).filter(Boolean)
+      };
+
+      const response = await axiosInstance.post("/financialdata/createfinancialdata", payload);
+
+      if (response.data.ok) {
+        showToast("Cambios guardados correctamente", "success");
+
+        setCreatedBy(realUserId);
+        fetchFinancialData(realUserId);
+      } else {
+        showToast("No se pudo guardar la información", "error");
+      }
+    } catch (error) {
+      showToast("Ocurrió un error al guardar los datos", "error");
+    }
   };
-
 
   return (
     <Box display="flex" flexDirection="column" gap={1}>
+
+      <ToastNotification />
+
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
           <SummaryCard
@@ -142,7 +248,7 @@ export default function TeacherPlanning() {
         <Grid item xs={12} md={4}>
           <SummaryCard
             title="Patrimonio"
-            value={totals.patrimonio}
+            value={totals.totalPatrimonio}
             icon={<SavingsIcon />}
             bgColor={theme.palette.primary.main}
           />
@@ -211,6 +317,18 @@ export default function TeacherPlanning() {
           </Table>
         </TableContainer>
       </CardContent>
+
+      <FormDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        title={`Editar valor de ${editingItem?.title || ""}`}
+        schema={amountSchema}
+        fields={fieldsAmountEdit}
+        defaultValues={{
+          amount: editingItem?.amount || "",
+        }}
+        onSave={handleSaveAmount}
+      />
 
       <Box display="flex" justifyContent="flex-end">
         <Button

@@ -42,6 +42,7 @@ const FormDialog = ({
   }, [defaultValues, open]);
 
   const handleFormSubmit = (data) => {
+    console.log(data)
     onSave(data);
     onClose();
     reset();
@@ -53,7 +54,7 @@ const FormDialog = ({
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <DialogContent sx={{ pt: 2 }}>
           {fields.map((field) => {
-            if (field.type === "text") {
+            if (field.type === "text" || field.type === "number") {
               return (
                 <Controller
                   key={field.name}
@@ -62,6 +63,7 @@ const FormDialog = ({
                   render={({ field: f }) => (
                     <TextField
                       {...f}
+                      type={field.type}
                       fullWidth
                       label={field.label}
                       error={!!errors[field.name]}

@@ -19,12 +19,13 @@ export const groupSchema = z.object({
     invalid_type_error: "Debes seleccionar un docente",
   }),
 
-  students: z.array(
+students: z
+  .array(
     z.object({
       id: z.number(),
       name: z.string(),
       lastName: z.string(),
     })
   )
-    .min(1, "Debes seleccionar al menos un estudiante"),
+  .min(1, "Debes seleccionar al menos un estudiante"),
 });

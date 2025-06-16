@@ -88,3 +88,11 @@ export const getFieldsUsers = ({ rols, showPassword, setShowPassword, isEditing 
     })),
   },
 ];
+
+export const fieldsAmountEdit = [
+  {
+    name: "amount",
+    label: "Valor (COP)",
+    type: "number",
+  },
+];

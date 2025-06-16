@@ -143,15 +143,18 @@ export default function AdminUsersPage() {
       );
 
       showToast(
-        `"${savedUser.name}" ha sido ${isEditing ? "actualizado" : "creado"
-        } exitosamente.`,
+        `"${savedUser.name}" ha sido ${isEditing ? "actualizado" : "creado"} exitosamente.`,
         "success"
       );
 
       handleCloseDialog();
     } catch (error) {
-      console.error("Error al guardar el usuario:", error.message);
-      showToast("Error al guardar el usuario", "error");
+      const errorMessage =
+        error?.response?.data?.message ||
+        "Ocurrió un error al guardar el usuario.";
+
+      console.error("Error al guardar el usuario:", error);
+      showToast(errorMessage, "error");
       handleCloseDialog();
     }
   };
