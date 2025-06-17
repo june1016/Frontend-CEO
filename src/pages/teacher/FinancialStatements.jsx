@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Box,
     Typography,
@@ -20,247 +20,307 @@ import {
     Card
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from '@mui/icons-material/Save';
+import axiosInstance from "../../services/api/axiosConfig";
+import { getUserId } from "../../utils/timeManagement/operationTime";
+import { formatCurrency } from "../../utils/formatters/currencyFormatters";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import FormDialog from "../../components/admin/formDialog";
+import { amountSchema } from "../../utils/validations/amountSchema";
+import { fieldsAmountEdit } from "../../data/fieldsForm";
 
-// Nuevos datos iniciales
-const initialOperatingExpenses = [
-    { id: 1, type: "Gastos de Administración", value_cop: 198000000 },
-    { id: 2, type: "Gastos de Ventas", value_cop: 162000000 },
-    { id: 3, type: "Otros Gastos Operativos", value_cop: 90000000 }
-];
-
-const initialOtherExpenses = [
-    { id: 1, concept: "Gastos Financieros", value_cop: 72000000  },
-    { id: 2, concept: "Depreciación y Amortización", value_cop: 48000000 },
-    { id: 3, concept: "Impuestos", value_cop: 30000000 }
-];
-
-
-const initialProducts = [
-    { id: 1, name: "Alfaros" },
-    { id: 2, name: "Betacos" },
-    { id: 3, name: "Gamaroles" }
-];
-
-const initialSales = [
-    { id: 1, product_id: 1, value_cop: 792000000 },
-    { id: 2, product_id: 2, value_cop: 648000000 },
-    { id: 3, product_id: 3, value_cop: 360000000 }
-];
-
-const initialSalesCosts = [
-    { id: 1, product_id: 1, value_cop: 467280000 },
-    { id: 2, product_id: 2, value_cop: 382320000 },
-    { id: 3, product_id: 3, value_cop: 212400000 }
-];
 
 export default function FinancialStatements() {
     const theme = useTheme();
-    const [sales, setSales] = useState(initialSales);
-    const [salesCosts, setSalesCosts] = useState(initialSalesCosts);
+    const [operatingExpenses, setOperatingExpenses] = useState([]);
+    const [sales, setSales] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [salesCosts, setSalesCosts] = useState([]);
+    const [otherExpenses, setOtherExpenses] = useState([]);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
 
-    const [editItem, setEditItem] = useState(null);
-    const [editValue, setEditValue] = useState("");
-    const [editType, setEditType] = useState("");
+    useEffect(() => {
+        const loadFinancialData = async () => {
+            const userId = getUserId();
 
-    const [operatingExpenses, setOperatingExpenses] = useState(initialOperatingExpenses);
-    const [otherExpenses, setOtherExpenses] = useState(initialOtherExpenses);
+            try {
+                const [
+                    userSalesRes,
+                    userSalesCostsRes,
+                    userOperatingExpensesRes,
+                    userOtherExpensesRes,
+                    userProductsRes
+                ] = await Promise.all([
+                    axiosInstance.get("/sales/getSalesByCreatedBy", { params: { created_by: userId } }),
+                    axiosInstance.get("/salescosts/getSalesCostsByCreatedBy", { params: { created_by: userId } }),
+                    axiosInstance.get("/operatingexpenses/getOperatingExpensesByCreatedBy", { params: { created_by: userId } }),
+                    axiosInstance.get("/otherexpenses/getOtherExpensesByCreatedBy", { params: { created_by: userId } }),
+                    axiosInstance.get("/products/getProductsByCreatedBy", { params: { created_by: userId } })
+                ]);
 
-    const handleEdit = (item, type) => {
-        setEditItem(item);
-        setEditValue(item.value_cop);
-        setEditType(type);
+                const hasSales = userSalesRes.data.sales.length > 0;
+                const hasCosts = userSalesCostsRes.data.salesCost.length > 0;
+                const hasOperating = userOperatingExpensesRes.data.operatingExpenses.length > 0;
+                const hasOthers = userOtherExpensesRes.data.otherExpenses.length > 0;
+                const hasProducts = userProductsRes.data.products.length > 0;
+
+                const [
+                    defaultSalesRes,
+                    defaultSalesCostsRes,
+                    defaultOperatingExpensesRes,
+                    defaultOtherExpensesRes,
+                    defaultProductsRes
+                ] = await Promise.all([
+                    hasSales ? null : axiosInstance.get("/sales/getSalesByCreatedBy", { params: { created_by: 1 } }),
+                    hasCosts ? null : axiosInstance.get("/salescosts/getSalesCostsByCreatedBy", { params: { created_by: 1 } }),
+                    hasOperating ? null : axiosInstance.get("/operatingexpenses/getOperatingExpensesByCreatedBy", { params: { created_by: 1 } }),
+                    hasOthers ? null : axiosInstance.get("/otherexpenses/getOtherExpensesByCreatedBy", { params: { created_by: 1 } }),
+                    hasProducts ? null : axiosInstance.get("/products/getProductsByCreatedBy", { params: { created_by: 1 } })
+                ]);
+
+                setSales(hasSales ? userSalesRes.data.sales : defaultSalesRes?.data.sales || []);
+                setSalesCosts(hasCosts ? userSalesCostsRes.data.salesCost : defaultSalesCostsRes?.data.salesCost || []);
+                setOperatingExpenses(hasOperating ? userOperatingExpensesRes.data.operatingExpenses : defaultOperatingExpensesRes?.data.operatingExpenses || []);
+                setOtherExpenses(hasOthers ? userOtherExpensesRes.data.otherExpenses : defaultOtherExpensesRes?.data.otherExpenses || []);
+                setProducts(hasProducts ? userProductsRes.data.products : defaultProductsRes?.data.products || []);
+            } catch (error) {
+                console.error("Error al cargar los datos financieros:", error);
+            }
+        };
+
+        loadFinancialData();
+    }, []);
+
+
+
+    const handleOpenEdit = (item, type) => {
+        setEditingItem({ ...item, editType: type });
+        setOpenDialog(true);
     };
 
-    const handleClose = () => {
-        setEditItem(null);
-        setEditValue("");
-        setEditType("");
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setEditingItem(null);
     };
 
-    const handleSave = () => {
-        if (editType === "sale") {
-            setSales((prev) =>
-                prev.map((s) =>
-                    s.id === editItem.id ? { ...s, value_cop: Number(editValue) } : s
-                )
+    const handleSaveAmount = ({ amount }) => {
+        const updatedValue = Number(amount);
+
+        const updateList = (list, setList) => {
+            const updated = list.map((item) =>
+                item.id === editingItem.id ? { ...item, value_cop: updatedValue } : item
             );
-        } else if (editType === "cost") {
-            setSalesCosts((prev) =>
-                prev.map((c) =>
-                    c.id === editItem.id ? { ...c, value_cop: Number(editValue) } : c
-                )
-            );
-        } else if (editType === "operating") {
-            setOperatingExpenses((prev) =>
-                prev.map((item) =>
-                    item.id === editItem.id ? { ...item, value_cop: Number(editValue) } : item
-                )
-            );
-        } else if (editType === "other") {
-            setOtherExpenses((prev) =>
-                prev.map((item) =>
-                    item.id === editItem.id ? { ...item, value_cop: Number(editValue) } : item
-                )
-            );
+            setList(updated);
+        };
+
+        switch (editingItem?.editType) {
+            case "sale":
+                updateList(sales, setSales);
+                break;
+            case "cost":
+                updateList(salesCosts, setSalesCosts);
+                break;
+            case "operating":
+                updateList(operatingExpenses, setOperatingExpenses);
+                break;
+            case "other":
+                updateList(otherExpenses, setOtherExpenses);
+                break;
+            default:
+                console.warn("Tipo de edición no reconocido");
         }
-        handleClose();
+
+        handleCloseDialog();
     };
 
     const getProductName = (id) => {
-        const product = initialProducts.find((p) => p.id === id);
+        const product = products.find((p) => p.id === id);
         return product ? product.name : "Desconocido";
     };
 
     const handleSaveChanges = async () => {
-        Swal.fire({
-            icon: "success",
-            title: "Cambios guardados",
-            text: "Los datos fueron enviados correctamente.",
-            timer: 2000,
-            showConfirmButton: false,
-        });
+        try {
+            const userId = getUserId();
+
+            const operatingExpensesWithUser = operatingExpenses.map(item => ({ ...item, created_by: userId }));
+            const otherExpensesWithUser = otherExpenses.map(item => ({ ...item, created_by: userId }));
+
+            const salesCostsWithUser = salesCosts.map(item => ({
+                product_id: item.product_id ?? item.Product?.id,
+                value_cop: item.value_cop,
+                created_by: userId
+            }));
+
+            
+            const salesWithUser = sales.map(item => ({
+                product_id: item.product_id ?? item.Product?.id,
+                value_cop: item.value_cop,
+                created_by: userId
+            }));
+
+            console.log(sales);
+            console.log(salesCostsWithUser);
+
+            await Promise.all([
+                axiosInstance.post("/sales/createSales", { salesData: salesWithUser }),
+                axiosInstance.post("/salescosts/createSalesCost", { salesCosts: salesCostsWithUser }),
+                axiosInstance.post("/operatingexpenses/createOperatingExpenses", { operatingExpenses: operatingExpensesWithUser }),
+                axiosInstance.post("/otherexpenses/createOtherExpenses", { otherExpenses: otherExpensesWithUser }),
+            ]);
+
+            showToast("Cambios guardados correctamente", "success");
+        } catch (error) {
+            console.error("Error al guardar los cambios:", error);
+            showToast("Error al guardar los cambios", "error");
+        }
     };
 
+
     return (
-        <Box display="flex" flexDirection="column" gap={4}>
+        <Box display="flex" flexDirection="column" gap={2}>
 
-            <Card>
-                <CardContent>
-                    {/* Ventas */}
-                    <Typography variant="subtitle1" gutterBottom display="flex" alignItems="center">
-                        Ventas
-                    </Typography>
+            <ToastNotification />
 
-                    <TableContainer component={Paper} sx={{ mb: 4 }}>
-                        <Table size="small">
-                            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
-                                <TableRow>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Producto</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Valor Venta</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+            <CardContent>
+                <Typography variant="subtitle1" gutterBottom display="flex" alignItems="center">
+                    Ventas
+                </Typography>
+
+                <TableContainer component={Paper}>
+                    <Table size="small">
+                        <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+                            <TableRow>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Producto</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Valor Venta</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {sales?.map((sale) => (
+                                <TableRow key={`sale-${sale.id}`}>
+                                    <TableCell>{getProductName(sale.product_id)}</TableCell>
+                                    <TableCell>{formatCurrency(sale.value_cop)}</TableCell>
+                                    <TableCell align="center">
+                                        <IconButton onClick={() => handleOpenEdit(sale, "sale")} color="primary" size="small">
+                                            <EditIcon />
+                                        </IconButton>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {sales.map((sale) => (
-                                    <TableRow key={`sale-${sale.id}`}>
-                                        <TableCell>{getProductName(sale.product_id)}</TableCell>
-                                        <TableCell>${sale.value_cop.toLocaleString("es-CO")}</TableCell>
-                                        <TableCell align="center">
-                                            <IconButton onClick={() => handleEdit(sale, "sale")} color="primary" size="small">
-                                                <EditIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </CardContent>
-            </Card>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </CardContent>
 
-            <Card>
-                <CardContent>
 
-                    {/* Costos de Venta */}
-                    <Typography variant="subtitle1" gutterBottom display="flex" alignItems="center">
-                        Costos de Venta
-                    </Typography>
 
-                    <TableContainer component={Paper}>
-                        <Table size="small">
-                            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
-                                <TableRow>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Producto</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Costo</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+            <CardContent>
+
+                <Typography variant="subtitle1" gutterBottom display="flex" alignItems="center">
+                    Costos de Venta
+                </Typography>
+
+                <TableContainer component={Paper}>
+                    <Table size="small">
+                        <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+                            <TableRow>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Producto</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Costo</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {salesCosts?.map((cost) => (
+                                <TableRow key={`cost-${cost.id}`}>
+                                    <TableCell>{getProductName(cost.product_id)}</TableCell>
+                                    <TableCell>{formatCurrency(cost.value_cop)}</TableCell>
+                                    <TableCell align="center">
+                                        <IconButton onClick={() => handleOpenEdit(cost, "cost")} color="primary" size="small">
+                                            <EditIcon />
+                                        </IconButton>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {salesCosts.map((cost) => (
-                                    <TableRow key={`cost-${cost.id}`}>
-                                        <TableCell>{getProductName(cost.product_id)}</TableCell>
-                                        <TableCell>${cost.value_cop.toLocaleString("es-CO")}</TableCell>
-                                        <TableCell align="center">
-                                            <IconButton onClick={() => handleEdit(cost, "cost")} color="primary" size="small">
-                                                <EditIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </CardContent>
-            </Card>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </CardContent>
 
-            <Card>
-                <CardContent>
-                    <Typography variant="subtitle1" gutterBottom display="flex" alignItems="center" >
-                        Gastos Operativos
-                    </Typography>
+            <CardContent>
+                <Typography variant="subtitle1" gutterBottom display="flex" alignItems="center" >
+                    Gastos Operativos
+                </Typography>
 
-                    <TableContainer component={Paper} sx={{ mb: 4 }}>
-                        <Table size="small">
-                            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
-                                <TableRow>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Tipo</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Valor</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+                <TableContainer component={Paper} sx={{ mb: 4 }}>
+                    <Table size="small">
+                        <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+                            <TableRow>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Tipo</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Valor</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {operatingExpenses?.map((item) => (
+                                <TableRow key={`op-${item.id}`}>
+                                    <TableCell>{item.type}</TableCell>
+                                    <TableCell>{formatCurrency(item.value_cop)}</TableCell>
+                                    <TableCell align="center">
+                                        <IconButton onClick={() => handleOpenEdit(item, "operating")} color="primary" size="small">
+                                            <EditIcon />
+                                        </IconButton>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {operatingExpenses.map((item) => (
-                                    <TableRow key={`op-${item.id}`}>
-                                        <TableCell>{item.type}</TableCell>
-                                        <TableCell>${item.value_cop.toLocaleString("es-CO")}</TableCell>
-                                        <TableCell align="center">
-                                            <IconButton onClick={() => handleEdit(item, "operating")} color="primary" size="small">
-                                                <EditIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </CardContent>
-            </Card>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </CardContent>
 
-            <Card>
-                <CardContent>
-                    <Typography variant="subtitle1" gutterBottom display="flex" alignItems="center">
-                        Otros Gastos
-                    </Typography>
+            <CardContent>
+                <Typography variant="subtitle1" gutterBottom display="flex" alignItems="center">
+                    Otros Gastos
+                </Typography>
 
-                    <TableContainer component={Paper}>
-                        <Table size="small">
-                            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
-                                <TableRow>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Concepto</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Valor</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+                <TableContainer component={Paper}>
+                    <Table size="small">
+                        <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+                            <TableRow>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Concepto</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Valor</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {otherExpenses?.map((item) => (
+                                <TableRow key={`other-${item.id}`}>
+                                    <TableCell>{item.concept}</TableCell>
+                                    <TableCell>{formatCurrency(item.value_cop)}</TableCell>
+                                    <TableCell align="center">
+                                        <IconButton onClick={() => handleOpenEdit(item, "other")} color="primary" size="small">
+                                            <EditIcon />
+                                        </IconButton>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {otherExpenses.map((item) => (
-                                    <TableRow key={`other-${item.id}`}>
-                                        <TableCell>{item.concept}</TableCell>
-                                        <TableCell>${item.value_cop.toLocaleString("es-CO")}</TableCell>
-                                        <TableCell align="center">
-                                            <IconButton onClick={() => handleEdit(item, "other")} color="primary" size="small">
-                                                <EditIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </CardContent>
-            </Card>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </CardContent>
+
+            <FormDialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                title={`Editar valor de ${editingItem?.title || ""}`}
+                schema={amountSchema}
+                fields={fieldsAmountEdit}
+                defaultValues={{
+                    amount: editingItem?.value_cop || "",
+                }}
+                onSave={handleSaveAmount}
+            />
 
             <Box display="flex" justifyContent="flex-end" mt={4}>
                 <Button
@@ -272,25 +332,6 @@ export default function FinancialStatements() {
                     Guardar cambios
                 </Button>
             </Box>
-
-            {/* Modal de Edición */}
-            <Dialog open={!!editItem} onClose={handleClose}>
-                <DialogTitle>Editar valor</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        label="Nuevo valor"
-                        type="number"
-                        fullWidth
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        sx={{ mt: 1 }}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Cancelar</Button>
-                    <Button onClick={handleSave} variant="contained">Guardar</Button>
-                </DialogActions>
-            </Dialog>
         </Box>
     );
 }

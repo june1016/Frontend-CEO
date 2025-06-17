@@ -46,9 +46,7 @@ import showAlert from "../../utils/alerts/alertHelpers";
 export default function TeacherPlanning() {
   const theme = useTheme();
   const [data, setData] = useState(null);
-  const [editRow, setEditRow] = useState(null);
   const [createdBy, setCreatedBy] = useState(1);
-  const [newAmount, setNewAmount] = useState("");
   const [formattedDataTitles, setFormattedDataTitles] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
