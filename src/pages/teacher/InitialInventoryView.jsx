@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
     Card,
@@ -21,241 +21,259 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CloseIcon from "@mui/icons-material/Close";
 import Swal from "sweetalert2";
-
-const initialRawMaterials = [
-    { code: "A1", description: "Material base estructural", quantity: 950, unit: "Kilogramo", unit_cost: 4050 },
-    { code: "A2", description: "Material de revestimiento", quantity: 570, unit: "Litro", unit_cost: 5950 },
-    { code: "A3", description: "Material de refuerzo", quantity: 425, unit: "Kilogramo", unit_cost: 5100 },
-    { code: "A4", description: "Componente principal Alfaros", quantity: 1980, unit: "Unidad", unit_cost: 3900 },
-    { code: "A5", description: "Componente secundario Alfaros", quantity: 1330, unit: "Unidad", unit_cost: 4950 },
-    { code: "A6", description: "Componente principal Betacos", quantity: 625, unit: "Metro", unit_cost: 5800 },
-    { code: "A7", description: "Componente secundario Betacos", quantity: 960, unit: "Unidad", unit_cost: 4150 },
-    { code: "A8", description: "Componente principal Gamaroles", quantity: 335, unit: "Kilogramo", unit_cost: 9600 },
-    { code: "A9", description: "Componente secundario Gamaroles", quantity: 640, unit: "Unidad", unit_cost: 6900 },
-    { code: "A10", description: "Material de acabado", quantity: 575, unit: "Litro", unit_cost: 8100 },
-];
-
-const initialProductInventory = [
-    { name: "Alfaros", quantity: 80, unit_cost: 300000 },
-    { name: "Betacos", quantity: 60, unit_cost: 270000 },
-    { name: "Gamaroles", quantity: 30, unit_cost: 250000 },
-];
-
-const modalStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 350,
-    bgcolor: "background.paper",
-    borderRadius: 2,
-    boxShadow: 24,
-    p: 3,
-};
+import { formatCurrency } from "../../utils/formatters/currencyFormatters";
+import { getUserId } from "../../utils/timeManagement/operationTime";
+import axiosInstance from "../../services/api/axiosConfig";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import FormDialog from "../../components/admin/formDialog";
+import { productInventorySchema, rawMaterialSchema } from "../../utils/validations/amountSchema";
+import { fieldsProductInventoryEdit, fieldsRawMaterialEdit } from "../../data/fieldsForm";
 
 export default function InitialInventoryView() {
     const theme = useTheme();
 
-    const [rawMaterials, setRawMaterials] = useState(initialRawMaterials);
-    const [productInventory, setProductInventory] = useState(initialProductInventory);
-
-    const [modalOpen, setModalOpen] = useState(false);
+    const [rawMaterials, setRawMaterials] = useState([]);
+    const [productInventory, setProductInventory] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [openDialog, setOpenDialog] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-    const [formValues, setFormValues] = useState({ quantity: "", unit_cost: "" });
 
-    const handleOpenModal = (type, index) => {
-        let item = type === "raw" ? rawMaterials[index] : productInventory[index];
-        setEditingItem({ type, index });
-        setFormValues({
-            quantity: item.quantity,
-            unit_cost: item.unit_cost,
-        });
-        setModalOpen(true);
+    useEffect(() => {
+        const loadInventoryData = async () => {
+            const userId = getUserId();
+
+            try {
+                const [
+                    userRawMaterialsRes,
+                    userProductInventoryRes,
+                    userProductsRes
+                ] = await Promise.all([
+                    axiosInstance.get("/rawmaterialsinventory/getRawMaterialsInventoryByCreatedBy", {
+                        params: { created_by: userId }
+                    }),
+                    axiosInstance.get("/productsInventory/getProductInventoryByCreatedBy", {
+                        params: { created_by: userId }
+                    }),
+                    axiosInstance.get("/products/getProductsByCreatedBy", {
+                        params: { created_by: userId }
+                    })
+                ]);
+
+                const hasRawMaterials = userRawMaterialsRes.data.rawMaterialsInventory.length > 0;
+                const hasProductInventory = userProductInventoryRes.data.inventories.length > 0;
+                const hasProducts = userProductsRes.data.products.length > 0;
+
+                const [
+                    defaultRawMaterialsRes,
+                    defaultProductInventoryRes,
+                    defaultProductsRes
+                ] = await Promise.all([
+                    hasRawMaterials ? null : axiosInstance.get("/rawmaterialsinventory/getRawMaterialsInventoryByCreatedBy", {
+                        params: { created_by: 1 }
+                    }),
+                    hasProductInventory ? null : axiosInstance.get("/productsInventory/getProductInventoryByCreatedBy", {
+                        params: { created_by: 1 }
+                    }),
+                    hasProducts ? null : axiosInstance.get("/products/getProductsByCreatedBy",
+                        { params: { created_by: 1 } })
+                ]);
+
+                setRawMaterials(
+                    hasRawMaterials
+                        ? userRawMaterialsRes.data.rawMaterialsInventory
+                        : defaultRawMaterialsRes?.data.rawMaterialsInventory || []
+                );
+
+                setProductInventory(
+                    hasProductInventory
+                        ? userProductInventoryRes.data.inventories
+                        : defaultProductInventoryRes?.data.inventories || []
+                );
+
+                setProducts(
+                    hasProducts
+                        ? userProductsRes.data.products
+                        : defaultProductsRes?.data.products || []
+                );
+            } catch (error) {
+                console.error("Error al cargar datos de inventario:", error);
+            }
+        };
+
+        loadInventoryData();
+    }, []);
+
+    const getProductName = (id) => {
+        const product = products.find((p) => p.id === id);
+        return product ? product.name : "Desconocido";
     };
 
-    const handleCloseModal = () => {
-        setModalOpen(false);
+
+    const handleOpenEdit = (item, type, index) => {
+        setEditingItem({ ...item, editType: type, index });
+        setOpenDialog(true);
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
         setEditingItem(null);
-        setFormValues({ quantity: "", unit_cost: "" });
     };
 
-    const handleChange = (field, value) => {
-        if (value === "" || /^[0-9\b]+$/.test(value)) {
-            setFormValues((prev) => ({ ...prev, [field]: value }));
-        }
-    };
+    const handleSave = (data) => {
+        const updateList = (list, setList) => {
+            const updated = [...list];
+            updated[editingItem.index] = { ...updated[editingItem.index], ...data };
+            setList(updated);
+        };
 
-    const handleSave = () => {
-        const quantityNum = parseInt(formValues.quantity, 10);
-        const costNum = parseFloat(formValues.unit_cost);
-
-        if (isNaN(quantityNum) || isNaN(costNum)) {
-            Swal.fire("Error", "Cantidad y costo deben ser números válidos", "error");
-            return;
-        }
-
-        if (editingItem.type === "raw") {
-            const updated = [...rawMaterials];
-            updated[editingItem.index] = {
-                ...updated[editingItem.index],
-                quantity: quantityNum,
-                unit_cost: costNum,
-            };
-            setRawMaterials(updated);
+        if (editingItem?.editType === "raw") {
+            updateList(rawMaterials, setRawMaterials);
         } else {
-            const updated = [...productInventory];
-            updated[editingItem.index] = {
-                ...updated[editingItem.index],
-                quantity: quantityNum,
-                unit_cost: costNum,
-            };
-            setProductInventory(updated);
+            updateList(productInventory, setProductInventory);
         }
 
-        setModalOpen(false);
-        setEditingItem(null);
-        setFormValues({ quantity: "", unit_cost: "" });
-        Swal.fire("Guardado", "Datos actualizados correctamente", "success");
+        handleCloseDialog();
     };
 
-    const saveInitialInventory = () => {
-        Swal.fire({
-            icon: "success",
-            title: "Inventario guardado",
-            text: "Los datos del inventario inicial se han guardado correctamente.",
-        });
+    const handleSaveChanges = async () => {
+        try {
+            const userId = getUserId();
+
+            console.log(rawMaterials);
+
+            const rawMaterialsWithUser = rawMaterials.map(item => ({
+                ...item,
+                created_by: userId
+            }));
+
+            const productInventoryWithUser = productInventory.map(item => ({
+                product_id: item.product_id ?? item.Product?.id,
+                unit_cost: item.unit_cost,
+                quantity: item.quantity,
+                created_by: userId
+            }));
+
+            await Promise.all([
+                axiosInstance.post("/productsInventory/createProductInventory", {
+                    inventories: productInventoryWithUser
+                }),
+                axiosInstance.post("/rawmaterialsinventory/createRawMaterialsInventory", {
+                    rawMaterialsInventory: rawMaterialsWithUser
+                })
+            ]);
+
+            showToast("Cambios guardados correctamente", "success");
+        } catch (error) {
+            console.error("Error al guardar inventario:", error);
+            showToast("Error al guardar los cambios", "error");
+        }
     };
 
     return (
         <Box display="flex" flexDirection="column" gap={4}>
-            {/* Materias Primas */}
-            <Card>
-                <CardContent>
-                    {/* Título fuera de la tabla */}
-                    <Typography variant="h6" mb={2}>
-                        Inventario Inicial - Materias Primas
-                    </Typography>
-                    <TableContainer component={Paper} sx={{ mb: 4 }}>
-                        <Table size="small">
-                            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
-                                <TableRow>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Código</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Descripción</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
-                                        Cantidad
-                                    </TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
-                                        Unidad
-                                    </TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="right">
-                                        Costo Unitario
-                                    </TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
-                                        Acciones
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {rawMaterials.map((item, index) => (
-                                    <TableRow key={item.code}>
-                                        <TableCell>{item.code}</TableCell>
-                                        <TableCell>{item.description}</TableCell>
-                                        <TableCell align="center">{item.quantity}</TableCell>
-                                        <TableCell align="center">{item.unit}</TableCell>
-                                        <TableCell align="right">{`$${item.unit_cost.toLocaleString()}`}</TableCell>
-                                        <TableCell align="center">
-                                            <IconButton onClick={() => handleOpenModal("raw", index)} color="primary" size="small">
-                                                <EditIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </CardContent>
-            </Card>
 
-            {/* Productos */}
-            <Card>
-                <CardContent>
-                    {/* Título fuera de la tabla */}
-                    <Typography variant="h6" mb={2}>
-                        Inventario Inicial - Productos Terminados
-                    </Typography>
-                    <TableContainer component={Paper} sx={{ mb: 4 }}>
-                        <Table size="small">
-                            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
-                                <TableRow>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Producto</TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
-                                        Cantidad
-                                    </TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="right">
-                                        Costo Unitario
-                                    </TableCell>
-                                    <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
-                                        Acciones
+            <ToastNotification />
+
+            <CardContent>
+                <Typography variant="h6" mb={2}>
+                    Inventario Inicial - Materias Primas
+                </Typography>
+                <TableContainer component={Paper} sx={{ mb: 4 }}>
+                    <Table size="small">
+                        <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+                            <TableRow>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Código</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Descripción</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
+                                    Cantidad
+                                </TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
+                                    Unidad
+                                </TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="right">
+                                    Costo Unitario
+                                </TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
+                                    Acciones
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {rawMaterials.map((item, index) => (
+                                <TableRow key={item.code}>
+                                    <TableCell>{item.code}</TableCell>
+                                    <TableCell>{item.description}</TableCell>
+                                    <TableCell align="center">{item.quantity}</TableCell>
+                                    <TableCell align="center">{item.unit}</TableCell>
+                                    <TableCell align="right">{formatCurrency(item.unit_cost)}</TableCell>
+                                    <TableCell align="center">
+                                        <IconButton onClick={() => handleOpenEdit(item, "raw", index)} color="primary" size="small">
+                                            <EditIcon />
+                                        </IconButton>
                                     </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {productInventory.map((product, index) => (
-                                    <TableRow key={product.name}>
-                                        <TableCell>{product.name}</TableCell>
-                                        <TableCell align="center">{product.quantity}</TableCell>
-                                        <TableCell align="right">{`$${product.unit_cost.toLocaleString()}`}</TableCell>
-                                        <TableCell align="center">
-                                            <IconButton onClick={() => handleOpenModal("product", index)} color="primary" size="small">
-                                                <EditIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </CardContent>
-            </Card>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </CardContent>
+
+            <CardContent>
+                <Typography variant="h6" mb={2}>
+                    Inventario Inicial - Productos Terminados
+                </Typography>
+                <TableContainer component={Paper} sx={{ mb: 4 }}>
+                    <Table size="small">
+                        <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+                            <TableRow>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Producto</TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
+                                    Cantidad
+                                </TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="right">
+                                    Costo Unitario
+                                </TableCell>
+                                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">
+                                    Acciones
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {productInventory.map((product, index) => (
+                                <TableRow key={product.id}>
+                                    <TableCell>{getProductName(product.product_id)}</TableCell>
+                                    <TableCell align="center">{product.quantity}</TableCell>
+                                    <TableCell align="right">{formatCurrency(product.unit_cost)}</TableCell>
+                                    <TableCell align="center">
+                                        <IconButton onClick={() => handleOpenEdit(product, "product", index)} color="primary" size="small">
+                                            <EditIcon />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </CardContent>
+
+            <FormDialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                title={`Editar ${editingItem?.editType === "raw" ? "Materia Prima" : "Producto Terminado"}`}
+                schema={editingItem?.editType === "raw" ? rawMaterialSchema : productInventorySchema}
+                fields={editingItem?.editType === "raw" ? fieldsRawMaterialEdit : fieldsProductInventoryEdit}
+                defaultValues={{
+                    quantity: editingItem?.quantity || 0,
+                    unit_cost: editingItem?.unit_cost || 0,
+                }}
+                onSave={handleSave}
+            />
 
             <Box display="flex" justifyContent="flex-end">
-                <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={saveInitialInventory}>
+                <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleSaveChanges}>
                     Guardar cambios
                 </Button>
             </Box>
-
-            {/* Modal para editar */}
-            <Modal open={modalOpen} onClose={handleCloseModal}>
-                <Box sx={modalStyle}>
-                    <Typography variant="h6" mb={2}>
-                        Editar {editingItem?.type === "raw" ? "Materia Prima" : "Producto"}
-                    </Typography>
-                    <TextField
-                        label="Cantidad"
-                        type="number"
-                        fullWidth
-                        margin="normal"
-                        value={formValues.quantity}
-                        onChange={(e) => handleChange("quantity", e.target.value)}
-                    />
-                    <TextField
-                        label="Costo Unitario"
-                        type="number"
-                        fullWidth
-                        margin="normal"
-                        value={formValues.unit_cost}
-                        onChange={(e) => handleChange("unit_cost", e.target.value)}
-                    />
-                    <Box mt={3} display="flex" justifyContent="space-between">
-                        <Button variant="outlined" color="error" startIcon={<CloseIcon />} onClick={handleCloseModal}>
-                            Cancelar
-                        </Button>
-                        <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleSave}>
-                            Guardar
-                        </Button>
-                    </Box>
-                </Box>
-            </Modal>
         </Box>
     );
 }

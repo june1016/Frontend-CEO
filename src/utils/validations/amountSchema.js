@@ -14,3 +14,13 @@ export const amountSchema = z.object({
       message: "El valor no puede superar los 100 billones de pesos",
     }),
 });
+
+export const rawMaterialSchema = z.object({
+  quantity: z.preprocess((val) => Number(val), z.number().min(0)),
+  unit_cost: z.preprocess((val) => Number(val), z.number().min(0))
+});
+
+export const productInventorySchema = z.object({
+  quantity: z.preprocess((val) => Number(val), z.number().min(0)),
+  unit_cost: z.preprocess((val) => Number(val), z.number().min(0))
+});

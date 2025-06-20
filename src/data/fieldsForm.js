@@ -96,3 +96,30 @@ export const fieldsAmountEdit = [
     type: "number",
   },
 ];
+
+export const fieldsRawMaterialEdit = [
+  {
+    name: "quantity",
+    label: "Cantidad",
+    type: "number",
+  },
+  {
+    name: "unit_cost",
+    label: "Costo Unitario (COP)",
+    type: "number",
+  }
+];
+
+export const fieldsProductInventoryEdit = [
+  {
+    name: "quantity",
+    label: "Cantidad",
+    type: "number",
+  },
+  {
+    name: "unit_cost",
+    label: "Costo Unitario (COP)",
+    type: "number",
+  },
+];
+
