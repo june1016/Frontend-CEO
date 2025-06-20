@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -18,9 +18,14 @@ import {
   useTheme,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
 import CloseIcon from "@mui/icons-material/Close";
+import SaveIcon from "@mui/icons-material/Save";
 import Swal from "sweetalert2";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import FormDialog from "../../components/admin/formDialog";
+import { getUserId } from "../../utils/timeManagement/operationTime";
+import axiosInstance from "../../services/api/axiosConfig";
+import { formatCurrency } from "../../utils/formatters/currencyFormatters";
 
 const modalStyle = {
   position: "absolute",
@@ -34,165 +39,138 @@ const modalStyle = {
   p: 3,
 };
 
-const initialPersonnelExpenses = [
-  { id: 1, name: "Nómina Gerente (CEO)", quantity: 1, value_cop: 6000000, note: "Obligatorio - El CEO asume rol administrativo" },
-  { id: 2, name: "Nómina Vendedor", quantity: 1, value_cop: 2500000, note: "Mínimo requerido (1 × 2.500.000)" },
-  { id: 3, name: "Nómina operarios", quantity: 3, value_cop: 5400000, note: "Mínimo requerido (3 × 1.800.000)" },
-];
-
-const initialOperatingCosts = [
-  { id: 1, name: "Arrendamiento", value_cop: 12000000 },
-  { id: 2, name: "Servicios Públicos", value_cop: 8000000 },
-  { id: 3, name: "Mantenimiento", value_cop: 7500000 },
-  { id: 4, name: "Telefonía móvil", value_cop: 2000000 },
-  { id: 5, name: "Cafetería y Papelería", value_cop: 3000000 },
-  { id: 6, name: "Otros gastos operativos", value_cop: 5000000 },
-];
-
-const initialFinancialObligations = [
-  { id: 1, name: "Abono a Cuentas x pagar", value_cop: 1500000 },
-  { id: 2, name: "Abono Máquina 1 NRX31", value_cop: 1500000 },
-  { id: 3, name: "Abono Máquina 2 XLG77", value_cop: 1200000 },
-  { id: 4, name: "Abono Máquina 3 CP23H", value_cop: 1000000 },
-  { id: 5, name: "Abono otras inversiones", value_cop: 800000 },
-];
-
-const initialSocialCharges = [
-  { id: 1, name: "PRESTACIONES-POS", value_cop: 5100000 },
-];
-
 export default function FixedExpensesView() {
   const theme = useTheme();
 
-  const [personnelExpenses, setPersonnelExpenses] = useState(initialPersonnelExpenses);
-  const [operatingCosts, setOperatingCosts] = useState(initialOperatingCosts);
-  const [financialObligations, setFinancialObligations] = useState(initialFinancialObligations);
-  const [socialCharges, setSocialCharges] = useState(initialSocialCharges);
+  const [personnelExpenses, setPersonnelExpenses] = useState([]);
+  const [operatingCosts, setOperatingCosts] = useState([]);
+  const [financialObligations, setFinancialObligations] = useState([]);
+  const [socialCharges, setSocialCharges] = useState([]);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [formValues, setFormValues] = useState({ quantity: "", value_cop: "" });
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
-  const handleOpenModal = (type, index) => {
-    let item;
-    switch(type){
-      case "personnel": item = personnelExpenses[index]; break;
-      case "operating": item = operatingCosts[index]; break;
-      case "financial": item = financialObligations[index]; break;
-      case "social": item = socialCharges[index]; break;
-      default: return;
-    }
-    setEditing({ type, index });
-    setFormValues({
-      quantity: item.quantity !== undefined ? item.quantity : "",
-      value_cop: item.value_cop.toString(),
-    });
-    setModalOpen(true);
+  useEffect(() => {
+    const loadFixedExpensesData = async () => {
+      const userId = getUserId();
+
+      try {
+        const [
+          userPersonnelRes,
+          userOperatingRes,
+          userFinancialRes,
+          userSocialRes,
+        ] = await Promise.all([
+          axiosInstance.get("/personnelexpenses/getPersonnelExpensesByCreatedBy", {
+            params: { created_by: userId },
+          }),
+          axiosInstance.get("/operatingcosts/getOperatingCostsByCreatedBy", {
+            params: { created_by: userId },
+          }),
+          axiosInstance.get("/financialobligations/getFinancialObligationsByCreatedBy", {
+            params: { created_by: userId },
+          }),
+          axiosInstance.get("/socialcharges/getSocialChargesByCreatedBy", {
+            params: { created_by: userId },
+          }),
+        ]);
+
+        console.log(  userPersonnelRes,
+          userOperatingRes,
+          userFinancialRes,
+          userSocialRes)
+
+        const hasPersonnel = userPersonnelRes.data.personnelExpenses.length > 0;
+        const hasOperating = userOperatingRes.data.operatingCosts.length > 0;
+        const hasFinancial = userFinancialRes.data.financialObligations.length > 0;
+        const hasSocial = userSocialRes.data.socialCharges.length > 0;
+
+        const [
+          defaultPersonnelRes,
+          defaultOperatingRes,
+          defaultFinancialRes,
+          defaultSocialRes,
+        ] = await Promise.all([
+          hasPersonnel ? null : axiosInstance.get("/personnelexpenses/getInitialPersonnelExpenses"),
+          hasOperating ? null : axiosInstance.get("/operatingcosts/getInitialOperatingCosts"),
+          hasFinancial ? null : axiosInstance.get("/financialobligations/getInitialFinancialObligations"),
+          hasSocial ? null : axiosInstance.get("/socialcharges/getInitialSocialCharges"),
+        ]);
+
+        setPersonnelExpenses(
+          hasPersonnel
+            ? userPersonnelRes.data.personnelExpenses
+            : defaultPersonnelRes?.data.personnelExpenses || []
+        );
+
+        setOperatingCosts(
+          hasOperating
+            ? userOperatingRes.data.operatingCosts
+            : defaultOperatingRes?.data.operatingCosts || []
+        );
+
+        setFinancialObligations(
+          hasFinancial
+            ? userFinancialRes.data.financialObligations
+            : defaultFinancialRes?.data.financialObligations || []
+        );
+
+        setSocialCharges(
+          hasSocial
+            ? userSocialRes.data.socialCharges
+            : defaultSocialRes?.data.socialCharges || []
+        );
+      } catch (error) {
+        console.error("Error al cargar gastos fijos:", error);
+      }
+    };
+
+    loadFixedExpensesData();
+  }, []);
+
+
+  const handleOpenEdit = (item, type, index) => {
+    setEditingItem({ ...item, editType: type, index });
+    setOpenDialog(true);
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setEditing(null);
-    setFormValues({ quantity: "", value_cop: "" });
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditingItem(null);
   };
 
-  const handleChange = (field, value) => {
-    if (value === "" || /^[0-9\b]+$/.test(value)) {
-      setFormValues((prev) => ({ ...prev, [field]: value }));
-    }
-  };
-
-  const handleSave = () => {
-    const valueNum = parseInt(formValues.value_cop, 10);
-    const quantityNum = formValues.quantity !== "" ? parseInt(formValues.quantity, 10) : null;
-
-    if (isNaN(valueNum)) {
-      Swal.fire("Error", "El valor debe ser un número válido", "error");
-      return;
-    }
-    if (editing.type === "personnel" && (quantityNum === null || isNaN(quantityNum))) {
-      Swal.fire("Error", "La cantidad debe ser un número válido", "error");
-      return;
-    }
-
-    switch(editing.type){
-      case "personnel": {
-        const updated = [...personnelExpenses];
-        updated[editing.index] = {
-          ...updated[editing.index],
-          quantity: quantityNum,
-          value_cop: valueNum,
-        };
-        setPersonnelExpenses(updated);
-        break;
-      }
-      case "operating": {
-        const updated = [...operatingCosts];
-        updated[editing.index] = {
-          ...updated[editing.index],
-          value_cop: valueNum,
-        };
-        setOperatingCosts(updated);
-        break;
-      }
-      case "financial": {
-        const updated = [...financialObligations];
-        updated[editing.index] = {
-          ...updated[editing.index],
-          value_cop: valueNum,
-        };
-        setFinancialObligations(updated);
-        break;
-      }
-      case "social": {
-        const updated = [...socialCharges];
-        updated[editing.index] = {
-          ...updated[editing.index],
-          value_cop: valueNum,
-        };
-        setSocialCharges(updated);
-        break;
-      }
-      default: break;
-    }
-
-    setModalOpen(false);
-    setEditing(null);
-    setFormValues({ quantity: "", value_cop: "" });
-    Swal.fire("Guardado", "Datos actualizados correctamente", "success");
-  };
-
-  const saveAllChanges = () => {
-    // Aquí iría la llamada a backend para guardar todo
+  const handleSaveChanges = () => {
+    // Aquí se pueden hacer llamadas POST/PUT al backend si se desea
     Swal.fire("Éxito", "Gastos guardados correctamente.", "success");
   };
 
-  const renderTable = (title, data, type, columns) => (
-    <Card>
+  return (
+    <Box display="flex" flexDirection="column" gap={2}>
+
+      <ToastNotification />
+
       <CardContent>
-        <Typography variant="h6" mb={2}>{title}</Typography>
-        <TableContainer component={Paper}>
+        <Typography variant="h6" mb={2}>
+          Gastos de Personal
+        </Typography>
+        <TableContainer component={Paper} sx={{ mb: 1 }}>
           <Table size="small">
             <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
               <TableRow>
-                {columns.map(({ label, key, align }) => (
-                  <TableCell key={key} sx={{ color: "#fff", fontWeight: "bold" }} align={align || "left"}>
-                    {label}
-                  </TableCell>
-                ))}
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Nombre</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Cantidad</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="right">Valor (COP)</TableCell>
                 <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row, index) => (
-                <TableRow key={row.id}>
-                  {columns.map(({ key, align }) => (
-                    <TableCell key={key} align={align || "left"}>
-                      {key === "value_cop" ? `$${row[key].toLocaleString()}` : row[key] || ""}
-                    </TableCell>
-                  ))}
+              {personnelExpenses?.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell align="center">{item.quantity}</TableCell>
+                  <TableCell align="right">{formatCurrency(item.value_cop)}</TableCell>
                   <TableCell align="center">
-                    <IconButton color="primary" size="small" onClick={() => handleOpenModal(type, index)}>
+                    <IconButton onClick={() => handleOpenEdit(item, "personnel", index)} color="primary" size="small">
                       <EditIcon />
                     </IconButton>
                   </TableCell>
@@ -202,75 +180,116 @@ export default function FixedExpensesView() {
           </Table>
         </TableContainer>
       </CardContent>
-    </Card>
-  );
 
-  return (
-    <Box display="flex" flexDirection="column" gap={4}>
-      {renderTable("Gastos de Personal", personnelExpenses, "personnel", [
-        { label: "Nombre", key: "name" },
-        { label: "Cantidad", key: "quantity", align: "center" },
-        { label: "Valor (COP)", key: "value_cop", align: "right" },
-        { label: "Nota", key: "note" },
-      ])}
 
-      {renderTable("Costos Operativos", operatingCosts, "operating", [
-        { label: "Nombre", key: "name" },
-        { label: "Valor (COP)", key: "value_cop", align: "right" },
-      ])}
+      <CardContent>
+        <Typography variant="h6" mb={2}>
+          Costos Operativos
+        </Typography>
+        <TableContainer component={Paper} sx={{ mb: 1 }}>
+          <Table size="small">
+            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+              <TableRow>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Nombre</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="right">Valor (COP)</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {operatingCosts?.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell align="right">{formatCurrency(item.value_cop)}</TableCell>
+                  <TableCell align="center">
+                    <IconButton onClick={() => handleOpenEdit(item, "operating", index)} color="primary" size="small">
+                      <EditIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
 
-      {renderTable("Obligaciones Financieras", financialObligations, "financial", [
-        { label: "Nombre", key: "name" },
-        { label: "Valor (COP)", key: "value_cop", align: "right" },
-      ])}
+      <CardContent>
+        <Typography variant="h6" mb={2}>
+          Obligaciones Financieras
+        </Typography>
+        <TableContainer component={Paper} sx={{ mb: 1 }}>
+          <Table size="small">
+            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+              <TableRow>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Nombre</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="right">Valor (COP)</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {financialObligations?.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell align="right">{formatCurrency(item.value_cop)}</TableCell>
+                  <TableCell align="center">
+                    <IconButton onClick={() => handleOpenEdit(item, "financial", index)} color="primary" size="small">
+                      <EditIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
 
-      {renderTable("Cargas Sociales", socialCharges, "social", [
-        { label: "Nombre", key: "name" },
-        { label: "Valor (COP)", key: "value_cop", align: "right" },
-      ])}
+      <CardContent>
+        <Typography variant="h6" mb={2}>
+          Cargas Sociales
+        </Typography>
+        <TableContainer component={Paper} sx={{ mb: 1 }}>
+          <Table size="small">
+            <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
+              <TableRow>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>Nombre</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="right">Valor (COP)</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: "bold" }} align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {socialCharges?.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell align="right">{formatCurrency(item.value_cop)}</TableCell>
+                  <TableCell align="center">
+                    <IconButton onClick={() => handleOpenEdit(item, "social", index)} color="primary" size="small">
+                      <EditIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+      
+      {/* <FormDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        title={`Editar ${editingItem?.editType === "raw" ? "Materia Prima" : "Producto Terminado"}`}
+        schema={editingItem?.editType === "raw" ? rawMaterialSchema : productInventorySchema}
+        fields={editingItem?.editType === "raw" ? fieldsRawMaterialEdit : fieldsProductInventoryEdit}
+        defaultValues={{
+          quantity: editingItem?.quantity || 0,
+          unit_cost: editingItem?.unit_cost || 0,
+        }}
+        onSave={handleSave}
+      /> */}
 
-      <Box display="flex" justifyContent="flex-end" mt={2}>
-        <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={saveAllChanges}>
-          Guardar Cambios
+      <Box display="flex" justifyContent="flex-end">
+        <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleSaveChanges}>
+          Guardar cambios
         </Button>
       </Box>
-
-      <Modal open={modalOpen} onClose={handleCloseModal}>
-        <Box sx={modalStyle}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6">Editar Gasto</Typography>
-            <IconButton onClick={handleCloseModal}><CloseIcon /></IconButton>
-          </Box>
-
-          {editing && (
-            <>
-              {editing.type === "personnel" && (
-                <TextField
-                  fullWidth
-                  label="Cantidad"
-                  value={formValues.quantity}
-                  onChange={(e) => handleChange("quantity", e.target.value)}
-                  margin="normal"
-                  type="number"
-                />
-              )}
-
-              <TextField
-                fullWidth
-                label="Valor (COP)"
-                value={formValues.value_cop}
-                onChange={(e) => handleChange("value_cop", e.target.value)}
-                margin="normal"
-                type="number"
-              />
-
-              <Box mt={3} display="flex" justifyContent="flex-end">
-                <Button variant="contained" color="primary" onClick={handleSave}>Guardar</Button>
-              </Box>
-            </>
-          )}
-        </Box>
-      </Modal>
     </Box>
   );
 }

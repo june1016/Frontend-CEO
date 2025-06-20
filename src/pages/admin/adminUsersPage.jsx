@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -25,6 +25,7 @@ import {
   InputLabel,
   FormControl,
   InputAdornment,
+  CircularProgress,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -34,6 +35,9 @@ import {
   PeopleAlt,
   SupervisorAccount,
   School,
+  VisibilityOff,
+  Visibility,
+  AlternateEmail,
 } from "@mui/icons-material";
 
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -41,44 +45,59 @@ import DateRangeIcon from '@mui/icons-material/DateRange';
 import BadgeIcon from '@mui/icons-material/Badge';
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 
-import { } from "@mui/icons-material";
-
-const roles = ["Docente", "Administrador", "Estudiante"];
+import axiosInstance from "../../services/api/axiosConfig";
+import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import FormDialog from "../../components/admin/formDialog";
+import { userSchema } from "../../utils/validations/userSchema";
+import { getFieldsUsers } from "../../data/fieldsForm";
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "María López",
-      role: "Docente",
-      createdAt: "2024-05-01",
-    },
-    {
-      id: 2,
-      name: "Carlos Pérez",
-      role: "Administrador",
-      createdAt: "2024-04-20",
-    },
-    {
-      id: 3,
-      name: "Carlos Pérez",
-      role: "Estudiante",
-      createdAt: "2024-04-20",
-    },
-  ]);
+  const [users, setUsers] = useState([]);
+  const [rols, setRols] = useState([]);
 
   const [filters, setFilters] = useState({
     name: "",
-    role: "",
+    lastName: "",
+    email: "",
+    password: "",
+    rol: ""
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [form, setForm] = useState({ name: "", role: roles[0] });
+  const [form, setForm] = useState({ name: "", lastName: "", email: "", password: "", rol: rols[0] });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [userResponse, rolResponse] = await Promise.all([
+          axiosInstance.get("/users/"),
+          axiosInstance.get("/rol/"),
+        ]);
+
+        const usersData = userResponse.data.data.users;
+        const rolsData = rolResponse.data.data;
+
+        setUsers(usersData);
+        setRols(rolsData);
+      } catch (error) {
+        console.error("Error al cargar usuarios o rols:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
 
   const handleOpenDialog = (user = null) => {
     setEditingUser(user);
-    setForm(user ? { name: user.name, role: user.role } : { name: "", role: roles[0] });
+    setForm(user ? { name: user.name, lastName: user.lastName, email: user.email, rol: user.name_rol } : { name: "", rol: rols[0] });
     setOpenDialog(true);
   };
 
@@ -87,53 +106,118 @@ export default function AdminUsersPage() {
     setEditingUser(null);
   };
 
-  const handleSaveUser = () => {
-    if (!form.name.trim()) {
-      alert("El nombre es obligatorio");
-      return;
-    }
+  const handleSaveUser = async ({
+    name,
+    lastName,
+    email,
+    password,
+    rol,
+  }) => {
+    const isEditing = Boolean(editingUser);
 
-    if (editingUser) {
+    const payload = {
+      name: name.trim(),
+      lastName,
+      email,
+      password,
+      rol: rol?.id || rol,
+    };
+
+    try {
+      const response = isEditing
+        ? await axiosInstance.post(`/users/${editingUser.id}`, payload)
+        : await axiosInstance.post(`/users/create`, payload);
+
+      const savedUser = response.data.user;
+
       setUsers((prev) =>
-        prev.map((u) =>
-          u.id === editingUser.id ? { ...u, name: form.name.trim(), role: form.role } : u
-        )
+        isEditing
+          ? prev.map((u) => (u.id === savedUser.id ? savedUser : u))
+          : [
+            ...prev,
+            {
+              ...savedUser,
+              createdAt: new Date().toISOString().split("T")[0],
+            },
+          ]
       );
-    } else {
-      setUsers((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          name: form.name.trim(),
-          role: form.role,
-          createdAt: new Date().toISOString().split("T")[0],
-        },
-      ]);
-    }
 
-    handleCloseDialog();
-  };
+      showToast(
+        `"${savedUser.name}" ha sido ${isEditing ? "actualizado" : "creado"} exitosamente.`,
+        "success"
+      );
 
-  const handleDeleteUser = (id) => {
-    if (window.confirm("¿Seguro que quieres eliminar este usuario?")) {
-      setUsers((prev) => prev.filter((u) => u.id !== id));
+      handleCloseDialog();
+    } catch (error) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        "Ocurrió un error al guardar el usuario.";
+
+      console.error("Error al guardar el usuario:", error);
+      showToast(errorMessage, "error");
+      handleCloseDialog();
     }
   };
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(filters.name.toLowerCase()) &&
-      (!filters.role || u.role === filters.role)
-  );
+
+  const handleDeleteUser = async (id) => {
+    const userToDelete = users.find((u) => u.id === id);
+
+    showConfirmation(
+      `¿Eliminar a "${userToDelete.name}"?`,
+      "Esta acción no se puede deshacer.",
+      async () => {
+        try {
+          await axiosInstance.post("/users/delete-user", { id });
+
+          setUsers((prev) => prev.filter((u) => u.id !== id));
+
+          showToast(
+            `"${userToDelete.name}" ha sido eliminado exitosamente.`,
+            "success"
+          );
+        } catch (error) {
+          console.error("Error al eliminar usuario:", error.message);
+
+          showToast(
+            `No se pudo eliminar a "${userToDelete.name}".`,
+            "error"
+          );
+        }
+      }
+    );
+  };
+
+
+  const filteredUsers = users.filter((user) => {
+    const term = filters.search?.toLowerCase() || "";
+
+    const matchesSearch =
+      user.name.toLowerCase().includes(term) ||
+      user.lastName.toLowerCase().includes(term) ||
+      user.email.toLowerCase().includes(term);
+
+    const matchesRol = filters.rol === "" || user.rol === filters.rol;
+
+    return matchesSearch && matchesRol;
+  });
+
+  const countByrol = (rol) => users?.filter((u) => u.rol === rol).length;
 
   // Contadores
-  const totalUsers = users.length;
-  const totalDocentes = users.filter((u) => u.role === "Docente").length;
-  const totalAdmins = users.filter((u) => u.role === "Administrador").length;
-  const totalEstudiantes = users.filter((u) => u.role === "Estudiante").length;
+  const totalUsers = users?.length;
+  const totalDocentes = countByrol("Docente");
+  const totalAdmins = countByrol("Administrador");
+  const totalEstudiantes = countByrol("Estudiante");
+
+  const isEditing = !!editingUser;
+
 
   return (
     <Box sx={{ p: 4 }}>
+
+      <ToastNotification />
+
       <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 2 }}>
         Gestión de Usuarios
       </Typography>
@@ -185,7 +269,7 @@ export default function AdminUsersPage() {
             </CardContent>
           </Card>
         </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography variant="subtitle2" color="text.secondary">
@@ -203,11 +287,11 @@ export default function AdminUsersPage() {
       {/* Filtros */}
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center", mb: 2 }}>
         <TextField
-          placeholder="Buscar por nombre"
+          placeholder="Buscar por nombre, apellido o email"
           variant="outlined"
           size="small"
-          value={filters.name}
-          onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+          value={filters.search}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -222,13 +306,13 @@ export default function AdminUsersPage() {
           <InputLabel>Rol</InputLabel>
           <Select
             label="Rol"
-            value={filters.role}
-            onChange={(e) => setFilters({ ...filters, role: e.target.value })}
+            value={filters.rol}
+            onChange={(e) => setFilters({ ...filters, rol: e.target.value })}
           >
             <MenuItem value="">Todos</MenuItem>
-            {roles.map((r) => (
-              <MenuItem key={r} value={r}>
-                {r}
+            {rols.map((r) => (
+              <MenuItem key={r.id} value={r.name_rol}>
+                {r.name_rol}
               </MenuItem>
             ))}
           </Select>
@@ -251,12 +335,24 @@ export default function AdminUsersPage() {
                 Nombre
               </TableCell>
               <TableCell sx={{ color: "#fff" }}>
+                <PermContactCalendarIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
+                Apellido
+              </TableCell>
+              <TableCell sx={{ color: "#fff" }}>
+                <AlternateEmail fontSize="small" sx={{ color: "#fff", mr: 1 }} />
+                Email
+              </TableCell>
+              <TableCell sx={{ color: "#fff" }}>
                 <BadgeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
                 Rol
               </TableCell>
               <TableCell sx={{ color: "#fff" }}>
                 <DateRangeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
                 Creado
+              </TableCell>
+              <TableCell sx={{ color: "#fff" }}>
+                <DateRangeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
+                Actualizado
               </TableCell>
               <TableCell sx={{ color: "#fff" }} align="right">
                 <SettingsIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
@@ -265,69 +361,74 @@ export default function AdminUsersPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredUsers.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={4} align="center">
-                  No se encontraron usuarios
+                <TableCell colSpan={5} align="center">
+                  <Box sx={{ py: 4 }}>
+                    <CircularProgress />
+                    <Typography variant="body2" mt={2}>Cargando usuarios...</Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
-            ) : (
-              filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>
-                    <Chip label={user.role} color="primary" size="small" />
-                  </TableCell>
-                  <TableCell>{user.createdAt}</TableCell>
-                  <TableCell align="right">
-                    <IconButton onClick={() => handleOpenDialog(user)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => handleDeleteUser(user.id)}>
-                      <DeleteIcon />
-                    </IconButton>
+            ) :
+              filteredUsers?.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    No se encontraron usuarios
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              ) : (
+                filteredUsers?.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.lastName}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={user.rol}
+                        color={
+                          user.rol === "Administrador"
+                            ? "secondary"
+                            : user.rol === "Docente"
+                              ? "primary"
+                              : "success"
+                        }
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{user.createdAt}</TableCell>
+                    <TableCell>{user.updatedAt}</TableCell>
+                    <TableCell align="right">
+                      <IconButton onClick={() => handleOpenDialog(user)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton color="error" onClick={() => handleDeleteUser(user.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Modal */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="xs">
-        <DialogTitle>{editingUser ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <TextField
-            fullWidth
-            label="Nombre"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            margin="normal"
-            autoFocus
-          />
-          <TextField
-            fullWidth
-            select
-            label="Rol"
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-            margin="normal"
-          >
-            {roles.map((r) => (
-              <MenuItem key={r} value={r}>
-                {r}
-              </MenuItem>
-            ))}
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button variant="contained" onClick={handleSaveUser}>
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <FormDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        title={editingUser ? "Editar Usuario" : "Nuevo Usuario"}
+        schema={userSchema}
+        fields={getFieldsUsers({ rols, showPassword, setShowPassword, isEditing })}
+        defaultValues={{
+          name: editingUser?.name || "",
+          lastName: editingUser?.lastName || "",
+          email: editingUser?.email || "",
+          password: "",
+          rol: editingUser?.rol || "",
+          isEditing,
+        }}
+        onSave={handleSaveUser}
+      />
     </Box>
   );
 }

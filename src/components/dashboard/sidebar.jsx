@@ -257,7 +257,7 @@ const Sidebar = () => {
             fontSize: "1.3rem",
           }}
         >
-          Pasantías.com
+          Pasantía.com
         </Typography>
       </Logo>
 
