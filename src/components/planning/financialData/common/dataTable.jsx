@@ -102,7 +102,7 @@ const DataTable = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.length > 0 ? (
+          {data?.length > 0 ? (
             getSortedData(data).map((item, index) => {
               const IconComponent =
                 iconMapping[item.icon] || iconMapping.Computer;

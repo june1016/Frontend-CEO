@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axiosInstance from '../../services/api/axiosConfig.js';
 import {
     Box,
     Typography,
@@ -19,6 +20,7 @@ import {
     DialogContent,
     DialogActions,
     InputAdornment,
+    CircularProgress,
 } from "@mui/material";
 import {
     Edit as EditIcon,
@@ -32,6 +34,12 @@ import DateRangeIcon from '@mui/icons-material/DateRange';
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 import PublicIcon from '@mui/icons-material/Public';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
+import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers.js";
+import FormDialog from "../../components/admin/formDialog.jsx";
+import { universitySchema } from "../../utils/validations/universitySchema.js";
+import { fieldsUniversity } from "../../data/fieldsForm.js";
+import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+
 
 // Función para formatear la fecha
 function formatDate(date) {
@@ -43,29 +51,34 @@ function formatDate(date) {
     });
 }
 
-export default function AdminUniversityPage() {
-    const [universities, setUniversities] = useState([
-        {
-            id: 1,
-            name: "Universidad Nacional",
-            city: "Bogotá",
-            country: "Colombia",
-            createdAt: "2024-03-15",
-        },
-        {
-            id: 2,
-            name: "Pontificia Universidad Católica",
-            city: "Lima",
-            country: "Perú",
-            createdAt: "2023-11-02",
-        },
-    ]);
 
+export default function AdminUniversityPage() {
+    const [universities, setUniversities] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("");
     const [openDialog, setOpenDialog] = useState(false);
     const [editingUniversity, setEditingUniversity] = useState(null);
     const [form, setForm] = useState({ name: "", city: "", country: "" });
     const [errors, setErrors] = useState({ name: false, city: false, country: false });
+
+
+    useEffect(() => {
+        setLoading(true);
+        const fetchUniversities = async () => {
+            try {
+                const response = await axiosInstance.get("/university/getAll");
+                const data = response.data.universities;
+
+                setUniversities(data);
+            } catch (error) {
+                console.error("Error al obtener universidades:", error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUniversities();
+    }, []);
 
     const filteredUniversities = universities.filter(
         (u) =>
@@ -90,53 +103,100 @@ export default function AdminUniversityPage() {
         setEditingUniversity(null);
     };
 
-    const validateForm = () => {
-        const newErrors = {
-            name: !form.name.trim(),
-            city: !form.city.trim(),
-            country: !form.country.trim(),
+    const handleUpdateUniversity = async () => {
+
+        try {
+            const response = await axiosInstance.post(`/university/update/${editingUniversity.id}`, {
+                name: form.name.trim(),
+                city: form.city.trim(),
+                country: form.country.trim(),
+            });
+
+            if (response.data.ok) {
+                setUniversities((prev) =>
+                    prev.map((u) =>
+                        u.id === editingUniversity.id ? response.data.university : u
+                    )
+                );
+                handleCloseDialog();
+            }
+        } catch (error) {
+            console.error("Error al actualizar universidad:", error.message);
+        }
+    };
+
+    const handleSaveUniversity = async ({ name, city, country }) => {
+        const payload = {
+            name: name.trim(),
+            city: city.trim(),
+            country: country.trim(),
         };
-        setErrors(newErrors);
-        return !newErrors.name && !newErrors.city && !newErrors.country;
-    };
 
-    const handleSaveUniversity = () => {
-        if (!validateForm()) return;
+        const isEditing = !!editingUniversity;
+        const url = isEditing
+            ? `/university/update/${editingUniversity.id}`
+            : "/university/create";
 
-        if (editingUniversity) {
-            setUniversities((prev) =>
-                prev.map((u) =>
-                    u.id === editingUniversity.id
-                        ? { ...u, name: form.name.trim(), city: form.city.trim(), country: form.country.trim() }
-                        : u
-                )
+        try {
+            const response = await axiosInstance.post(url, payload);
+
+            if (response.data.ok) {
+                const updatedUniversity = response.data.university;
+
+                setUniversities((prev) =>
+                    isEditing
+                        ? prev.map((u) => (u.id === editingUniversity.id ? updatedUniversity : u))
+                        : [...prev, updatedUniversity]
+                );
+
+                handleCloseDialog();
+
+                showToast(
+                    `Universidad ${name} ${isEditing ? "editada" : "creada"} exitosamente`,
+                    "success"
+                );
+            }
+        } catch (error) {
+            console.error(
+                `Error al ${isEditing ? "actualizar" : "crear"} ${name} universidad:`,
+                error.message
             );
-        } else {
-            setUniversities((prev) => [
-                ...prev,
-                {
-                    id: Date.now(),
-                    name: form.name.trim(),
-                    city: form.city.trim(),
-                    country: form.country.trim(),
-                    createdAt: new Date().toISOString().split("T")[0],
-                },
-            ]);
-        }
 
-        handleCloseDialog();
+            showToast(
+                `No se pudo ${isEditing ? "editar" : "crear"} la ${name} universidad`,
+                "error"
+            );
+        }
     };
 
-    const handleDeleteUniversity = (id) => {
+
+    const handleDeleteUniversity = async (id) => {
         const university = universities.find((u) => u.id === id);
-        const confirmDelete = window.confirm(`¿Eliminar "${university.name}"?`);
-        if (confirmDelete) {
-            setUniversities((prev) => prev.filter((u) => u.id !== id));
-        }
+
+        showConfirmation(
+            `¿Eliminar "${university.name}"?`,
+            "Esta acción no se puede deshacer.",
+            async () => {
+                try {
+                    const response = await axiosInstance.post(`/university/delete/${id}`);
+                    if (response.data.ok) {
+                        setUniversities((prev) => prev.filter((u) => u.id !== id));
+                        showToast(`"${university.name}" ha sido eliminada.`, "success");
+                    }
+                } catch (error) {
+                    console.error("Error al eliminar universidad:", error.message);
+                    showToast("No se pudo eliminar la universidad.", "error");
+                }
+            }
+        );
     };
+
 
     return (
         <Box sx={{ p: 4 }}>
+
+            <ToastNotification />
+
             <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 2 }}>
                 Gestión de Universidades
             </Typography>
@@ -194,6 +254,10 @@ export default function AdminUniversityPage() {
                                 <DateRangeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
                                 Creado
                             </TableCell>
+                            <TableCell sx={{ color: "#fff" }}>
+                                <DateRangeIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
+                                Actualizado
+                            </TableCell>
                             <TableCell sx={{ color: "#fff" }} align="right">
                                 <SettingsIcon fontSize="small" sx={{ color: "#fff", mr: 1 }} />
                                 Acciones
@@ -201,7 +265,16 @@ export default function AdminUniversityPage() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredUniversities.length === 0 ? (
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} align="center">
+                                    <Box sx={{ py: 4 }}>
+                                        <CircularProgress />
+                                        <Typography variant="body2" mt={2}>Cargando universidades...</Typography>
+                                    </Box>
+                                </TableCell>
+                            </TableRow>
+                        ) : filteredUniversities.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={5} align="center">
                                     No se encontraron universidades
@@ -213,7 +286,8 @@ export default function AdminUniversityPage() {
                                     <TableCell>{u.name}</TableCell>
                                     <TableCell>{u.city}</TableCell>
                                     <TableCell>{u.country}</TableCell>
-                                    <TableCell>{formatDate(u.createdAt)}</TableCell>
+                                    <TableCell>{formatDate(u.created_at)}</TableCell>
+                                    <TableCell>{formatDate(u.updated_at)}</TableCell>
                                     <TableCell align="right">
                                         <IconButton onClick={() => handleOpenDialog(u)}>
                                             <EditIcon />
@@ -229,46 +303,19 @@ export default function AdminUniversityPage() {
                 </Table>
             </TableContainer>
 
-            {/* Modal crear/editar universidad */}
-            <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="xs">
-                <DialogTitle>{editingUniversity ? "Editar Universidad" : "Nueva Universidad"}</DialogTitle>
-                <DialogContent sx={{ pt: 2 }}>
-                    <TextField
-                        fullWidth
-                        label="Nombre"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        margin="normal"
-                        autoFocus
-                        error={errors.name}
-                        helperText={errors.name && "Este campo es obligatorio"}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Ciudad"
-                        value={form.city}
-                        onChange={(e) => setForm({ ...form, city: e.target.value })}
-                        margin="normal"
-                        error={errors.city}
-                        helperText={errors.city && "Este campo es obligatorio"}
-                    />
-                    <TextField
-                        fullWidth
-                        label="País"
-                        value={form.country}
-                        onChange={(e) => setForm({ ...form, country: e.target.value })}
-                        margin="normal"
-                        error={errors.country}
-                        helperText={errors.country && "Este campo es obligatorio"}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancelar</Button>
-                    <Button variant="contained" onClick={handleSaveUniversity}>
-                        Guardar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <FormDialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                title={editingUniversity ? "Editar Universidad" : "Nueva Universidad"}
+                schema={universitySchema}
+                fields={fieldsUniversity}
+                defaultValues={{
+                    name: editingUniversity?.name || "",
+                    city: editingUniversity?.city || "",
+                    country: editingUniversity?.country || ""
+                }}
+                onSave={handleSaveUniversity}
+            />
         </Box>
     );
 }
