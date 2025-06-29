@@ -38,6 +38,8 @@ import TeacherPlanning from "./pages/teacher/teacherPlanningPage";
 import TeacherPlanningIntro from "./pages/teacher/teacherDashboardPage";
 import GeneralDataView from "./pages/teacher/GeneralDataView";
 
+import ProductionPage from "./pages/dashboard/productionPage";
+
 // Componente PrivateRoute para proteger rutas del dashboard
 const PrivateRoute = ({ children, allowedRoles }) => {
   const location = useLocation();
@@ -125,13 +127,22 @@ function App() {
             <Route path={DASHBOARD_ROUTES.PLANNING} element={<PlanningPage />} />
             <Route path={DASHBOARD_ROUTES.PRE_OPERATION} element={<PreOperationPage />} />
             <Route
+              path={DASHBOARD_ROUTES.DASHBOARD}
+              element={<DashboardPage />}
+            />
+
+            <Route
+              path={DASHBOARD_ROUTES.PLANNING}
+              element={<PlanningPage />}
+            />
+            <Route
+              path={DASHBOARD_ROUTES.PRE_OPERATION}
+              element={<PreOperationPage />}
+            />
+            {/* CORRECCIÓN: Esta ruta estaba duplicada y mal configurada */}
+            <Route
               path={DASHBOARD_ROUTES.PRODUCTION}
-              element={
-                <PlaceholderPage
-                  title="Producción y Operaciones"
-                  description="Administra los procesos productivos y controla tus capacidades operativas para optimizar recursos."
-                />
-              }
+              element={<ProductionPage />}
             />
             <Route
               path={DASHBOARD_ROUTES.INVENTORY}
@@ -200,3 +211,4 @@ function App() {
 }
 
 export default App;
+

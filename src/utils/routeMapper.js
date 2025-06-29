@@ -35,7 +35,7 @@ export const implementationStatus = {
   dashboard: true,
   planning: false,
   preOperation: false,
-  production: false,
+  production: true, // Cambiado a true ya que ahora está implementado
   inventory: false,
   commercial: false,
   settings: false,
