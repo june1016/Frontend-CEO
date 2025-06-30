@@ -39,8 +39,7 @@ import { formatNumber } from "../../../utils/formatters/numberFormatters";
 import { calculateTotals } from "../../../utils/budget/budgetCalculations";
 import { showAlert } from "../../../utils/alerts/alertHelpers";
 import axiosInstance from "../../../services/api/axiosConfig";
-import { updateProgress } from "../../dashboard/MonthProgress";
-
+import { updateProgress } from "../../../utils/timeManagement/operationTime";
 /**
  * Componente para el presupuesto de producción
  * @param {Object} props Propiedades del componente

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../services/api/axiosConfig";
+import { getUserId } from "../../utils/timeManagement/operationTime";
 
 export const useFinishedProductsInventory = () => {
   const [finishedProducts, setFinishedProducts] = useState([]);
@@ -8,12 +9,32 @@ export const useFinishedProductsInventory = () => {
 
   useEffect(() => {
     const fetchFinishedProducts = async () => {
+      setLoading(true);
+      setError(null);
+
+      const realUserId = getUserId();
+
       try {
+        const teacherRes = await axiosInstance.get("/groupstudents/get-teacher-id", {
+          params: { student_id: realUserId },
+        });
+
+        const teacherId = teacherRes.data.teacher_id;
+
+        if (!teacherId) {
+          setError("No estás asignado a ningún grupo. Pide a tu docente que te agregue.");
+          setFinishedProducts([]);
+          return;
+        }
+
         const response = await axiosInstance.get(
-          "/inventoryproducts/getInitialInventoryProducts"
+          "/productsInventory/getProductInventoryByCreatedBy",
+          {
+            params: { created_by: teacherId },
+          }
         );
 
-        const data = response?.data?.inventory ?? [];
+        const data = response?.data?.inventories ?? [];
 
         const formatted = data.map((item) => {
           const quantity = Number(item.quantity);
@@ -21,7 +42,7 @@ export const useFinishedProductsInventory = () => {
           const totalValue = quantity * unitCost;
 
           return {
-            product: item.product ?? "",
+            product: item.Product.name ?? "",
             quantity: quantity.toString(),
             costPerUnit: unitCost.toString(),
             totalValue,
@@ -31,7 +52,13 @@ export const useFinishedProductsInventory = () => {
         setFinishedProducts(formatted);
       } catch (err) {
         console.error("Error al obtener inventario de productos terminados:", err);
-        setError("No se pudo cargar el inventario de productos terminados");
+
+        if (err.response?.data?.message) {
+          setError(err.response.data.message);
+        } else {
+          setError("No se pudo cargar el inventario de productos terminados.");
+        }
+
         setFinishedProducts([]);
       } finally {
         setLoading(false);
@@ -40,6 +67,7 @@ export const useFinishedProductsInventory = () => {
 
     fetchFinishedProducts();
   }, []);
+
 
   return { finishedProducts, loading, error };
 };

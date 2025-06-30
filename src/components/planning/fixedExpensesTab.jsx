@@ -11,6 +11,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Alert,
 } from "@mui/material";
 import {
   Payments as PaymentsIcon,
@@ -104,7 +105,7 @@ const FixedExpensesTab = ({ theme }) => {
   const { monthlyData, monthlyTotals, loading, error } = useMonthlyExpenses();
   
   if (loading) return <p>Cargando gastos mensuales...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return <Alert severity="error">{error}</Alert>;
 
   const {
     financialObligations,

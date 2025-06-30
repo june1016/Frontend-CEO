@@ -39,6 +39,8 @@ import TeacherPlanningIntro from "./pages/teacher/teacherDashboardPage";
 import GeneralDataView from "./pages/teacher/GeneralDataView";
 
 import ProductionPage from "./pages/dashboard/productionPage";
+import InventoryPage from "./pages/dashboard/inventoryPage";
+import CommercialPage from "./pages/dashboard/commercialPage";
 
 // Componente PrivateRoute para proteger rutas del dashboard
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -146,21 +148,11 @@ function App() {
             />
             <Route
               path={DASHBOARD_ROUTES.INVENTORY}
-              element={
-                <PlaceholderPage
-                  title="Inventarios y Compras"
-                  description="Gestiona tus inventarios y compras de manera eficiente para mantener el flujo de materiales según tus necesidades."
-                />
-              }
+              element={<InventoryPage />}
             />
             <Route
               path={DASHBOARD_ROUTES.COMMERCIAL}
-              element={
-                <PlaceholderPage
-                  title="Gestión Comercial"
-                  description="Implementa y gestiona tus estrategias comerciales para alcanzar los objetivos de venta establecidos."
-                />
-              }
+              element={<CommercialPage />}
             />
             <Route
               path={DASHBOARD_ROUTES.SETTINGS}

@@ -123,3 +123,24 @@ export const fieldsProductInventoryEdit = [
   },
 ];
 
+export const fieldsAmountQuantityEdit = [
+  {
+    name: "value_cop",
+    label: "Valor (COP)",
+    type: "number",
+  },
+  {
+    name: "quantity",
+    label: "Cantidad",
+    type: "number",
+  },
+];
+
+export const fieldsValueCopEdit = [
+  {
+    name: "value_cop",
+    label: "Valor (COP)",
+    type: "number",
+  },
+];
+

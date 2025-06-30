@@ -2,9 +2,6 @@ import { useState, useEffect } from "react";
 import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import { CheckCircleOutline } from "@mui/icons-material";
 import {
-  resetOperation,
-  updateProgress,
-  startOperation,
   OPERATION_STATUS_KEY,
   PROGRESS_MONTH_KEY,
   upsertProgressInBackend,
@@ -33,27 +30,23 @@ const MonthProgress = () => {
   const [previousMonth, setPreviousMonth] = useState(null);
 
   useEffect(() => {
-    const runInitialProgress = () => {
-      const rawStatus = localStorage.getItem("operationStatus");
-      if (!rawStatus) return;
-  
-      const status = JSON.parse(rawStatus);
-  
-      if (status.operationStarted) return;
-  
-      const { completedTabs, totalTabs } = status;
-  
-      const progressPercent = Math.round((completedTabs / totalTabs) * 100);
-      setCurrentProgress(progressPercent);
-    };
-  
-    runInitialProgress();
-  }, [currentProgress]);
+    const rawStatus = localStorage.getItem("operationStatus");
+    if (!rawStatus) return;
+
+    const status = JSON.parse(rawStatus);
+
+    if (status.operationStarted) return;
+
+    const { completedTabs, totalTabs } = status;
+    const progressPercent = Math.round((completedTabs / totalTabs) * 100);
+
+    setCurrentProgress(progressPercent);
+  }, [operationStatus]);
 
   useEffect(() => {
     const initializeSimulatedTime = async () => {
       const simulated = await getSimulatedTime();
-  
+
       if (simulated) {
         const updatedProgress = {
           currentMonth: simulated.currentMonth,
@@ -61,21 +54,21 @@ const MonthProgress = () => {
           isDecember: simulated.isDecember,
           elapsedMinutes: simulated.elapsedMinutes,
         };
-  
+
         setProgressData(updatedProgress);
-  
+
         const status = {
           completedTabs: 5,
           totalTabs: 5,
           isSetupComplete: true,
           operationStarted: true,
         };
-  
+
         setOperationStatus(status);
         localStorage.setItem(OPERATION_STATUS_KEY, JSON.stringify(status));
       }
     };
-  
+
     initializeSimulatedTime();
   }, []);
 
@@ -111,8 +104,8 @@ const MonthProgress = () => {
 
   useEffect(() => {
     const setupStatus = JSON.parse(localStorage.getItem("operationStatus"));
-    
-    if (setupStatus?.isSetupComplete && 
+
+    if (setupStatus?.isSetupComplete &&
       (progressData.currentMonth !== previousMonth || progressData.currentDecade !== previousDecade)) {
       upsertProgressInBackend({
         currentMonth: progressData.currentMonth,
@@ -121,7 +114,7 @@ const MonthProgress = () => {
       });
     }
   }, [progressData.currentMonth, progressData.currentDecade]);
-  
+
 
   useEffect(() => {
     const calculateSetupProgress = () => {
@@ -187,7 +180,7 @@ const MonthProgress = () => {
 
   const getProgressText = () => {
     if (operationStatus.operationStarted) {
-      return `Mes ${progressData.currentMonth} (Década ${progressData.currentDecade})`;
+      return `Mes ${progressData.currentMonth}/12 - Década ${progressData.currentDecade}/3`;
     }
 
     return operationStatus.isSetupComplete
@@ -208,6 +201,7 @@ const MonthProgress = () => {
             backgroundColor: "transparent",
           }}
         />
+
         <Box
           top={0}
           left={0}
@@ -218,12 +212,14 @@ const MonthProgress = () => {
           alignItems="center"
           justifyContent="center"
         >
-          {currentProgress >= 100 ? (
-            <CheckCircleOutline sx={{ color: "success.main", fontSize: 22 }} />
-          ) : (
-            <Typography variant="caption" component="div" fontWeight={600}>
-              {`${Math.round(currentProgress)}%`}
-            </Typography>
+          {!operationStatus.operationStarted && (
+            currentProgress >= 100 ? (
+              <CheckCircleOutline sx={{ color: "success.main", fontSize: 22 }} />
+            ) : (
+              <Typography variant="caption" component="div" fontWeight={600}>
+                {`${Math.round(currentProgress)}%`}
+              </Typography>
+            )
           )}
         </Box>
       </Box>
@@ -234,5 +230,4 @@ const MonthProgress = () => {
   );
 };
 
-export { updateProgress, startOperation, resetOperation };
 export default MonthProgress;

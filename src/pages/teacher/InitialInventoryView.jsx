@@ -139,8 +139,6 @@ export default function InitialInventoryView() {
         try {
             const userId = getUserId();
 
-            console.log(rawMaterials);
-
             const rawMaterialsWithUser = rawMaterials.map(item => ({
                 ...item,
                 created_by: userId

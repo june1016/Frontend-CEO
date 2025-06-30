@@ -26,6 +26,8 @@ import FormDialog from "../../components/admin/formDialog";
 import { getUserId } from "../../utils/timeManagement/operationTime";
 import axiosInstance from "../../services/api/axiosConfig";
 import { formatCurrency } from "../../utils/formatters/currencyFormatters";
+import { amountQuantitySchema, amountSchema, valueCopSchema } from "../../utils/validations/amountSchema";
+import { fieldsAmountEdit, fieldsAmountQuantityEdit, fieldsValueCopEdit } from "../../data/fieldsForm";
 
 const modalStyle = {
   position: "absolute",
@@ -73,12 +75,7 @@ export default function FixedExpensesView() {
           axiosInstance.get("/socialcharges/getSocialChargesByCreatedBy", {
             params: { created_by: userId },
           }),
-        ]);
-
-        console.log(  userPersonnelRes,
-          userOperatingRes,
-          userFinancialRes,
-          userSocialRes)
+        ])
 
         const hasPersonnel = userPersonnelRes.data.personnelExpenses.length > 0;
         const hasOperating = userOperatingRes.data.operatingCosts.length > 0;
@@ -128,6 +125,35 @@ export default function FixedExpensesView() {
     loadFixedExpensesData();
   }, []);
 
+  const editTypeMap = {
+    personnel: {
+      schema: amountQuantitySchema,
+      fields: fieldsAmountQuantityEdit,
+      title: "Editar Gasto de Personal",
+    },
+    operating: {
+      schema: valueCopSchema,
+      fields: fieldsValueCopEdit,
+      title: "Editar Costo Operativo",
+    },
+    financial: {
+      schema: valueCopSchema,
+      fields: fieldsValueCopEdit,
+      title: "Editar Obligación Financiera",
+    },
+    social: {
+      schema: valueCopSchema,
+      fields: fieldsValueCopEdit,
+      title: "Editar Carga Social",
+    },
+  };
+
+  const editTypeStateMap = {
+    personnel: [personnelExpenses, setPersonnelExpenses],
+    operating: [operatingCosts, setOperatingCosts],
+    financial: [financialObligations, setFinancialObligations],
+    social: [socialCharges, setSocialCharges],
+  };
 
   const handleOpenEdit = (item, type, index) => {
     setEditingItem({ ...item, editType: type, index });
@@ -139,10 +165,63 @@ export default function FixedExpensesView() {
     setEditingItem(null);
   };
 
-  const handleSaveChanges = () => {
-    // Aquí se pueden hacer llamadas POST/PUT al backend si se desea
-    Swal.fire("Éxito", "Gastos guardados correctamente.", "success");
+  const handleSave = (data) => {
+    const [list, setList] = editTypeStateMap[editingItem?.editType] || [];
+
+    if (list && setList) {
+      const updated = [...list];
+      updated[editingItem.index] = { ...updated[editingItem.index], ...data };
+      setList(updated);
+    }
+
+    handleCloseDialog();
   };
+
+  const handleSaveChanges = async () => {
+    try {
+      const userId = getUserId();
+
+      const payloads = {
+        personnelExpenses: personnelExpenses.map(item => ({
+          ...item,
+          created_by: userId,
+        })),
+        operatingCosts: operatingCosts.map(item => ({
+          ...item,
+          created_by: userId,
+        })),
+        financialObligations: financialObligations.map(item => ({
+          ...item,
+          created_by: userId,
+        })),
+        socialCharges: socialCharges.map(item => ({
+          ...item,
+          created_by: userId,
+        })),
+      };
+
+      await Promise.all([
+        axiosInstance.post("/personnelexpenses/createOrUpdatePersonnelExpenses", {
+          personnelExpenses: payloads.personnelExpenses,
+        }),
+        axiosInstance.post("/operatingcosts/createOrUpdateOperatingCosts", {
+          operatingCosts: payloads.operatingCosts,
+        }),
+        axiosInstance.post("/financialobligations/createOrUpdateFinancialObligations", {
+          financialObligations: payloads.financialObligations,
+        }),
+        axiosInstance.post("/socialcharges/createOrUpdateSocialCharges", {
+          socialCharges: payloads.socialCharges,
+        }),
+      ]);
+
+      showToast("Cambios guardados correctamente", "success");
+    } catch (error) {
+      console.error("Error al guardar los cambios:", error);
+      showToast("Error al guardar los cambios", "error");
+    }
+  };
+
 
   return (
     <Box display="flex" flexDirection="column" gap={2}>
@@ -271,19 +350,21 @@ export default function FixedExpensesView() {
           </Table>
         </TableContainer>
       </CardContent>
-      
-      {/* <FormDialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        title={`Editar ${editingItem?.editType === "raw" ? "Materia Prima" : "Producto Terminado"}`}
-        schema={editingItem?.editType === "raw" ? rawMaterialSchema : productInventorySchema}
-        fields={editingItem?.editType === "raw" ? fieldsRawMaterialEdit : fieldsProductInventoryEdit}
-        defaultValues={{
-          quantity: editingItem?.quantity || 0,
-          unit_cost: editingItem?.unit_cost || 0,
-        }}
-        onSave={handleSave}
-      /> */}
+
+      {editingItem && (
+        <FormDialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          title={editTypeMap[editingItem.editType]?.title || "Editar"}
+          schema={editTypeMap[editingItem.editType]?.schema}
+          fields={editTypeMap[editingItem.editType]?.fields}
+          defaultValues={{
+            quantity: editingItem?.quantity || 0,
+            value_cop: editingItem?.value_cop || 0,
+          }}
+          onSave={handleSave}
+        />
+      )}
 
       <Box display="flex" justifyContent="flex-end">
         <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleSaveChanges}>
