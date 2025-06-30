@@ -180,7 +180,7 @@ const MonthProgress = () => {
 
   const getProgressText = () => {
     if (operationStatus.operationStarted) {
-      return `Mes ${progressData.currentMonth} (Década ${progressData.currentDecade})`;
+      return `Mes ${progressData.currentMonth}/12 - Década ${progressData.currentDecade}/3`;
     }
 
     return operationStatus.isSetupComplete
@@ -201,6 +201,7 @@ const MonthProgress = () => {
             backgroundColor: "transparent",
           }}
         />
+
         <Box
           top={0}
           left={0}
@@ -211,12 +212,14 @@ const MonthProgress = () => {
           alignItems="center"
           justifyContent="center"
         >
-          {currentProgress >= 100 ? (
-            <CheckCircleOutline sx={{ color: "success.main", fontSize: 22 }} />
-          ) : (
-            <Typography variant="caption" component="div" fontWeight={600}>
-              {`${Math.round(currentProgress)}%`}
-            </Typography>
+          {!operationStatus.operationStarted && (
+            currentProgress >= 100 ? (
+              <CheckCircleOutline sx={{ color: "success.main", fontSize: 22 }} />
+            ) : (
+              <Typography variant="caption" component="div" fontWeight={600}>
+                {`${Math.round(currentProgress)}%`}
+              </Typography>
+            )
           )}
         </Box>
       </Box>
