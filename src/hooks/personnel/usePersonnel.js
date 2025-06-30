@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../services/api/axiosConfig';
 import showAlert from '../../utils/alerts/alertHelpers';
-import { updateProgress } from '../../components/dashboard/MonthProgress';
+import { updateProgress } from '../../utils/timeManagement/operationTime';
+
 
 export const usePersonnel = () => {
   const [roles, setRoles] = useState([]);

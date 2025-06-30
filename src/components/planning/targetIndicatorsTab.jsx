@@ -32,8 +32,8 @@ import {
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert from "../../utils/alerts/alertHelpers";
-import { updateProgress } from "../dashboard/monthProgress";
 import InfoCard from ".././common/infoCard";
+import { updateProgress } from "../../utils/timeManagement/operationTime";
 
 export default function TargetIndicatorsTab({ handleTab }) {
   const theme = useTheme();

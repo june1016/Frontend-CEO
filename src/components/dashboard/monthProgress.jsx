@@ -2,9 +2,6 @@ import { useState, useEffect } from "react";
 import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import { CheckCircleOutline } from "@mui/icons-material";
 import {
-  resetOperation,
-  updateProgress,
-  startOperation,
   OPERATION_STATUS_KEY,
   PROGRESS_MONTH_KEY,
   upsertProgressInBackend,
@@ -44,7 +41,7 @@ const MonthProgress = () => {
     const progressPercent = Math.round((completedTabs / totalTabs) * 100);
 
     setCurrentProgress(progressPercent);
-  }, [currentProgress]);
+  }, [operationStatus]);
 
   useEffect(() => {
     const initializeSimulatedTime = async () => {
@@ -230,5 +227,4 @@ const MonthProgress = () => {
   );
 };
 
-export { updateProgress, startOperation, resetOperation };
 export default MonthProgress;
