@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Tabs, Tab, useTheme } from "@mui/material";
+import { Box, Tabs, Tab, useTheme, Alert } from "@mui/material";
 import InfoCard from ".././common/infoCard.jsx";
 import GeneralDataView from "./financialData/generalDataView";
 import IncomeStatementView from "./financialData/incomeStatementView";
@@ -121,7 +121,7 @@ export default function FinancialDataTab() {
           Cargando datos financieros...
         </Box>
       ) : error ? (
-        <Box sx={{ p: 2, color: "error.main" }}>Error: {error}</Box>
+        <Alert severity="error">{error}</Alert>
       ) : (
         /* Contenido de los tabs */
         renderTabContent()

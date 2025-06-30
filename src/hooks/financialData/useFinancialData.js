@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../services/api/axiosConfig";
+import { getUserId } from "../../utils/timeManagement/operationTime";
 
 /**
  * Hook personalizado para gestionar datos financieros
@@ -11,37 +12,47 @@ export default function useFinancialData() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const getFinancialData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await axiosInstance.get("/financialdata/initialdata");
+    const loadFinancialData = async () => {
+      setLoading(true);
+      setError(null);
 
-        // Verificar que la respuesta tenga la estructura esperada
-        if (
-          response &&
-          response.data &&
-          Array.isArray(response.data.financialData)
-        ) {
-          setFinancialData(response.data.financialData);
+      const realUserId = getUserId();
+
+      try {
+        const teacherRes = await axiosInstance.get("/groupstudents/get-teacher-id", {
+          params: { student_id: realUserId },
+        });
+
+        const teacherId = teacherRes.data.teacher_id;
+
+        const response = await axiosInstance.get("/financialdata/getfinancialdata/by-user", {
+          params: { created_by: teacherId },
+        });
+
+        const financialData = response.data.financialData;
+
+        if (financialData.length > 0) {
+          setFinancialData(financialData);
         } else {
-          // Crear un array vacío si no hay datos o la estructura es incorrecta
-          console.warn(
-            "La estructura de datos recibida no es la esperada:",
-            response.data
-          );
+          setError("Tu docente aún no ha creado datos financieros.");
           setFinancialData([]);
         }
-      } catch (error) {
-        console.error("Error al obtener datos financieros:", error);
-        setError(error.message || "Error al cargar los datos financieros");
+      } catch (err) {
+        console.error("Error al cargar datos financieros:", err);
+
+        if (err.response?.status === 404 && err.response?.data?.message) {
+          setError(err.response.data.message);
+        } else {
+          setError("Ocurrió un error al intentar cargar los datos financieros.");
+        }
+
         setFinancialData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    getFinancialData();
+    loadFinancialData();
   }, []);
 
   // Calcular totales por categoría

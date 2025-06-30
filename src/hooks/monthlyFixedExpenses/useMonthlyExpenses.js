@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../services/api/axiosConfig";
+import { getUserId } from "../../utils/timeManagement/operationTime";
 
 export const useMonthlyExpenses = () => {
   const [monthlyData, setMonthlyData] = useState(null);
@@ -11,17 +12,39 @@ export const useMonthlyExpenses = () => {
       setLoading(true);
       setError(null);
 
+      const realUserId = getUserId();
+
       try {
+        const teacherRes = await axiosInstance.get("/groupstudents/get-teacher-id", {
+          params: { student_id: realUserId },
+        });
+
+        const teacherId = teacherRes.data.teacher_id;
+
+        if (!teacherId) {
+          setError("No estás asignado a ningún grupo. Pide a tu docente que te agregue.");
+          setMonthlyData(null);
+          return;
+        }
+
         const [
           obligationsRes,
           operatingRes,
           personnelExpensesRes,
           socialChargesRes,
         ] = await Promise.all([
-          axiosInstance.get("/financialobligations/getInitialFinancialObligations"),
-          axiosInstance.get("/operatingcosts/getInitialOperatingCosts"),
-          axiosInstance.get("/personnelexpenses/getInitialPersonnelExpenses"),
-          axiosInstance.get("/socialcharges/getInitialSocialCharges"),
+          axiosInstance.get("/financialobligations/getFinancialObligationsByCreatedBy", {
+            params: { created_by: teacherId },
+          }),
+          axiosInstance.get("/operatingcosts/getOperatingCostsByCreatedBy", {
+            params: { created_by: teacherId },
+          }),
+          axiosInstance.get("/personnelexpenses/getPersonnelExpensesByCreatedBy", {
+            params: { created_by: teacherId },
+          }),
+          axiosInstance.get("/socialcharges/getSocialChargesByCreatedBy", {
+            params: { created_by: teacherId },
+          }),
         ]);
 
         const obligations = obligationsRes?.data?.financialObligations ?? [];
@@ -37,7 +60,13 @@ export const useMonthlyExpenses = () => {
         });
       } catch (err) {
         console.error("Error al cargar gastos mensuales:", err);
-        setError("No se pudo cargar los gastos mensuales");
+
+        if (err.response?.data?.message) {
+          setError(err.response.data.message);
+        } else {
+          setError("No se pudo cargar los gastos mensuales.");
+        }
+
         setMonthlyData(null);
       } finally {
         setLoading(false);

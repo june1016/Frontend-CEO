@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../services/api/axiosConfig";
 import { useFinishedProductsInventory } from "../../hooks/financialData/useFinishedProductsInventory.js";
+import { getUserId } from "../../utils/timeManagement/operationTime.js";
 
 
 export const useRawMaterialsInventory = () => {
@@ -14,9 +15,29 @@ export const useRawMaterialsInventory = () => {
 
   useEffect(() => {
     const fetchRawMaterials = async () => {
+      setLoading(true);
+      setError(null);
+
+      const realUserId = getUserId();
+
       try {
+        const teacherRes = await axiosInstance.get("/groupstudents/get-teacher-id", {
+          params: { student_id: realUserId },
+        });
+
+        const teacherId = teacherRes.data.teacher_id;
+
+        if (!teacherId) {
+          setError("No estás asignado a ningún grupo. Pide a tu docente que te agregue.");
+          setRawMaterials([]);
+          return;
+        }
+
         const response = await axiosInstance.get(
-          "/rawmaterialsinventory/getInitialRawMaterialsInventory"
+          "/rawmaterialsinventory/getRawMaterialsInventoryByCreatedBy",
+          {
+            params: { created_by: teacherId },
+          }
         );
 
         const data = response?.data?.rawMaterialsInventory ?? [];
@@ -39,7 +60,13 @@ export const useRawMaterialsInventory = () => {
         setRawMaterials(formatted);
       } catch (err) {
         console.error("Error al obtener inventario de materias primas:", err);
-        setError("No se pudo cargar el inventario");
+
+        if (err.response?.data?.message) {
+          setError(err.response.data.message);
+        } else {
+          setError("No se pudo cargar el inventario de materias primas.");
+        }
+
         setRawMaterials([]);
       } finally {
         setLoading(false);
@@ -86,11 +113,11 @@ export const useRawMaterialsInventory = () => {
     }
   }, [rawMaterials, finishedProducts]);
 
-  return { 
+  return {
     rawMaterials,
     inventoryTotals,
     finishedProducts,
     loading,
     error
-   };
+  };
 };
