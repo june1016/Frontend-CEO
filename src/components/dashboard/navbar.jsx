@@ -13,15 +13,10 @@ import {
   Chip,
 } from "@mui/material";
 import { styled, alpha } from "@mui/material/styles";
-import {
-  NotificationsOutlined,
-  QuestionAnswerOutlined,
-  KeyboardArrowDown,
-  PlayArrowOutlined,
-} from "@mui/icons-material";
+import {KeyboardArrowDown} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
-import { resetOperation, startOperation } from "../../utils/timeManagement/operationTime";
+import { startOperation } from "../../utils/timeManagement/operationTime";
 import StartOperationModal from "../common/startOperationModal";
 import showAlert from "../../utils/functions";
 import MonthProgress from "./MonthProgress";
@@ -41,9 +36,9 @@ const Navbar = () => {
     name: "",
     lastName: "",
     email: "",
-    name_rol: "",
-    group_name: "",
-    rol_id: ""
+    rolId: null,
+    nameRol: "",
+    groupName: "",
   });
 
   // Recuperar datos del usuario al cargar el componente
@@ -82,7 +77,7 @@ const Navbar = () => {
   };
 
   const getUserRoleName = () => {
-    return userData.name_rol || "Sin rol";
+    return userData.nameRol || "Sin rol";
   };
 
   const handleMenu = (event) => {
@@ -120,20 +115,20 @@ const Navbar = () => {
     <StyledAppBar position="fixed">
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Box sx={{ ml: '280px' }}>
-          {userData.rol_id !== 1 && userData.rol_id !== 2 && (
+          {userData.rolId !== 1 && userData.rolId !== 2 && (
             <MonthProgress />
           )}
         </Box>
 
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          {userData.rol_id !== 1 && userData.rol_id !== 2 &&  (
+          {userData.rolId !== 1 && userData.rolId !== 2 &&  (
             <StartOperationModal onConfirm={handleStartOperation} />
           )}
 
-          {userData.rol_id !== 1 && userData.group_name && (
+          {userData.rolId !== 1 && userData.groupName && (
             <Chip
-              label={userData.group_name}
+              label={userData.groupName}
               color="primary"
               variant="outlined"
               sx={{

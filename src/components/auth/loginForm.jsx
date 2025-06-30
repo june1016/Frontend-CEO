@@ -29,7 +29,6 @@ export default function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -47,10 +46,8 @@ export default function LoginForm() {
         email: data.email,
         password: data.password,
       });
-
-      // Verificar si la respuesta fue exitosa
+      
       if (response.ok) {
-        // la respuesta ya viene procesada del authService
         navigate("/dashboard");
       } else {
         setError(

@@ -1,3 +1,5 @@
+// src/services/auth/authService.js
+
 import axiosInstance from "../api/axiosConfig";
 import Cookies from "js-cookie";
 
@@ -7,31 +9,34 @@ export const authService = {
     try {
       const response = await axiosInstance.post("/auth/login", credentials);
 
-      if (response.data.ok && response.data.token) {
-        // Guardar el token en cookies
+      if (response.data.ok && response.data.token && response.data.user) {
+        // 1️⃣ Guardar el token
         Cookies.set("authToken", response.data.token);
 
-        // Guardar datos del usuario en localStorage si están disponibles
-        if (response.data.user) {
-          localStorage.setItem("userData", JSON.stringify(response.data.user));
-        }
-
-        return response.data;
-      } else {
-        throw new Error(
-          "No se pudo iniciar sesión. Verifique sus credenciales."
-        );
+        // 2️⃣ Mapear a camelCase y guardar en localStorage
+        const u = response.data.user;
+        const userToStore = {
+          id: u.id,
+          name: u.name,
+          lastName: u.lastName,
+          email: u.email,
+          rolId: u.rolId,
+          nameRol: u.nameRol,
+          groupId: u.groupId   || null,
+          groupName: u.groupName || "",
+          teacherId: u.teacherId  || null,
+          teacherName: u.teacherName || "",
+        };
+        localStorage.setItem("userData", JSON.stringify(userToStore));
       }
+
+      return response.data;
     } catch (error) {
       console.error("Error en authService.login:", error);
-
-      // Si es un error de la API, usamos el mensaje personalizado del interceptor
       if (error.response) {
         throw new Error(error.message);
       } else {
-        throw new Error(
-          "Error al conectar con el servicio. Intente nuevamente."
-        );
+        throw new Error("Error al conectar con el servicio. Intente nuevamente.");
       }
     }
   },
@@ -40,28 +45,29 @@ export const authService = {
   register: async (userData) => {
     try {
       const response = await axiosInstance.post("/auth/register", userData);
-      if (response.data.ok && response.data.token) {
-        // Guardar token en cookies
+
+      if (response.data.ok && response.data.token && response.data.user) {
+        // 1️⃣ Guardar token
         Cookies.set("authToken", response.data.token);
 
-        const id = response.data.user.id;
-
-        // Guardar datos del usuario en localStorage
-        const userToSave = {
-          id: id,
-          name: userData.name,
-          lastName: userData.lastName,
-          email: userData.email,
-          rol_id: userData.rol_id,
-          name_rol: userData.name_rol,
-          group_id: userData.group_id,
-          group_name: userData.group_name,
-          teacher_id: userData.teacher_id,
-          teacher_name: userData.teacher_name
+        // 2️⃣ Mapear a camelCase y guardar en localStorage
+        const u = response.data.user;
+        const userToStore = {
+          id: u.id,
+          name: u.name,
+          lastName: u.lastName,
+          email: u.email,
+          rolId: u.rolId,
+          nameRol: u.nameRol,
+          // no tendrás group aún en registro, pero lo dejamos por consistencia
+          groupId: u.groupId,
+          groupName: u.groupName,
+          teacherId: u.teacherId,
+          teacherName: u.teacherName,
         };
-
-        localStorage.setItem("userData", JSON.stringify(userToSave));
+        localStorage.setItem("userData", JSON.stringify(userToStore));
       }
+
       return response.data;
     } catch (error) {
       console.error("Error en authService.register:", error);
@@ -69,7 +75,7 @@ export const authService = {
     }
   },
 
-  // Solicitar reseteo de contraseña
+  // Resto sin cambios...
   requestPasswordReset: async (email) => {
     const response = await axiosInstance.post(
       "/auth/reset-password-with-email",
@@ -77,8 +83,6 @@ export const authService = {
     );
     return response.data;
   },
-
-  // Resetear contraseña
   resetPassword: async (token, password) => {
     const response = await axiosInstance.post(
       `/auth/reset-password?token=${token}`,
@@ -86,27 +90,13 @@ export const authService = {
     );
     return response.data;
   },
-
-  // Cerrar sesión
   logout: () => {
-    // Eliminar el token de cookies
     Cookies.remove("authToken");
-
-    // Eliminar datos del usuario del localStorage (limpiar todo el localStorage)
-    localStorage.clear();
-
-    // Opcionalmente, eliminar otros datos de sesión
-    sessionStorage.clear();
-
-    // Puedes agregar más lógica de limpieza si es necesario, como redirigir al usuario a la página de inicio de sesión
+    localStorage.removeItem("userData");
   },
-
-  // Verificar si el usuario está autenticado
   isAuthenticated: () => {
-    return Cookies.get("authToken") !== undefined;
+    return !!Cookies.get("authToken");
   },
-
-  // Obtener datos del usuario actual
   getCurrentUser: () => {
     try {
       const userData = localStorage.getItem("userData");
