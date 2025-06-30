@@ -45,7 +45,7 @@ const PrivateRoute = ({ children, allowedRoles }) => {
   const location = useLocation();
   const authToken = Cookies.get("authToken");
   const userData = JSON.parse(localStorage.getItem("userData"));
-  const role = userData?.rol_id;
+  const role = userData?.rolId;
 
   const isAuthenticated = !!authToken;
 
@@ -68,7 +68,7 @@ const PublicRoute = ({ children }) => {
   const authToken = Cookies.get("authToken");
   const isAuthenticated = !!authToken;
   const userData = JSON.parse(localStorage.getItem("userData"));
-  const role = userData?.rol_id;
+  const role = userData?.rolId;
 
   if (isAuthenticated) {
     if (role === 1) return <Navigate to={ADMIN_DASHBOARD_ROUTES.ADMIN_HOME} replace />;

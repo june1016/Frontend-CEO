@@ -53,19 +53,16 @@ export default function SignupForm() {
       });
 
       if (response.ok) {
-        navigate("/register");
+        navigate("/dashboard");
       } else {
-        setError(
-          "No se pudo completar el registro. Por favor, intente nuevamente."
-        );
+        setError("No se pudo completar el registro. Intente nuevamente.");
       }
     } catch (err) {
-      const errorMessage =
+      setError(
         err.message ||
-        err.response?.data?.message ||
-        "Ocurrió un error al registrar. Por favor, intente nuevamente.";
-      setError(errorMessage);
-      console.error("Error en registro:", err);
+          err.response?.data?.message ||
+          "Ocurrió un error al registrar. Intente nuevamente."
+      );
     } finally {
       setIsLoading(false);
     }

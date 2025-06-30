@@ -185,7 +185,7 @@ const Sidebar = () => {
 
   const [userRole, setUserRole] = useState(() => {
     const user = JSON.parse(localStorage.getItem("userData"));
-    return user?.rol_id || 0;
+    return user?.rolId || 0;
   });
 
   useEffect(() => {
