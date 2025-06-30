@@ -49,7 +49,6 @@ export const useFinishedProductsInventory = () => {
           };
         });
 
-        console.log(data);
         setFinishedProducts(formatted);
       } catch (err) {
         console.error("Error al obtener inventario de productos terminados:", err);

@@ -75,12 +75,7 @@ export default function FixedExpensesView() {
           axiosInstance.get("/socialcharges/getSocialChargesByCreatedBy", {
             params: { created_by: userId },
           }),
-        ]);
-
-        console.log(userPersonnelRes,
-          userOperatingRes,
-          userFinancialRes,
-          userSocialRes)
+        ])
 
         const hasPersonnel = userPersonnelRes.data.personnelExpenses.length > 0;
         const hasOperating = userOperatingRes.data.operatingCosts.length > 0;

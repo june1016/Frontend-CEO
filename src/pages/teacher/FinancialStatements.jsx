@@ -160,9 +160,6 @@ export default function FinancialStatements() {
                 created_by: userId
             }));
 
-            console.log(sales);
-            console.log(salesCostsWithUser);
-
             await Promise.all([
                 axiosInstance.post("/sales/createSales", { salesData: salesWithUser }),
                 axiosInstance.post("/salescosts/createSalesCost", { salesCosts: salesCostsWithUser }),

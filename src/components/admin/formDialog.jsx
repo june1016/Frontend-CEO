@@ -42,7 +42,6 @@ const FormDialog = ({
   }, [defaultValues, open]);
 
   const handleFormSubmit = (data) => {
-    console.log(data)
     onSave(data);
     onClose();
     reset();
