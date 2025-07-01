@@ -20,9 +20,9 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import InsightsIcon from "@mui/icons-material/Insights";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
-import MarketSummary from "./MarketSummary";
-import ProductAnalysis from "./ProductAnalysis";
-import KeyConsiderations from "./KeyConsiderations";
+import MarketSummary from "../price/MarketSummary";
+import ProductAnalysis from "../price/ProductAnalysis";
+import KeyConsiderations from "../price/KeyConsiderations";
 
 const MarketStudyModal = ({ open, onClose }) => {
   const theme = useTheme();

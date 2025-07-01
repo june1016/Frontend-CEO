@@ -1,8 +1,8 @@
 import React from "react";
 import { Box, Typography, Grid } from "@mui/material";
 import InfoCard from "../../common/infoCard";
-import ContractMonthlySummary from "../common/ContractMonthlySummary";
-import ContractCard from "../common/ContractCard";
+import ContractMonthlySummary from "../common/contract/ContractMonthlySummary";
+import ContractCard from "../common/contract/ContractCard";
 
 
 const ContractsView = () => {

@@ -6,7 +6,7 @@ import {
     Alert,
 } from "@mui/material";
 import InfoCard from "../../common/infoCard";
-import MarketingProductCard from "../common/MarketingProductCard";
+import MarketingProductCard from "../common/market/MarketingProductCard";
 
 const baseSuggested = {
     percent: 10,

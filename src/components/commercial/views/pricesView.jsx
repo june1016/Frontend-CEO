@@ -7,8 +7,8 @@ import {
   Stack
 } from "@mui/material";
 import InfoCard from "../../common/infoCard";
-import PriceAdjustCard from "../common/priceAdjustCard";
-import MarketStudyModal from "../common/MarketStudyModal";
+import PriceAdjustCard from "../common/price/priceAdjustCard";
+import MarketStudyModal from "../common/price/MarketStudyModal";
 
 
 const PricesView = () => {
