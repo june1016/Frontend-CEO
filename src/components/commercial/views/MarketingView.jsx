@@ -30,7 +30,6 @@ const MarketingView = () => {
 
     const handleSave = (product) => {
         console.log("Guardar marketing:", product.name, product);
-        // Integración futura: enviar a backend
     };
 
     return (

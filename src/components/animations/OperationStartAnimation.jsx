@@ -1,4 +1,3 @@
-// components/OperationStartAnimation.jsx
 import { useState, useEffect, useRef } from 'react';
 import { Box, Typography, keyframes, styled } from '@mui/material';
 import ParticlesBackground from './particlesBackground';

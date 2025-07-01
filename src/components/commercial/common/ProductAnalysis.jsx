@@ -9,7 +9,6 @@ import {
   Chip
 } from "@mui/material";
 
-// Datos de prueba
 const productData = [
   {
     name: "Alfaros",
@@ -28,7 +27,6 @@ const productData = [
   }
 ];
 
-// Función para analizar precios
 const getPriceAnalysis = (range, competitors) => {
   const avgSuggested = (range[0] + range[1]) / 2;
   const avgCompetitor = competitors.reduce((a, b) => a + b, 0) / competitors.length;

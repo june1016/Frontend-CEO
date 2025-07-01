@@ -9,7 +9,6 @@ import {
   alpha
 } from "@mui/material";
 
-// Datos simulados
 const creditProducts = [
   {
     name: "Alfaros",
@@ -31,7 +30,6 @@ const creditProducts = [
   }
 ];
 
-// Calcula el precio final con interés
 const getCreditPrice = (base, percentage) => {
   return Math.round(base + (base * percentage) / 100);
 };

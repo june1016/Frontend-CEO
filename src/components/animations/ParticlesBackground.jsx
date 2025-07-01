@@ -1,4 +1,3 @@
-// components/ParticlesBackground.jsx
 import { useEffect, useRef } from 'react';
 
 const ParticlesBackground = () => {

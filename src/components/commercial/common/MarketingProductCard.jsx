@@ -1,4 +1,3 @@
-// src/components/commercial/marketing/MarketingProductCard.jsx
 import React from "react";
 import {
   Box,

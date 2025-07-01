@@ -31,7 +31,6 @@ const PriceAdjustCard = ({ product, onSave }) => {
     const percent = (diff / averageSuggested) * 100;
     setVariation(percent);
 
-    // Evaluar competitividad
     if (percent >= -10 && percent <= 10) {
       setCompetitiveness({ label: "Precio competitivo", color: "success" });
     } else if (percent > 10 && percent <= 20) {
@@ -66,7 +65,7 @@ const PriceAdjustCard = ({ product, onSave }) => {
     }
     setIsEdited(false);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2500); // Ocultar mensaje luego de 2.5s
+    setTimeout(() => setSaved(false), 2500);
   };
 
   return (

@@ -1,4 +1,3 @@
-// src/components/commercial/contracts/ContractCard.jsx
 import React from "react";
 import {
   Box,

@@ -10,7 +10,6 @@ import {
   alpha,
 } from "@mui/material";
 
-// Datos simulados iniciales
 const initialProducts = [
   {
     name: "Alfaros",
@@ -48,7 +47,6 @@ const CreditPolicyView = () => {
   const handleSave = (product) => {
     console.log("Guardando crédito para:", product.name);
     console.log("Datos:", product);
-    // Aquí puedes conectar con tu backend
   };
 
   const renderVariation = (percentage) => {

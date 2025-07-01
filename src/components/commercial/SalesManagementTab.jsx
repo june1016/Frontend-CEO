@@ -1,4 +1,3 @@
-// src/components/commercial/SalesManagementTab.jsx
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import InfoCard from '../common/infoCard';

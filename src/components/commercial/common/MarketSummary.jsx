@@ -10,7 +10,6 @@ import {
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
-// Datos de entrada dinámicos
 const summaryItems = [
   {
     label: "Tamaño de Mercado",
@@ -32,7 +31,7 @@ const summaryItems = [
   }
 ];
 
-// Detectar variación visual
+
 const renderVariation = (variation, theme) => {
   if (!variation || variation === "0") {
     return (

@@ -1,4 +1,3 @@
-// src/components/commercial/contracts/ContractMonthlySummary.jsx
 import React from "react";
 import {
   Box,

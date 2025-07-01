@@ -56,7 +56,7 @@ export default function LoginForm() {
       }
     } catch (err) {
       const errorMessage =
-        err.message || // Para capturar el error personalizado del authService
+        err.message ||
         err.response?.data?.message ||
         "Ocurrió un error al iniciar sesión. Por favor, intente nuevamente.";
       setError(errorMessage);
@@ -66,7 +66,6 @@ export default function LoginForm() {
     }
   };
 
-  // Estilos comunes para inputs
   const inputStyles = {
     "& .MuiOutlinedInput-root": {
       height: "48px",
