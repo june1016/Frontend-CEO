@@ -1,42 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Button,
   Typography,
   Grid,
-  Stack
+  Alert,
+  CircularProgress,
 } from "@mui/material";
+
 import InfoCard from "../../common/infoCard";
 import PriceAdjustCard from "../common/price/priceAdjustCard";
 import MarketStudyModal from "../common/price/MarketStudyModal";
-
+import useProductInventory from "../hooks/useProductInventory";
 
 const PricesView = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const mockProducts = [
-    {
-      id: "alfaros",
-      name: "Alfaros",
-      suggestedMin: 100,
-      suggestedMax: 120,
-      currentPrice: 110
-    },
-    {
-      id: "betacos",
-      name: "Betacos",
-      suggestedMin: 150,
-      suggestedMax: 170,
-      currentPrice: 155
-    },
-    {
-      id: "gamaroles",
-      name: "Gamaroles",
-      suggestedMin: 150,
-      suggestedMax: 170,
-      currentPrice: 155
-    }
-  ];
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const { products, loading, error } = useProductInventory();
 
   return (
     <Box>
@@ -64,9 +43,13 @@ const PricesView = () => {
         description="Los precios sugeridos se basan en un estudio de mercado actualizado. Puede establecer precios fuera del rango sugerido, considerando el impacto en la demanda y competitividad."
       />
 
-      {/* Lista de productos con componente reutilizable */}
+      {/* Estado de carga o error */}
+      {loading && <CircularProgress />}
+      {error && <Alert severity="warning">{error}</Alert>}
+
+      {/* Lista de productos */}
       <Grid container spacing={2} mt={2}>
-        {mockProducts.map((product) => (
+        {products.map((product) => (
           <Grid item xs={12} md={6} key={product.id}>
             <PriceAdjustCard product={product} />
           </Grid>
