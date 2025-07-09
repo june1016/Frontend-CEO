@@ -99,8 +99,6 @@ const SalesDashboardView = () => {
   const [receivables, setReceivables] = useState(receivableData);
 
   const handleCollect = (credit) => {
-    // console.log("Cobrado:", credit);
-    // Aquí puedes simular eliminarlo de la lista
     setReceivables((prev) =>
       prev.filter((item) => item.dueDate !== credit.dueDate)
     );
