@@ -22,7 +22,7 @@ const MarketingProductCard = ({ product, baseSuggested, onChange, onSave }) => {
       : "0% de incremento en ventas";
 
   const impactColor =
-    product.investmentPercent > 0
+    product.investment_percent > 0
       ? theme.palette.success.main
       : theme.palette.warning.main;
 
