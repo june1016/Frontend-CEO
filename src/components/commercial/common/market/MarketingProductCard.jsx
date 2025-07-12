@@ -22,7 +22,7 @@ const MarketingProductCard = ({ product, baseSuggested, onChange, onSave }) => {
       : "0% de incremento en ventas";
 
   const impactColor =
-    product.investmentPercent > 0
+    product.investment_percent > 0
       ? theme.palette.success.main
       : theme.palette.warning.main;
 
@@ -48,7 +48,7 @@ const MarketingProductCard = ({ product, baseSuggested, onChange, onSave }) => {
         {/* Estado actual */}
         <Typography variant="body2" color="text.secondary" gutterBottom>
           Inversión actual:{" "}
-          <strong>{product.investmentPercent}%</strong> de incremento potencial
+          <strong>{product.investment_percent}%</strong> de incremento potencial
         </Typography>
 
         {/* Slider */}
@@ -57,7 +57,7 @@ const MarketingProductCard = ({ product, baseSuggested, onChange, onSave }) => {
             Incremento Deseado (%)
           </Typography>
           <Slider
-            value={product.investmentPercent}
+            value={product.investment_percent}
             onChange={(_, v) => onChange(v)}
             step={1}
             min={0}
@@ -75,14 +75,14 @@ const MarketingProductCard = ({ product, baseSuggested, onChange, onSave }) => {
 
           <Typography variant="body2" color="text.secondary" gutterBottom>
             <strong>Costo Total:</strong>{" "}
-            ${calcCost(product.investmentPercent).toLocaleString()}
+            ${calcCost(product.investment_percent).toLocaleString()}
           </Typography>
         </Box>
 
         {/* Impacto Potencial destacado */}
         <Box mt={3} mb={2}>
           <Chip
-            label={calcImpact(product.investmentPercent)}
+            label={calcImpact(product.investment_percent)}
             sx={{
               fontWeight: 600,
               backgroundColor: impactColor,

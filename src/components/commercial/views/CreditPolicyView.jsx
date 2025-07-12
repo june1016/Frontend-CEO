@@ -1,169 +1,86 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Grid,
-  Paper,
-  Typography,
-  Slider,
-  Button,
-  useTheme,
-  alpha,
-} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Grid, Typography } from "@mui/material";
 
-const initialProducts = [
-  {
-    name: "Alfaros",
-    basePrice: 50000,
-    credit30: 10,
-    credit60: 18,
-  },
-  {
-    name: "Betacos",
-    basePrice: 43000,
-    credit30: 8,
-    credit60: 15,
-  },
-  {
-    name: "Gamaroles",
-    basePrice: 37000,
-    credit30: 12,
-    credit60: 20,
-  },
-];
+import axiosInstance from "../../../services/api/axiosConfig";
+import useProductInventory from "../hooks/useProductInventory";
+import CreditPolicyPerProduct from "../common/policy/CreditPolicyPerProduct";
+import { getUserId } from "../../../utils/timeManagement/operationTime";
+import ToastNotification, { showToast } from "../../alerts/ToastNotification";
 
-const getCreditPrice = (base, percentage) =>
-  Math.round(base + (base * percentage) / 100);
 
 const CreditPolicyView = () => {
-  const theme = useTheme();
-  const [products, setProducts] = useState(initialProducts);
+  const { products, loading, error } = useProductInventory();
+  const [editableProducts, setEditableProducts] = useState([]);
+
+  useEffect(() => {
+    if (products && products.length > 0) {
+      const mapped = products.map((product) => ({
+        id: product.id,
+        name: product.name || "Producto sin nombre",
+        unit_cost: product.unit_cost,
+        credit30: product.credit30 || 0,
+        credit60: product.credit60 || 0,
+        quantity: product.quantity,
+      }));
+      setEditableProducts(mapped);
+    }
+  }, [products]);
 
   const handleSliderChange = (index, field, value) => {
-    const updated = [...products];
+    const updated = [...editableProducts];
     updated[index][field] = value;
-    setProducts(updated);
+    setEditableProducts(updated);
   };
 
-  const handleSave = (product) => {
-    console.log("Guardando crédito para:", product.name);
-    console.log("Datos:", product);
+  const handleSave = async (product) => {
+    const userId = getUserId();
+
+    const payload = {
+      inventories: [
+        {
+          product_id: product.id,
+          unit_cost: product.unit_cost,
+          quantity: product.quantity,
+          credit30: product.credit30,
+          credit60: product.credit60,
+          created_by: userId,
+        },
+      ],
+    };
+
+    try {
+      const res = await axiosInstance.post("productsInventory/createProductInventory", payload);
+
+      if (res.data.ok) {
+        showToast(`Producto "${product.name}" guardado correctamente`, "success");
+      } else {
+        showToast(res.data.message || "Ocurrió un error al guardar el producto", "warning");
+      }
+    } catch (err) {
+      const backendMessage =
+        err?.response?.data?.message || err.message || "Error inesperado al guardar el producto";
+      showToast(backendMessage, "error");
+      console.error("Error al guardar:", backendMessage);
+    }
   };
 
-  const renderVariation = (percentage) => {
-    const color =
-      percentage <= 10
-        ? theme.palette.success.main
-        : percentage <= 20
-        ? theme.palette.warning.main
-        : theme.palette.error.main;
-    return (
-      <Typography variant="body2" fontWeight={500} sx={{ color, mt: 0.5 }}>
-        +{percentage}% interés
-      </Typography>
-    );
-  };
+  if (loading) return <Typography>Cargando productos...</Typography>;
+  if (error) return <Typography color="error">Error al cargar productos</Typography>;
 
   return (
     <Grid container spacing={2}>
-      {products.map((product, index) => {
-        const price30 = getCreditPrice(product.basePrice, product.credit30);
-        const price60 = getCreditPrice(product.basePrice, product.credit60);
 
-        return (
-          <Grid item xs={12} md={4} key={product.name}>
-            <Paper
-              variant="outlined"
-              sx={{
-                p: 2,
-                height: "100%",
-                backgroundColor: alpha(theme.palette.primary.light, 0.04),
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
-              <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  {product.name}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  gutterBottom
-                >
-                  Precio base: ${product.basePrice.toLocaleString()}
-                </Typography>
-
-                {/* Crédito a 30 días */}
-                <Box mt={2}>
-                  <Typography variant="body2" fontWeight={500}>
-                    Crédito a 30 días:
-                  </Typography>
-                  <Slider
-                    value={product.credit30}
-                    onChange={(_, value) =>
-                      handleSliderChange(index, "credit30", value)
-                    }
-                    step={1}
-                    min={0}
-                    max={30}
-                    valueLabelDisplay="auto"
-                  />
-                  <Typography variant="body2">
-                    Precio con interés:{" "}
-                    <strong style={{ color: theme.palette.primary.main }}>
-                      ${price30.toLocaleString()}
-                    </strong>
-                  </Typography>
-                  {renderVariation(product.credit30)}
-                </Box>
-
-                {/* Crédito a 60 días */}
-                <Box mt={3}>
-                  <Typography variant="body2" fontWeight={500}>
-                    Crédito a 60 días:
-                  </Typography>
-                  <Slider
-                    value={product.credit60}
-                    onChange={(_, value) =>
-                      handleSliderChange(index, "credit60", value)
-                    }
-                    step={1}
-                    min={0}
-                    max={30}
-                    valueLabelDisplay="auto"
-                  />
-                  <Typography variant="body2">
-                    Precio con interés:{" "}
-                    <strong style={{ color: theme.palette.primary.main }}>
-                      ${price60.toLocaleString()}
-                    </strong>
-                  </Typography>
-                  {renderVariation(product.credit60)}
-                </Box>
-              </Box>
-
-              {/* Botón Guardar */}
-              <Box mt={3}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={() => handleSave(product)}
-                  sx={{
-                    bgcolor: theme.palette.primary.main,
-                    "&:hover": {
-                      bgcolor: theme.palette.primary.dark,
-                    },
-                    textTransform: "none",
-                  }}
-                >
-                  Guardar Cambios
-                </Button>
-              </Box>
-            </Paper>
-          </Grid>
-        );
-      })}
+      <ToastNotification />
+      {editableProducts.map((product, index) => (
+        <Grid item xs={12} md={4} key={product.id}>
+          <CreditPolicyPerProduct
+            product={product}
+            index={index}
+            onSliderChange={handleSliderChange}
+            onSave={handleSave}
+          />
+        </Grid>
+      ))}
     </Grid>
   );
 };

@@ -4,6 +4,7 @@ import TeacherPlanning from "./teacherPlanningPage";
 import FinancialStatements from "./FinancialStatements";
 import InitialInventoryView from "./InitialInventoryView";
 import FixedExpensesView from "./fixedExpensesView";
+import MarketingConfigurationView from "./marketingConfigurationView";
 
 export default function GeneralDataView() {
     const [tabIndex, setTabIndex] = useState(0);
@@ -39,6 +40,7 @@ export default function GeneralDataView() {
           <Tab label="Estado de Resultados" />
           <Tab label="Inventario Inicial" />
           <Tab label="Gastos Fijos Mensuales" />
+           <Tab label="Configuración Marketing" />
         </Tabs>
       </Box>
 
@@ -48,6 +50,7 @@ export default function GeneralDataView() {
         {tabIndex === 1 && <FinancialStatements />}
         {tabIndex === 2 && <InitialInventoryView />}
         {tabIndex === 3 && <FixedExpensesView />}
+        {tabIndex === 4 && <MarketingConfigurationView />}
       </Box>
     </Box>
   );

@@ -11,6 +11,10 @@ import {
   Button,
   Fade
 } from "@mui/material";
+import { formatCurrency } from "../../../../utils/formatters/currencyFormatters";
+import axiosInstance from "../../../../services/api/axiosConfig";
+import { getUserId } from "../../../../utils/timeManagement/operationTime";
+import ToastNotification, { showToast } from "../../../alerts/ToastNotification";
 
 const PriceAdjustCard = ({ product, onSave }) => {
   const theme = useTheme();
@@ -21,7 +25,6 @@ const PriceAdjustCard = ({ product, onSave }) => {
     color: "default",
   });
 
-  const [isEdited, setIsEdited] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const averageSuggested = (product.suggestedMin + product.suggestedMax) / 2;
@@ -45,11 +48,14 @@ const PriceAdjustCard = ({ product, onSave }) => {
   }, [price, averageSuggested]);
 
   const handlePriceChange = (e) => {
-    const value = parseFloat(e.target.value);
+    const cleaned = cleanInput(e.target.value);
+    const value = parseFloat(cleaned);
+
     if (!isNaN(value)) {
       setPrice(value);
-      setIsEdited(true);
       setSaved(false);
+    } else {
+      setPrice("");
     }
   };
 
@@ -59,34 +65,85 @@ const PriceAdjustCard = ({ product, onSave }) => {
     return "warning";
   };
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave({ productId: product.id, newPrice: price });
-    }
-    setIsEdited(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const formatThousands = (value) => {
+    if (!value && value !== 0) return "";
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
+
+  const cleanInput = (value) => {
+    return value.replace(/[^\d]/g, "");
+  };
+
+
+  const handleSave = async () => {
+    const userId = getUserId();
+
+    try {
+      const payload = {
+        inventories: [
+          {
+            product_id: product.id,
+            quantity: product.quantity || 0,
+            unit_cost: price,
+            credit30: product.credit30,
+            credit60: product.credit60,
+            created_by: userId,
+          },
+        ],
+      };
+
+      const response = await axiosInstance.post(
+        "productsInventory/createProductInventory",
+        payload
+      );
+
+      if (response.data.ok) {
+        showToast(`Precio del producto "${product.name}" guardado correctamente`, "success");
+      } else {
+        showToast(response.data.message || "Algo salió mal al guardar", "warning");
+      }
+
+      if (onSave) {
+        onSave({ productId: product.id, newPrice: price });
+      }
+    } catch (error) {
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Ocurrió un error inesperado";
+
+      showToast(backendMessage, "error");
+      console.error("Error al guardar producto:", backendMessage);
+    }
+  };
+
 
   return (
     <Card>
       <CardContent>
+
+        <ToastNotification />
+
         <Typography variant="h6" gutterBottom>
           {product.name}
         </Typography>
 
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          Precio sugerido: ${product.suggestedMin} - ${product.suggestedMax}
+          Precio sugerido: {formatCurrency(product.suggestedMin)} - {formatCurrency(product.suggestedMax)}
         </Typography>
 
-        <Box mt={1}>
+        <Box mt={3}>
           <TextField
             label="Precio definido"
-            type="number"
-            value={price}
+            type="text"
+            value={formatThousands(price)}
             onChange={handlePriceChange}
             fullWidth
             size="small"
+            inputProps={{
+              inputMode: "numeric",
+              pattern: "[0-9.]*",
+            }}
           />
         </Box>
 
@@ -120,7 +177,6 @@ const PriceAdjustCard = ({ product, onSave }) => {
           <Button
             variant="contained"
             onClick={handleSave}
-            disabled={!isEdited}
             sx={{
               ml: "auto",
               bgcolor: theme.palette.primary.main,

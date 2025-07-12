@@ -13,8 +13,6 @@ const MaterialsTable = ({ userId, projectedSales }) => {
       try {
         const response = await axiosInstance.get(`/provider/getmaterials/${userId}`);
 
-        console.log(response);
-
         if (response.data.ok) {
           const suppliers = response.data.suppliers;
 
