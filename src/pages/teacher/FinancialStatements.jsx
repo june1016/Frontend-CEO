@@ -41,57 +41,85 @@ export default function FinancialStatements() {
     const [openDialog, setOpenDialog] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
 
-    useEffect(() => {
-        const loadFinancialData = async () => {
-            const userId = getUserId();
+// En FinancialStatements.jsx - reemplaza el useEffect con esta versión mejorada:
 
+useEffect(() => {
+    const loadFinancialData = async () => {
+        const userId = getUserId();
+
+        try {
+            // Función helper para manejar requests que pueden fallar
+            const safeRequest = async (url, params) => {
+                try {
+                    const response = await axiosInstance.get(url, { params });
+                    return { success: true, data: response.data };
+                } catch (error) {
+                    console.warn(`Error en ${url}:`, error.message);
+                    return { success: false, data: null };
+                }
+            };
+
+            // Intentar obtener datos del usuario actual
+            const [
+                userSalesRes,
+                userSalesCostsRes,
+                userOperatingExpensesRes,
+                userOtherExpensesRes,
+                userProductsRes
+            ] = await Promise.all([
+                safeRequest("/sales/getSalesByCreatedBy", { created_by: userId }),
+                safeRequest("/salescosts/getSalesCostsByCreatedBy", { created_by: userId }),
+                safeRequest("/operatingexpenses/getOperatingExpensesByCreatedBy", { created_by: userId }),
+                safeRequest("/otherexpenses/getOtherExpensesByCreatedBy", { created_by: userId }),
+                safeRequest("/products/getProductsByCreatedBy", { created_by: userId })
+            ]);
+
+            // Verificar si hay datos del usuario actual
+            const hasSales = userSalesRes.success && userSalesRes.data?.sales?.length > 0;
+            const hasCosts = userSalesCostsRes.success && userSalesCostsRes.data?.salesCost?.length > 0;
+            const hasOperating = userOperatingExpensesRes.success && userOperatingExpensesRes.data?.operatingExpenses?.length > 0;
+            const hasOthers = userOtherExpensesRes.success && userOtherExpensesRes.data?.otherExpenses?.length > 0;
+            const hasProducts = userProductsRes.success && userProductsRes.data?.products?.length > 0;
+
+            // Si no hay datos del usuario, obtener datos por defecto (administrador)
+            const [
+                defaultSalesRes,
+                defaultSalesCostsRes,
+                defaultOperatingExpensesRes,
+                defaultOtherExpensesRes,
+                defaultProductsRes
+            ] = await Promise.all([
+                hasSales ? { success: true, data: null } : safeRequest("/sales/getSalesByCreatedBy", { created_by: 1 }),
+                hasCosts ? { success: true, data: null } : safeRequest("/salescosts/getSalesCostsByCreatedBy", { created_by: 1 }),
+                hasOperating ? { success: true, data: null } : safeRequest("/operatingexpenses/getOperatingExpensesByCreatedBy", { created_by: 1 }),
+                hasOthers ? { success: true, data: null } : safeRequest("/otherexpenses/getOtherExpensesByCreatedBy", { created_by: 1 }),
+                hasProducts ? { success: true, data: null } : safeRequest("/products/getProductsByCreatedBy", { created_by: 1 })
+            ]);
+
+            // Establecer los datos con fallbacks seguros
+            setSales(hasSales ? userSalesRes.data.sales : (defaultSalesRes?.data?.sales || []));
+            setSalesCosts(hasCosts ? userSalesCostsRes.data.salesCost : (defaultSalesCostsRes?.data?.salesCost || []));
+            setOperatingExpenses(hasOperating ? userOperatingExpensesRes.data.operatingExpenses : (defaultOperatingExpensesRes?.data?.operatingExpenses || []));
+            setOtherExpenses(hasOthers ? userOtherExpensesRes.data.otherExpenses : (defaultOtherExpensesRes?.data?.otherExpenses || []));
+            setProducts(hasProducts ? userProductsRes.data.products : (defaultProductsRes?.data?.products || []));
+
+        } catch (error) {
+            console.error("Error al cargar los datos financieros:", error);
+            showToast("Error al cargar algunos datos financieros. Se cargarán datos por defecto.", "warning");
+            
+            // Cargar solo datos por defecto si todo falla
             try {
-                const [
-                    userSalesRes,
-                    userSalesCostsRes,
-                    userOperatingExpensesRes,
-                    userOtherExpensesRes,
-                    userProductsRes
-                ] = await Promise.all([
-                    axiosInstance.get("/sales/getSalesByCreatedBy", { params: { created_by: userId } }),
-                    axiosInstance.get("/salescosts/getSalesCostsByCreatedBy", { params: { created_by: userId } }),
-                    axiosInstance.get("/operatingexpenses/getOperatingExpensesByCreatedBy", { params: { created_by: userId } }),
-                    axiosInstance.get("/otherexpenses/getOtherExpensesByCreatedBy", { params: { created_by: userId } }),
-                    axiosInstance.get("/products/getProductsByCreatedBy", { params: { created_by: userId } })
-                ]);
-
-                const hasSales = userSalesRes.data.sales.length > 0;
-                const hasCosts = userSalesCostsRes.data.salesCost.length > 0;
-                const hasOperating = userOperatingExpensesRes.data.operatingExpenses.length > 0;
-                const hasOthers = userOtherExpensesRes.data.otherExpenses.length > 0;
-                const hasProducts = userProductsRes.data.products.length > 0;
-
-                const [
-                    defaultSalesRes,
-                    defaultSalesCostsRes,
-                    defaultOperatingExpensesRes,
-                    defaultOtherExpensesRes,
-                    defaultProductsRes
-                ] = await Promise.all([
-                    hasSales ? null : axiosInstance.get("/sales/getSalesByCreatedBy", { params: { created_by: 1 } }),
-                    hasCosts ? null : axiosInstance.get("/salescosts/getSalesCostsByCreatedBy", { params: { created_by: 1 } }),
-                    hasOperating ? null : axiosInstance.get("/operatingexpenses/getOperatingExpensesByCreatedBy", { params: { created_by: 1 } }),
-                    hasOthers ? null : axiosInstance.get("/otherexpenses/getOtherExpensesByCreatedBy", { params: { created_by: 1 } }),
-                    hasProducts ? null : axiosInstance.get("/products/getProductsByCreatedBy", { params: { created_by: 1 } })
-                ]);
-
-                setSales(hasSales ? userSalesRes.data.sales : defaultSalesRes?.data.sales || []);
-                setSalesCosts(hasCosts ? userSalesCostsRes.data.salesCost : defaultSalesCostsRes?.data.salesCost || []);
-                setOperatingExpenses(hasOperating ? userOperatingExpensesRes.data.operatingExpenses : defaultOperatingExpensesRes?.data.operatingExpenses || []);
-                setOtherExpenses(hasOthers ? userOtherExpensesRes.data.otherExpenses : defaultOtherExpensesRes?.data.otherExpenses || []);
-                setProducts(hasProducts ? userProductsRes.data.products : defaultProductsRes?.data.products || []);
-            } catch (error) {
-                console.error("Error al cargar los datos financieros:", error);
+                const defaultProductsRes = await axiosInstance.get("/products/getProductsByCreatedBy", { params: { created_by: 1 } });
+                setProducts(defaultProductsRes.data?.products || []);
+            } catch (fallbackError) {
+                console.error("Error al cargar datos por defecto:", fallbackError);
+                showToast("Error crítico al cargar datos", "error");
             }
-        };
+        }
+    };
 
-        loadFinancialData();
-    }, []);
+    loadFinancialData();
+}, []);
 
 
 
