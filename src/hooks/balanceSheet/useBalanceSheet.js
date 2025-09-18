@@ -1,8 +1,8 @@
+// Frontend-CEO/src/hooks/balanceSheet/useBalanceSheet.js
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../services/api/axiosConfig';
 import showAlert from '../../utils/alerts/alertHelpers';
 import { updateProgress } from '../../utils/timeManagement/operationTime';
-
 
 export const useBalanceSheet = (handleTab) => {
   // Estado para cada sección del balance
@@ -24,7 +24,7 @@ export const useBalanceSheet = (handleTab) => {
     "Muebles y enseres": "",
     "Patentes": "",
     "Maquinaria y equipo": "",
-    "Equipos de oficina": "",
+    "Equipos de cómputo": "", // ✅ Corregido nombre
   });
 
   const [pasivosLP, setPasivosLP] = useState({
@@ -87,10 +87,11 @@ export const useBalanceSheet = (handleTab) => {
         const response = await axiosInstance.get("/financialdata/getDatatitles");
         const financialTitles = response.data.financialTitles;
 
+        // ✅ Ahora se obtiene literal_id desde financial_titles
         const formattedData = financialTitles.reduce((acc, title) => {
           acc[title.name] = {
             title_id: title.id,
-            literal_id: title.FinancialData[0]?.literal_id || null,
+            literal_id: title.literal_id, // ✅ Cambio clave
           };
           return acc;
         }, {});
@@ -98,6 +99,7 @@ export const useBalanceSheet = (handleTab) => {
         setFormattedDataTitles(formattedData);
       } catch (error) {
         console.error("Error al obtener datos:", error.message);
+        showAlert("Balance general", "Error al cargar títulos financieros.", "error");
       }
     };
 
@@ -141,18 +143,24 @@ export const useBalanceSheet = (handleTab) => {
       patrimonio,
     };
 
-    const formattedData = Object.values(allStates).flatMap((category) =>
-      Object.entries(category).map(([name, value]) => {
-        const DataTitles = formattedDataTitles[name];
+    const formattedData = [];
 
-        return {
-          title_id: DataTitles?.title_id || null,
-          literal_id: DataTitles?.literal_id || null,
+    Object.values(allStates).forEach(category => {
+      Object.entries(category).forEach(([name, value]) => {
+        const titleData = formattedDataTitles[name];
+        if (!titleData) {
+          console.warn(`Título no encontrado: ${name}`);
+          return;
+        }
+
+        formattedData.push({
+          title_id: titleData.title_id,
+          literal_id: titleData.literal_id,
           amount: parseFloat(value) || 0,
           created_by: userData?.id,
-        };
-      })
-    );
+        });
+      });
+    });
 
     return { financialData: formattedData };
   };
@@ -160,31 +168,21 @@ export const useBalanceSheet = (handleTab) => {
   const sendFinancialData = async (financialData) => {
     try {
       if (!Array.isArray(financialData) || financialData.length === 0) {
-        console.error("El array de datos financieros es requerido.");
-        return;
+        showAlert("Balance general", "No hay datos para guardar.", "error");
+        return { ok: false };
       }
 
       const response = await axiosInstance.post(
         "/financialdata/createfinancialdata",
-        {
-          financialData,
-        }
+        { financialData }
       );
 
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.message;
-
-      showAlert(
-        "Balance general inicial",
-        JSON.stringify(message, null, 2),
-        "error",
-        "#1C4384"
-      );
-      console.error(
-        "Error al registrar datos financieros:",
-        error.response?.data || error.message
-      );
+      const message = error.response?.data?.message || "Error desconocido al guardar.";
+      showAlert("Balance general", message, "error");
+      console.error("Error al registrar datos financieros:", error);
+      return { ok: false };
     }
   };
 
@@ -192,25 +190,23 @@ export const useBalanceSheet = (handleTab) => {
   const handleSave = async () => {
     // Verificar si el balance está cuadrado
     if (Math.abs(totals.balance) >= 0.01) {
-      // Si no está cuadrado, mostrar un mensaje de error
       showAlert(
         "Balance general inicial",
-        "El balance no cuadra. Por favor, revise los valores ingresados",
-        "error",
-        "#1C4384"
+        "El balance no cuadra. Por favor, revise los valores ingresados.",
+        "error"
       );
       return;
     }
 
     const { financialData } = formatData();
 
-    const responseFinancialData = await sendFinancialData(financialData);
+    const response = await sendFinancialData(financialData);
 
-    if (responseFinancialData?.ok) {
-      updateProgress(1); 
+    if (response?.ok) {
+      updateProgress(1);
       showAlert(
         "Balance general inicial",
-        "Datos financieros registrados exitosamente",
+        "Datos financieros registrados exitosamente.",
         "success",
         "#1C4384",
         () => handleTab(null, 2)
