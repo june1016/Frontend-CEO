@@ -35,6 +35,54 @@ const IncomeStatementView = ({
   incomeStatementTotals,
   theme,
 }) => {
+  // Validación defensiva - si no hay datos, mostrar loading o valores por defecto
+  if (!incomeStatement || !incomeStatementTotals) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography variant="h6" color="text.secondary">
+          Cargando datos del estado de resultados...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Valores por defecto para evitar errores
+  const safeIncomeStatement = {
+    sales: {
+      alfaros: incomeStatement?.sales?.alfaros || 0,
+      betacos: incomeStatement?.sales?.betacos || 0,
+      gamaroles: incomeStatement?.sales?.gamaroles || 0,
+    },
+    costs: {
+      alfaros: incomeStatement?.costs?.alfaros || 0,
+      betacos: incomeStatement?.costs?.betacos || 0,
+      gamaroles: incomeStatement?.costs?.gamaroles || 0,
+    },
+    expenses: {
+      administration: incomeStatement?.expenses?.administration || 0,
+      sales: incomeStatement?.expenses?.sales || 0,
+      other: incomeStatement?.expenses?.other || 0,
+    },
+    otherItems: {
+      financialExpenses: incomeStatement?.otherItems?.financialExpenses || 0,
+      depreciationAmortization: incomeStatement?.otherItems?.depreciationAmortization || 0,
+      taxes: incomeStatement?.otherItems?.taxes || 0,
+    }
+  };
+
+  const safeTotals = {
+    totalSales: incomeStatementTotals?.totalSales || 0,
+    totalCosts: incomeStatementTotals?.totalCosts || 0,
+    totalOperatingExpenses: incomeStatementTotals?.totalOperatingExpenses || 0,
+    totalOtherExpenses: incomeStatementTotals?.totalOtherExpenses || 0,
+    grossProfit: incomeStatementTotals?.grossProfit || 0,
+    operatingProfit: incomeStatementTotals?.operatingProfit || 0,
+    profitBeforeTaxes: incomeStatementTotals?.profitBeforeTaxes || 0,
+    taxes: incomeStatementTotals?.taxes || 0,
+    netProfit: incomeStatementTotals?.netProfit || 0,
+    ebitda: incomeStatementTotals?.ebitda || 0,
+  };
+
   return (
     <Box>
       {/* Tarjeta informativa */}
@@ -76,7 +124,7 @@ const IncomeStatementView = ({
                     <TableCell>Alfaros</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.sales.alfaros)}
+                        {formatCurrency(safeIncomeStatement.sales.alfaros)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -84,7 +132,7 @@ const IncomeStatementView = ({
                     <TableCell>Betacos</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.sales.betacos)}
+                        {formatCurrency(safeIncomeStatement.sales.betacos)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -92,7 +140,7 @@ const IncomeStatementView = ({
                     <TableCell>Gamaroles</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.sales.gamaroles)}
+                        {formatCurrency(safeIncomeStatement.sales.gamaroles)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -111,7 +159,7 @@ const IncomeStatementView = ({
                         color: theme.palette.success.main,
                       }}
                     >
-                      {formatCurrency(incomeStatementTotals.totalSales)}
+                      {formatCurrency(safeTotals.totalSales)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -147,7 +195,7 @@ const IncomeStatementView = ({
                     <TableCell>Alfaros</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.costs.alfaros)}
+                        {formatCurrency(safeIncomeStatement.costs.alfaros)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -155,7 +203,7 @@ const IncomeStatementView = ({
                     <TableCell>Betacos</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.costs.betacos)}
+                        {formatCurrency(safeIncomeStatement.costs.betacos)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -163,7 +211,7 @@ const IncomeStatementView = ({
                     <TableCell>Gamaroles</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.costs.gamaroles)}
+                        {formatCurrency(safeIncomeStatement.costs.gamaroles)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -182,7 +230,7 @@ const IncomeStatementView = ({
                         color: theme.palette.error.main,
                       }}
                     >
-                      {formatCurrency(incomeStatementTotals.totalCosts)}
+                      {formatCurrency(safeTotals.totalCosts)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -222,9 +270,7 @@ const IncomeStatementView = ({
                     <TableCell>Gastos de Administración</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(
-                          incomeStatement.expenses.administration
-                        )}
+                        {formatCurrency(safeIncomeStatement.expenses.administration)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -232,7 +278,7 @@ const IncomeStatementView = ({
                     <TableCell>Gastos de Ventas</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.expenses.sales)}
+                        {formatCurrency(safeIncomeStatement.expenses.sales)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -240,7 +286,7 @@ const IncomeStatementView = ({
                     <TableCell>Otros Gastos Operativos</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.expenses.other)}
+                        {formatCurrency(safeIncomeStatement.expenses.other)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -259,9 +305,7 @@ const IncomeStatementView = ({
                         color: theme.palette.error.main,
                       }}
                     >
-                      {formatCurrency(
-                        incomeStatementTotals.totalOperatingExpenses
-                      )}
+                      {formatCurrency(safeTotals.totalOperatingExpenses)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -297,9 +341,7 @@ const IncomeStatementView = ({
                     <TableCell>Gastos Financieros</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(
-                          incomeStatement.otherItems.financialExpenses
-                        )}
+                        {formatCurrency(safeIncomeStatement.otherItems.financialExpenses)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -307,9 +349,7 @@ const IncomeStatementView = ({
                     <TableCell>Depreciación y Amortización</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(
-                          incomeStatement.otherItems.depreciationAmortization
-                        )}
+                        {formatCurrency(safeIncomeStatement.otherItems.depreciationAmortization)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -317,7 +357,7 @@ const IncomeStatementView = ({
                     <TableCell>Impuestos</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 500 }}>
-                        {formatCurrency(incomeStatement.otherItems.taxes)}
+                        {formatCurrency(safeIncomeStatement.otherItems.taxes)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -336,7 +376,7 @@ const IncomeStatementView = ({
                         color: theme.palette.error.main,
                       }}
                     >
-                      {formatCurrency(incomeStatementTotals.totalOtherExpenses)}
+                      {formatCurrency(safeTotals.totalOtherExpenses)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -371,7 +411,7 @@ const IncomeStatementView = ({
                   Ventas Totales
                 </TableCell>
                 <TableCell>
-                  {formatCurrency(incomeStatementTotals.totalSales)}
+                  {formatCurrency(safeTotals.totalSales)}
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -379,7 +419,7 @@ const IncomeStatementView = ({
                   (-) Costos de Ventas
                 </TableCell>
                 <TableCell>
-                  {formatCurrency(incomeStatementTotals.totalCosts)}
+                  {formatCurrency(safeTotals.totalCosts)}
                 </TableCell>
               </TableRow>
               <TableRow sx={{ bgcolor: "#EBF5FF" }}>
@@ -397,7 +437,7 @@ const IncomeStatementView = ({
                     color: theme.palette.success.main,
                   }}
                 >
-                  {formatCurrency(incomeStatementTotals.grossProfit)}
+                  {formatCurrency(safeTotals.grossProfit)}
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -405,7 +445,7 @@ const IncomeStatementView = ({
                   (-) Gastos Operacionales
                 </TableCell>
                 <TableCell>
-                  {formatCurrency(incomeStatementTotals.totalOperatingExpenses)}
+                  {formatCurrency(safeTotals.totalOperatingExpenses)}
                 </TableCell>
               </TableRow>
               <TableRow sx={{ bgcolor: "#EBF5FF" }}>
@@ -423,7 +463,7 @@ const IncomeStatementView = ({
                     color: theme.palette.success.main,
                   }}
                 >
-                  {formatCurrency(incomeStatementTotals.operatingProfit)}
+                  {formatCurrency(safeTotals.operatingProfit)}
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -431,7 +471,7 @@ const IncomeStatementView = ({
                   (-) Otros Gastos
                 </TableCell>
                 <TableCell>
-                  {formatCurrency(incomeStatementTotals.totalOtherExpenses)}
+                  {formatCurrency(safeTotals.totalOtherExpenses)}
                 </TableCell>
               </TableRow>
               <TableRow sx={{ bgcolor: "#EBF5FF" }}>
@@ -449,13 +489,13 @@ const IncomeStatementView = ({
                     color: theme.palette.success.main,
                   }}
                 >
-                  {formatCurrency(incomeStatementTotals.profitBeforeTaxes)}
+                  {formatCurrency(safeTotals.profitBeforeTaxes)}
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell sx={{ fontWeight: "bold" }}>(-) Impuestos</TableCell>
                 <TableCell>
-                  {formatCurrency(incomeStatementTotals.taxes)}
+                  {formatCurrency(safeTotals.taxes)}
                 </TableCell>
               </TableRow>
               <TableRow sx={{ bgcolor: "#EBF5FF" }}>
@@ -473,7 +513,7 @@ const IncomeStatementView = ({
                     color: theme.palette.success.main,
                   }}
                 >
-                  {formatCurrency(incomeStatementTotals.netProfit)}
+                  {formatCurrency(safeTotals.netProfit)}
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -484,7 +524,7 @@ const IncomeStatementView = ({
                     color: theme.palette.secondary.main,
                   }}
                 >
-                  {formatCurrency(incomeStatementTotals.ebitda)}
+                  {formatCurrency(safeTotals.ebitda)}
                 </TableCell>
               </TableRow>
             </TableBody>
