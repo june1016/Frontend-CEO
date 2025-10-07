@@ -74,7 +74,6 @@ export default function PlanningPage() {
               height: 3,
             },
           }}
-          FixedExpensesTab
         >
           <Tab label="Datos Financieros" {...a11yProps(0)} />
           <Tab label="Gastos Fijos Mensuales" {...a11yProps(1)} />
