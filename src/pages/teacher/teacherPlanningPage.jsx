@@ -41,7 +41,7 @@ import ToastNotification, { showToast } from "../../components/common/ToastNotif
 import FormDialog from "../../components/admin/formDialog";
 import { fieldsAmountEdit } from "../../data/fieldsForm";
 import { amountSchema } from "../../utils/validators/amountSchema";
-import showAlert from "../../utils/alerts/alertHelpers";
+import { showAlert } from "../../utils/alerts/alertHelpers";
 
 export default function TeacherPlanning() {
   const theme = useTheme();

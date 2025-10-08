@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   getComparator,
   stableSort,
-} from "../../utils/planning/financialData/sortHelpers";
+} from "../../utils/shared/sortHelpers";
 
 /**
  * Hook personalizado para ordenar datos en tablas

@@ -63,4 +63,3 @@ export const showConfirmation = (
   });
 };
 
-export default showAlert;

@@ -42,7 +42,7 @@ import PermContactCalendarIcon from "@mui/icons-material/PermContactCalendar";
 
 import { useTheme } from "@mui/material/styles";
 import axiosInstance from "../../services/api/axiosConfig";
-import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers";
+import { showAlert, showConfirmation } from "../../utils/alerts/alertHelpers";
 import { getFieldsGroups } from "../../data/fieldsForm";
 import { groupSchema } from "../../utils/validators/groupsFormSchema";
 import FormDialog from "../../components/admin/formDialog";

@@ -1,7 +1,7 @@
 // Frontend/src/hooks/balanceSheet/useBalanceSheet.js
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../../services/api/axiosConfig';
-import showAlert from '../../../utils/alerts/alertHelpers';
+import { showAlert } from '../../../utils/alerts/alertHelpers';
 import { updateProgress } from '../../../utils/shared/operationTime';
 
 export const useBalanceSheet = (handleTab) => {
