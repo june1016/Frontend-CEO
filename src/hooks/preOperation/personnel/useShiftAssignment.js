@@ -1,7 +1,7 @@
 // src/hooks/personnel/useShiftAssignment.js
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../../services/api/axiosConfig';
-import { showAlert } from '../../../utils/alerts/alertHelpers';
+import { showAlert } from '../../../utils/shared/alerts/alertHelpers';
 import { updateProgress } from '../../../utils/shared/operationTime';
 
 

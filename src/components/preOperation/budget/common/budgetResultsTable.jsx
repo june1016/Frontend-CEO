@@ -13,7 +13,7 @@ import {
   TableCell,
 } from "@mui/material";
 import { FileDownload as DownloadIcon } from "@mui/icons-material";
-import { formatNumber } from "../../../../utils/formatters/numberFormatters";
+import { formatNumber } from "../../../../utils/shared/formatters/numberFormatters";
 import axiosInstance from "../../../../services/api/axiosConfig";
 
 /**

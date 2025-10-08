@@ -21,7 +21,7 @@ import {
   Assessment as AssessmentIcon,
 } from "@mui/icons-material";
 import InfoCard from ".././common/infoCard";
-import { formatCurrency } from "../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../utils/shared/formatters/currencyFormatters";
 import { useMonthlyExpenses } from "../../hooks/planning/monthlyFixedExpenses/useMonthlyExpenses";
 
 // Componente reutilizable para tablas de gastos

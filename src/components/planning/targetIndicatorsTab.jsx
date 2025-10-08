@@ -31,7 +31,7 @@ import {
   Info as InfoIcon,
 } from "@mui/icons-material";
 import axiosInstance from "../../services/api/axiosConfig";
-import { showAlert } from "../../utils/alerts/alertHelpers";
+import { showAlert } from "../../utils/shared/alerts/alertHelpers";
 import InfoCard from ".././common/infoCard";
 import { updateProgress } from "../../utils/shared/operationTime";
 

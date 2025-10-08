@@ -1,7 +1,7 @@
 // src/hooks/suppliers/useSuppliers.js
 import { useState, useEffect } from "react";
 import axiosInstance from "../../../services/api/axiosConfig";
-import { showAlert } from "../../../utils/alerts/alertHelpers";
+import { showAlert } from "../../../utils/shared/alerts/alertHelpers";
 
 const useSuppliers = () => {
   const [suppliers, setSuppliers] = useState([]);

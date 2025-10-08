@@ -23,7 +23,7 @@ import {
   Discount as DiscountIcon,
   Info as InfoIcon
 } from "@mui/icons-material";
-import { formatCurrency } from "../../../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../../../utils/shared/formatters/currencyFormatters";
 
 const SelectionCard = ({
   material,

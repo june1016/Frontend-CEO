@@ -20,7 +20,7 @@ import {
   Description,
 } from "@mui/icons-material";
 import InfoCard from "../../common/infoCard";
-import { formatCurrency } from "../../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../../utils/shared/formatters/currencyFormatters";
 
 /**
  * Componente para mostrar la vista de estado de resultados

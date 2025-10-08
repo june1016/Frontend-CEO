@@ -16,7 +16,7 @@ import {
   iconMapping,
   categoryColors,
 } from "../../../../review/financialData";
-import { formatCurrency } from "../../../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../../../utils/shared/formatters/currencyFormatters";
 
 /**
  * Componente de tabla con ordenamiento

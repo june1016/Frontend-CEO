@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Card, CardContent, Typography, Avatar } from "@mui/material";
-import { formatMillions } from "../../../../utils/formatters/currencyFormatters";
+import { formatMillions } from "../../../../utils/shared/formatters/currencyFormatters";
 import { getCategoryIcon } from "./iconHelper";
 import { categoryColors } from "../../../../review/financialData";
 

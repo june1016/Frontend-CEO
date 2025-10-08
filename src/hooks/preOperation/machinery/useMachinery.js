@@ -1,7 +1,7 @@
 // src/hooks/machinery/useMachinery.js
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../../services/api/axiosConfig';
-import { showAlert } from '../../../utils/alerts/alertHelpers';
+import { showAlert } from '../../../utils/shared/alerts/alertHelpers';
 
 export const useMachinery = () => {
   const [machines, setMachines] = useState([]);

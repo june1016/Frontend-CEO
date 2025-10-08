@@ -17,7 +17,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import InfoIcon from '@mui/icons-material/Info';
 import RoleCard from "./common/roleCard";
 import { usePersonnel } from "../../../hooks/preOperation/personnel/usePersonnel";
-import { formatCurrency } from "../../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../../utils/shared/formatters/currencyFormatters";
 
 const OrganizationalStructureView = () => {
   const theme = useTheme();

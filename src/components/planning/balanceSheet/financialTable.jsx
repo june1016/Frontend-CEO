@@ -15,7 +15,7 @@ import {
   InputAdornment,
   useTheme
 } from '@mui/material';
-import { formatCurrency } from '../../../utils/formatters/currencyFormatters';
+import { formatCurrency } from '../../../utils/shared/formatters/currencyFormatters';
 
 const FinancialTable = ({ 
   title, 

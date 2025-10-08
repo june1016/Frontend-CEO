@@ -12,7 +12,7 @@ import {
   Stack
 } from '@mui/material';
 import EngineeringIcon from '@mui/icons-material/Engineering';
-import { formatCurrency } from '../../../../utils/formatters/currencyFormatters';
+import { formatCurrency } from '../../../../utils/shared/formatters/currencyFormatters';
 
 const RoleCard = ({ 
   role, 

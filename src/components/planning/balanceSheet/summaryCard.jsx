@@ -8,7 +8,7 @@ import {
   Box,
   useTheme
 } from '@mui/material';
-import { formatCurrency } from '../../../utils/formatters/currencyFormatters';
+import { formatCurrency } from '../../../utils/shared/formatters/currencyFormatters';
 
 const SummaryCard = ({ title, value, icon, bgColor }) => {
   const theme = useTheme();

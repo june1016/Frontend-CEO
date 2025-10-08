@@ -11,7 +11,7 @@ import {
   Button,
   Fade
 } from "@mui/material";
-import { formatCurrency } from "../../../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../../../utils/shared/formatters/currencyFormatters";
 import axiosInstance from "../../../../services/api/axiosConfig";
 import { getUserId } from "../../../../utils/shared/operationTime";
 import ToastNotification, { showToast } from "../../../common/ToastNotification";

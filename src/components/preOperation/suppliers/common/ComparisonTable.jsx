@@ -12,7 +12,7 @@ import {
   Box,
   Chip,
 } from "@mui/material";
-import { formatCurrency } from "../../../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../../../utils/shared/formatters/currencyFormatters";
 
 const ComparisonTable = ({ suppliers, materials, compareBy, hasProductionManager }) => {
 

@@ -25,8 +25,8 @@ import ToastNotification, { showToast } from "../../components/common/ToastNotif
 import FormDialog from "../../components/admin/formDialog";
 import { getUserId } from "../../utils/shared/operationTime";
 import axiosInstance from "../../services/api/axiosConfig";
-import { formatCurrency } from "../../utils/formatters/currencyFormatters";
-import { amountQuantitySchema, amountSchema, valueCopSchema } from "../../utils/validators/amountSchema";
+import { formatCurrency } from "../../utils/shared/formatters/currencyFormatters";
+import { amountQuantitySchema, amountSchema, valueCopSchema } from "../../utils/shared/validators/amountSchema";
 import { fieldsAmountEdit, fieldsAmountQuantityEdit, fieldsValueCopEdit } from "../../data/fieldsForm";
 
 const modalStyle = {

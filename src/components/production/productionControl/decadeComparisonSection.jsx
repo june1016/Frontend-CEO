@@ -12,7 +12,7 @@ import {
   Warning as WarningIcon
 } from '@mui/icons-material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { formatNumber } from '../../../utils/formatters/numberFormatters';
+import { formatNumber } from '../../../utils/shared/formatters/numberFormatters';
 
 const DecadeComparisonSection = ({ decadeAnalysis, totals, chartData }) => {
   const theme = useTheme();

@@ -7,7 +7,7 @@ import {
   Box,
   useTheme
 } from '@mui/material';
-import { formatCurrency } from '../../../utils/formatters/currencyFormatters';
+import { formatCurrency } from '../../../utils/shared/formatters/currencyFormatters';
 
 const BalanceSummary = ({ balance }) => {
   const theme = useTheme();

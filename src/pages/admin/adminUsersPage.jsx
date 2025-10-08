@@ -46,10 +46,10 @@ import BadgeIcon from '@mui/icons-material/Badge';
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 
 import axiosInstance from "../../services/api/axiosConfig";
-import { showAlert, showConfirmation } from "../../utils/alerts/alertHelpers";
+import { showAlert, showConfirmation } from "../../utils/shared/alerts/alertHelpers";
 import ToastNotification, { showToast } from "../../components/common/ToastNotification";
 import FormDialog from "../../components/admin/formDialog";
-import { userSchema } from "../../utils/validators/userSchema";
+import { userSchema } from "../../utils/shared/validators/userSchema";
 import { getFieldsUsers } from "../../data/fieldsForm";
 
 export default function AdminUsersPage() {

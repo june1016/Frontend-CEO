@@ -35,13 +35,13 @@ import EditIcon from "@mui/icons-material/Edit";
 import axiosInstance from "../../services/api/axiosConfig";
 import { getUserId } from "../../utils/shared/operationTime";
 import { categoryColors, iconMapping } from "../../review/financialData";
-import { formatCurrency } from "../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../utils/shared/formatters/currencyFormatters";
 import SummaryCard from "../../components/planning/balanceSheet/summaryCard";
 import ToastNotification, { showToast } from "../../components/common/ToastNotification";
 import FormDialog from "../../components/admin/formDialog";
 import { fieldsAmountEdit } from "../../data/fieldsForm";
-import { amountSchema } from "../../utils/validators/amountSchema";
-import { showAlert } from "../../utils/alerts/alertHelpers";
+import { amountSchema } from "../../utils/shared/validators/amountSchema";
+import { showAlert } from "../../utils/shared/alerts/alertHelpers";
 
 export default function TeacherPlanning() {
   const theme = useTheme();

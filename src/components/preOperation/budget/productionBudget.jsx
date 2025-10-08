@@ -35,9 +35,9 @@ import MonthSelector from "./common/monthSelector";
 import BudgetResultsTable from "./common/budgetResultsTable";
 
 // Utils
-import { formatNumber } from "../../../utils/formatters/numberFormatters";
+import { formatNumber } from "../../../utils/shared/formatters/numberFormatters";
 import { calculateTotals } from "../../../utils/preOperation/budget/budgetCalculations";
-import { showAlert } from "../../../utils/alerts/alertHelpers";
+import { showAlert } from "../../../utils/shared/alerts/alertHelpers";
 import axiosInstance from "../../../services/api/axiosConfig";
 import { updateProgress } from "../../../utils/shared/operationTime";
 /**

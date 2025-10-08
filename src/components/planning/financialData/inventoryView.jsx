@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { Inventory, Category, LocalShipping } from "@mui/icons-material";
 import InfoCard from "../../common/infoCard.jsx";
-import { formatCurrency } from "../../../utils/formatters/currencyFormatters";
+import { formatCurrency } from "../../../utils/shared/formatters/currencyFormatters.js";
 
 /**
  * Componente para mostrar la vista de inventario
