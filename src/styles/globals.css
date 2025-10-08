@@ -12,21 +12,3 @@ body {
   min-height: 100vh;
   font-family: "Nunito Sans", sans-serif;
 }
-
-input[type="checkbox"] {
-  accent-color: #1c4384;
-}
-
-/* Ajustes específicos para inputs de Material UI */
-.MuiOutlinedInput-root {
-  border-radius: 6px !important;
-}
-
-.MuiOutlinedInput-notchedOutline {
-  border-color: #d7d7d7 !important;
-}
-
-.Mui-focused .MuiOutlinedInput-notchedOutline {
-  border-color: #1c4384 !important;
-  border-width: 2px !important;
-}
