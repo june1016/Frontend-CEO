@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Card, CardContent, Typography, Avatar } from "@mui/material";
 import { formatMillions } from "../../../../utils/formatters/currencyFormatters";
 import { getCategoryIcon } from "./iconHelper";
-import { categoryColors } from "../../../../constants/financialData";
+import { categoryColors } from "../../../../review/financialData";
 
 /**
  * Componente para mostrar una tarjeta de resumen financiero

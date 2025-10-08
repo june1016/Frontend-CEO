@@ -44,9 +44,9 @@ import { useTheme } from "@mui/material/styles";
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers";
 import { getFieldsGroups } from "../../data/fieldsForm";
-import { groupSchema } from "../../utils/validations/groupsFormSchema";
+import { groupSchema } from "../../utils/validators/groupsFormSchema";
 import FormDialog from "../../components/admin/formDialog";
-import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import ToastNotification, { showToast } from "../../components/common/ToastNotification";
 
 export default function AdminGroupsPage() {
     const theme = useTheme();

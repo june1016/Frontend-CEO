@@ -22,7 +22,7 @@ import {
 } from "@mui/icons-material";
 import InfoCard from ".././common/infoCard";
 import { formatCurrency } from "../../utils/formatters/currencyFormatters";
-import { useMonthlyExpenses } from "../../hooks/monthlyFixedExpenses/useMonthlyExpenses";
+import { useMonthlyExpenses } from "../../hooks/planning/monthlyFixedExpenses/useMonthlyExpenses";
 
 // Componente reutilizable para tablas de gastos
 const ExpenseTable = ({ title, icon, data, total, theme, columns = 2, note }) => {

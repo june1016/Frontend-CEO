@@ -16,7 +16,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { loginSchema } from "../../utils/validations/authSchemas";
+import { loginSchema } from "../../utils/validators/authSchemas";
 import { authService } from "../../services/auth/authService";
 
 export default function LoginForm() {

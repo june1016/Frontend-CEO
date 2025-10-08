@@ -21,12 +21,12 @@ import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 import Swal from "sweetalert2";
-import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import ToastNotification, { showToast } from "../../components/common/ToastNotification";
 import FormDialog from "../../components/admin/formDialog";
-import { getUserId } from "../../utils/timeManagement/operationTime";
+import { getUserId } from "../../utils/shared/operationTime";
 import axiosInstance from "../../services/api/axiosConfig";
 import { formatCurrency } from "../../utils/formatters/currencyFormatters";
-import { amountQuantitySchema, amountSchema, valueCopSchema } from "../../utils/validations/amountSchema";
+import { amountQuantitySchema, amountSchema, valueCopSchema } from "../../utils/validators/amountSchema";
 import { fieldsAmountEdit, fieldsAmountQuantityEdit, fieldsValueCopEdit } from "../../data/fieldsForm";
 
 const modalStyle = {

@@ -11,8 +11,8 @@ import InfoCard from "../../common/infoCard";
 import MarketingProductCard from "../common/market/MarketingProductCard";
 import useProductInventory from "../hooks/useProductInventory";
 import useMarketingConfiguration from "../hooks/useMarketingConfiguration";
-import ToastNotification, { showToast } from "../../alerts/ToastNotification";
-import { getUserId } from "../../../utils/timeManagement/operationTime";
+import ToastNotification, { showToast } from "../../common/ToastNotification";
+import { getUserId } from "../../../utils/shared/operationTime";
 import axiosInstance from "../../../services/api/axiosConfig";
 
 

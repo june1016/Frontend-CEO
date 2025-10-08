@@ -23,11 +23,11 @@ import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from '@mui/icons-material/Save';
 import axiosInstance from "../../services/api/axiosConfig";
-import { getUserId } from "../../utils/timeManagement/operationTime";
+import { getUserId } from "../../utils/shared/operationTime";
 import { formatCurrency } from "../../utils/formatters/currencyFormatters";
-import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import ToastNotification, { showToast } from "../../components/common/ToastNotification";
 import FormDialog from "../../components/admin/formDialog";
-import { amountSchema } from "../../utils/validations/amountSchema";
+import { amountSchema } from "../../utils/validators/amountSchema";
 import { fieldsAmountEdit } from "../../data/fieldsForm";
 
 

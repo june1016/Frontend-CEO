@@ -15,7 +15,7 @@ import {
 import {
   iconMapping,
   categoryColors,
-} from "../../../../constants/financialData";
+} from "../../../../review/financialData";
 import { formatCurrency } from "../../../../utils/formatters/currencyFormatters";
 
 /**

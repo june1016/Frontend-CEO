@@ -1,8 +1,8 @@
-// Frontend-CEO/src/hooks/balanceSheet/useBalanceSheet.js
+// Frontend/src/hooks/balanceSheet/useBalanceSheet.js
 import { useState, useEffect } from 'react';
-import axiosInstance from '../../services/api/axiosConfig';
-import showAlert from '../../utils/alerts/alertHelpers';
-import { updateProgress } from '../../utils/timeManagement/operationTime';
+import axiosInstance from '../../../services/api/axiosConfig';
+import showAlert from '../../../utils/alerts/alertHelpers';
+import { updateProgress } from '../../../utils/shared/operationTime';
 
 export const useBalanceSheet = (handleTab) => {
   // Estado para cada sección del balance
@@ -24,7 +24,7 @@ export const useBalanceSheet = (handleTab) => {
     "Muebles y enseres": "",
     "Patentes": "",
     "Maquinaria y equipo": "",
-    "Equipos de cómputo": "", // ✅ Corregido nombre
+    "Equipos de cómputo": "",
   });
 
   const [pasivosLP, setPasivosLP] = useState({
@@ -81,17 +81,44 @@ export const useBalanceSheet = (handleTab) => {
     });
   }, [activosCorrientes, pasivosCorrientes, ppe, pasivosLP, patrimonio]);
 
+  // ✅ Mapeo de títulos a literal_id según tu esquema de base de datos
+  const getLiteralIdForTitle = (titleName) => {
+    // Activos corrientes
+    if (["Dinero en caja", "Dinero en banco", "Cuentas por cobrar", "Inventario"].includes(titleName)) {
+      return 1; // "Activos corrientes"
+    }
+    // PPE (Propiedades, Planta y Equipo)
+    if (["Maquinaria y equipo", "Equipos de cómputo", "Muebles y enseres", "Patentes"].includes(titleName)) {
+      return 3; // "PPE"
+    }
+    // Pasivos corrientes
+    if (["Cuentas por pagar", "Letras por pagar", "Obligaciones laborales", "Impuestos por pagar"].includes(titleName)) {
+      return 2; // "Pasivos corrientes"
+    }
+    // Pasivo Largo Plazo
+    if (titleName === "Deuda a largo plazo") {
+      return 4; // "Pasivo Largo Plazo"
+    }
+    // Patrimonio
+    if (["Capital social", "Utilidades retenidas"].includes(titleName)) {
+      return 5; // "Patrimonio"
+    }
+    
+    console.warn(`literal_id no encontrado para: ${titleName}`);
+    return null;
+  };
+
   useEffect(() => {
     const getFinancialTitle = async () => {
       try {
         const response = await axiosInstance.get("/financialdata/getDatatitles");
         const financialTitles = response.data.financialTitles;
 
-        // ✅ Ahora se obtiene literal_id desde financial_titles
+        // ✅ Asignar literal_id basado en la lógica de negocio
         const formattedData = financialTitles.reduce((acc, title) => {
           acc[title.name] = {
             title_id: title.id,
-            literal_id: title.literal_id, // ✅ Cambio clave
+            literal_id: getLiteralIdForTitle(title.name), // ✅ Obtener literal_id según el título
           };
           return acc;
         }, {});
@@ -150,6 +177,11 @@ export const useBalanceSheet = (handleTab) => {
         const titleData = formattedDataTitles[name];
         if (!titleData) {
           console.warn(`Título no encontrado: ${name}`);
+          return;
+        }
+
+        if (!titleData.literal_id) {
+          console.warn(`literal_id no encontrado para: ${name}`);
           return;
         }
 

@@ -33,7 +33,7 @@ import {
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert from "../../utils/alerts/alertHelpers";
 import InfoCard from ".././common/infoCard";
-import { updateProgress } from "../../utils/timeManagement/operationTime";
+import { updateProgress } from "../../utils/shared/operationTime";
 
 export default function TargetIndicatorsTab({ handleTab }) {
   const theme = useTheme();

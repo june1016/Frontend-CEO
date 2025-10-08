@@ -16,9 +16,9 @@ import { styled, alpha } from "@mui/material/styles";
 import {KeyboardArrowDown} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
-import { startOperation } from "../../utils/timeManagement/operationTime";
+import { startOperation } from "../../utils/shared/operationTime";
 import StartOperationModal from "../common/startOperationModal";
-import showAlert from "../../utils/functions";
+import showAlert from "../../review/functions";
 import MonthProgress from "./MonthProgress";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({

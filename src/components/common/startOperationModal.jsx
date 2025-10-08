@@ -16,9 +16,9 @@ import {
   alpha
 } from '@mui/material';
 import { PlayArrowOutlined, Warning } from '@mui/icons-material';
-import OperationStartAnimation from '../animations/OperationStartAnimation';
+import OperationStartAnimation from '../../review/animations/OperationStartAnimation';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
-import showAlert from '../../utils/functions';
+import showAlert from '../../review/functions';
 
 const StartOperationModal = ({ onConfirm }) => {
   const theme = useTheme();

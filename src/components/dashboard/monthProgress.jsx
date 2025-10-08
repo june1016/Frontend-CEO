@@ -5,8 +5,8 @@ import {
   OPERATION_STATUS_KEY,
   PROGRESS_MONTH_KEY,
   upsertProgressInBackend,
-} from "../../utils/timeManagement/operationTime.js";
-import { getSimulatedTime } from "../../utils/timeManagement/operationTime.js";
+} from "../../utils/shared/operationTime.js";
+import { getSimulatedTime } from "../../utils/shared/operationTime.js";
 
 const MonthProgress = () => {
   const theme = useTheme();

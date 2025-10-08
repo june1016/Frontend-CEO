@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import axiosInstance from "../../services/api/axiosConfig";
-import { useFinishedProductsInventory } from "../../hooks/financialData/useFinishedProductsInventory.js";
-import { getUserId } from "../../utils/timeManagement/operationTime.js";
-
+import axiosInstance from "../../../services/api/axiosConfig";
+import { useFinishedProductsInventory } from "../../../hooks/planning/financialData/useFinishedProductsInventory.js";
+import { getUserId } from "../../../utils/shared/operationTime.js";
 
 export const useRawMaterialsInventory = () => {
   const [rawMaterials, setRawMaterials] = useState([]);

@@ -4,8 +4,8 @@ import { Grid, Typography } from "@mui/material";
 import axiosInstance from "../../../services/api/axiosConfig";
 import useProductInventory from "../hooks/useProductInventory";
 import CreditPolicyPerProduct from "../common/policy/CreditPolicyPerProduct";
-import { getUserId } from "../../../utils/timeManagement/operationTime";
-import ToastNotification, { showToast } from "../../alerts/ToastNotification";
+import { getUserId } from "../../../utils/shared/operationTime";
+import ToastNotification, { showToast } from "../../common/ToastNotification";
 
 
 const CreditPolicyView = () => {

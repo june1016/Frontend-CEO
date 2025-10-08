@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { Save as SaveIcon, CheckCircle as CheckCircleIcon } from "@mui/icons-material";
 import SelectionCard from "./common/SelectionCard";
-import { updateProgress } from "../../../utils/timeManagement/operationTime";
+import { updateProgress } from "../../../utils/shared/operationTime";
 
 
 const SupplierSelections = ({ 

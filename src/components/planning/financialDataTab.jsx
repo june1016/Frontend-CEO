@@ -6,10 +6,10 @@ import IncomeStatementView from "./financialData/incomeStatementView";
 import InventoryView from "./financialData/inventoryView";
 
 // Hooks personalizados
-import useFinancialData from "../../hooks/financialData/useFinancialData";
-import useSortableData from "../../hooks/financialData/useSortableData";
-import { useRawMaterialsInventory } from "../../hooks/financialData/useRawMaterialsInventory.js";
-import { useIncomeStatement } from "../../hooks/financialData/useIncomeStatement.js";
+import useFinancialData from "../../hooks/planning/financialData/useFinancialData.js";
+import useSortableData from "../../hooks/common/useSortableData.js";
+import { useRawMaterialsInventory } from "../../hooks/planning/financialData/useRawMaterialsInventory.js";
+import { useIncomeStatement } from "../../hooks/planning/financialData/useIncomeStatement.js";
 
 /**
  * Componente principal para la visualización de datos financieros

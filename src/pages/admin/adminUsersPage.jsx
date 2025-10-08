@@ -47,9 +47,9 @@ import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 
 import axiosInstance from "../../services/api/axiosConfig";
 import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers";
-import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import ToastNotification, { showToast } from "../../components/common/ToastNotification";
 import FormDialog from "../../components/admin/formDialog";
-import { userSchema } from "../../utils/validations/userSchema";
+import { userSchema } from "../../utils/validators/userSchema";
 import { getFieldsUsers } from "../../data/fieldsForm";
 
 export default function AdminUsersPage() {

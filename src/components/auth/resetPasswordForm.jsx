@@ -11,7 +11,7 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { resetPasswordSchema } from "../../utils/validations/authSchemas";
+import { resetPasswordSchema } from "../../utils/validators/authSchemas";
 import { authService } from "../../services/auth/authService";
 
 export default function ResetPasswordForm() {

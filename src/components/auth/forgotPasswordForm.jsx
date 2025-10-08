@@ -11,7 +11,7 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { forgotPasswordSchema } from "../../utils/validations/authSchemas";
+import { forgotPasswordSchema } from "../../utils/validators/authSchemas";
 import { authService } from "../../services/auth/authService";
 
 export default function ForgotPasswordForm() {

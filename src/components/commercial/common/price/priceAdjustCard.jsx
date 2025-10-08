@@ -13,8 +13,8 @@ import {
 } from "@mui/material";
 import { formatCurrency } from "../../../../utils/formatters/currencyFormatters";
 import axiosInstance from "../../../../services/api/axiosConfig";
-import { getUserId } from "../../../../utils/timeManagement/operationTime";
-import ToastNotification, { showToast } from "../../../alerts/ToastNotification";
+import { getUserId } from "../../../../utils/shared/operationTime";
+import ToastNotification, { showToast } from "../../../common/ToastNotification";
 
 const PriceAdjustCard = ({ product, onSave }) => {
   const theme = useTheme();

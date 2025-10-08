@@ -14,7 +14,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import InfoCard from "../common/infoCard";
 import MachineList from "./machinery/machineList";
 import MachineDetails from "./machinery/machineDetails";
-import { useMachinery } from "../../hooks/machinery/useMachinery";
+import { useMachinery } from "../../hooks/preOperation/machinery/useMachinery";
 
 export default function MachineryTab() {
   const theme = useTheme();

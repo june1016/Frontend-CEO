@@ -23,12 +23,12 @@ import ProductInputForm from "./common/productInputForm";
 import BudgetResultsTable from "./common/budgetResultsTable";
 
 // Hooks
-import useBudgetData from "../../../hooks/budget/useBudgetData";
+import useBudgetData from "../../../hooks/preOperation/budget/useBudgetData";
 
 // Utils
-import { calculateTotals } from "../../../utils/budget/budgetCalculations";
+import { calculateTotals } from "../../../utils/preOperation/budget/budgetCalculations";
 import axiosInstance from "../../../services/api/axiosConfig";
-import showAlert from "../../../utils/functions";
+import showAlert from "../../../review/functions";
 
 /**
  * Componente para el presupuesto de ventas

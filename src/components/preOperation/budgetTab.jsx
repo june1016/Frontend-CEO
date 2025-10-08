@@ -23,8 +23,8 @@ import SalesBudget from "./budget/salesBudget";
 import ProductionBudget from "./budget/productionBudget";
 
 // Hooks
-import useBudgetConfiguration from "../../hooks/budget/useBudgetConfiguration";
-import showAlert from "../../utils/functions";
+import useBudgetConfiguration from "../../hooks/preOperation/budget/useBudgetConfiguration";
+import showAlert from "../../review/functions";
 import axiosInstance from "../../services/api/axiosConfig";
 import InfoCard from "../common/infoCard";
 import MaterialsBudget from "./budget/materialsBudget";

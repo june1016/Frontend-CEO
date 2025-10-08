@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../../services/api/axiosConfig";
-import { getUserId } from "../../../utils/timeManagement/operationTime";
+import { getUserId } from "../../../utils/shared/operationTime";
 
 
 const useProductInventory = () => {

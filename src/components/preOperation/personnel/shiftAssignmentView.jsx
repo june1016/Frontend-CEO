@@ -14,7 +14,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import MachineGroup from "./common/machineGroup";
 import StatsPanel from "./common/statsPanel";
-import { useShiftAssignment } from "../../../hooks/personnel/useShiftAssignment";
+import { useShiftAssignment } from "../../../hooks/preOperation/personnel/useShiftAssignment";
 
 const ShiftAssignmentView = () => {
   const theme = useTheme();

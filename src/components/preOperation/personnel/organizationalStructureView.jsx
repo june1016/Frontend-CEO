@@ -16,7 +16,7 @@ import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import SaveIcon from '@mui/icons-material/Save';
 import InfoIcon from '@mui/icons-material/Info';
 import RoleCard from "./common/roleCard";
-import { usePersonnel } from "../../../hooks/personnel/usePersonnel";
+import { usePersonnel } from "../../../hooks/preOperation/personnel/usePersonnel";
 import { formatCurrency } from "../../../utils/formatters/currencyFormatters";
 
 const OrganizationalStructureView = () => {

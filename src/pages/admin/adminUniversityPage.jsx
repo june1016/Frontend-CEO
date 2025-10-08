@@ -36,9 +36,9 @@ import PublicIcon from '@mui/icons-material/Public';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import showAlert, { showConfirmation } from "../../utils/alerts/alertHelpers.js";
 import FormDialog from "../../components/admin/formDialog.jsx";
-import { universitySchema } from "../../utils/validations/universitySchema.js";
+import { universitySchema } from "../../utils/validators/universitySchema.js";
 import { fieldsUniversity } from "../../data/fieldsForm.js";
-import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import ToastNotification, { showToast } from "../../components/common/ToastNotification";
 
 
 // Función para formatear la fecha

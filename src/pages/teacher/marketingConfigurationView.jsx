@@ -8,9 +8,9 @@ import {
   Button,
   useTheme
 } from "@mui/material";
-import ToastNotification, { showToast } from "../../components/alerts/ToastNotification";
+import ToastNotification, { showToast } from "../../components/common/ToastNotification";
 import axiosInstance from "../../services/api/axiosConfig";
-import { getUserId } from "../../utils/timeManagement/operationTime";
+import { getUserId } from "../../utils/shared/operationTime";
 
 const MarketingConfigurationView = () => {
   const theme = useTheme();

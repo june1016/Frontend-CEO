@@ -22,7 +22,7 @@ import {
 } from "@mui/icons-material";
 
 // Custom hook
-import { useBalanceSheet } from "../../hooks/balanceSheet/useBalanceSheet";
+import { useBalanceSheet } from "../../hooks/planning/balanceSheet/useBalanceSheet";
 
 // Componentes
 import FinancialTable from "./balanceSheet/financialTable";

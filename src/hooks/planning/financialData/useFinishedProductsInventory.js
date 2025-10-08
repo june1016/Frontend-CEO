@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import axiosInstance from "../../services/api/axiosConfig";
-import { getUserId } from "../../utils/timeManagement/operationTime";
+import axiosInstance from "../../../services/api/axiosConfig";
+import { getUserId } from "../../../utils/shared/operationTime";
 
 export const useFinishedProductsInventory = () => {
   const [finishedProducts, setFinishedProducts] = useState([]);

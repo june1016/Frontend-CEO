@@ -25,7 +25,7 @@ import SupplierComparison from "./suppliers/SupplierComparison";
 import SupplierSelections from "./suppliers/SupplierSelections";
 
 // Hook personalizado
-import useSuppliers from "../../hooks/suppliers/useSuppliers";
+import useSuppliers from "../../hooks/preOperation/suppliers/useSuppliers";
 import InfoCard from "../common/infoCard";
 
 export default function SuppliersTab() {
